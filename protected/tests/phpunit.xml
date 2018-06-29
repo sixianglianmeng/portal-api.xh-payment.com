@@ -1,0 +1,32 @@
+<phpunit bootstrap="bootstrap.php"
+        colors="false"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+        stopOnFailure="false">
+
+    <filter>
+        <blacklist>
+            <directory suffix=".php">../modules/*/tests</directory>
+        </blacklist>
+         
+        <whitelist addUncoveredFilesFromWhitelist="false">
+            <directory suffix=".php">../modules/</directory>
+            <exclude>
+                <directory suffix=".php">../modules/*/tests</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+
+    <testsuites>
+        <testsuite name="api">
+            <directory suffix="Test.php" phpVersion="5.6.0" phpVersionOperator=">=">../modules/api/tests/unit/</directory>
+        </testsuite>
+        <testsuite name="manage">
+            <directory suffix="Test.php" phpVersion="5.6.0" phpVersionOperator=">=">../modules/manage/tests/unit/</directory>
+        </testsuite>
+        <testsuite name="track">
+            <directory suffix="Test.php" phpVersion="5.6.0" phpVersionOperator=">=">../modules/track/tests/unit/</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

@@ -1,0 +1,7 @@
+#crontab -u www -e
+#渠道每日利润
+10 1 * * *  /www/wwwroot/agent.payment.com/protected/yii report/channel-daily-profit  2>&1
+#渠道每日利润
+20 3 * * *  /www/wwwroot/agent.payment.com/protected/yii report/daily-financial  2>&1
+#商户代理收款订单日报
+30 1 * * *  /www/wwwroot/agent.payment.com/protected/yii report/daily-recharge   2>&1

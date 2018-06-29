@@ -1,0 +1,9 @@
+.idea/
+node_modules/
+build/Release/
+*.log
+vendor/
+runtime/cache/
+runtime/cache.dat/
+runtime/log/
+runtime/debug/

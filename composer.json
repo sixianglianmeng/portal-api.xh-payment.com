@@ -1,0 +1,55 @@
+{
+    "name": "paymnet",
+    "type": "project",
+    "license": "proprietary",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "repositories": {
+        "poweryii2": {
+            "type": "git",
+            "url": "https://bootmall@github.com/sixianglianmeng/yii2.git"
+        },
+        "packagist": {
+            "type": "composer",
+            "url": "https://packagist.phpcomposer.com"
+        }
+    },
+    "require": {
+        "guzzlehttp/guzzle": "~6.0",
+        "php": ">=7.2",
+        "ext-redis": "4.*",
+        "yiisoft/yii2": "2.*",
+        "symfony/console": "2.*",
+        "power/yii2": "^0.1.0",
+        "filsh/yii2-oauth2-server": "*",
+        "yiisoft/yii2-redis": "^2.0",
+        "paragonie/random_compat": "~1.4",
+        "yiisoft/yii2-swiftmailer": "^2.1",
+        "yiisoft/yii2-queue": "^2.0",
+        "phpgangsta/googleauthenticator": "dev-master",
+        "overtrue/pinyin": "~3.0",
+        "phpoffice/phpspreadsheet": "^1.2"
+    },
+    "require-dev": {
+        "codeception/codeception": "*",
+        "yiisoft/yii2-debug": "*",
+        "phpunit/phpunit": ">=5.2.0",
+        "yiisoft/yii2-httpclient": "~2.0.0",
+        "eaglewu/swoole-ide-helper": "dev-master",
+        "yiisoft/yii2-gii": "^2.0"
+    },
+    "config": {
+        "process-timeout": 1800
+    },
+    "extra": {
+        "asset-installer-paths": {
+            "npm-asset-library": "vendor/npm",
+            "bower-asset-library": "vendor/bower"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+
+        }
+    }
+}
