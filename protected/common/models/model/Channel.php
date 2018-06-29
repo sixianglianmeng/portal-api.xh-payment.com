@@ -18,7 +18,6 @@ class Channel extends BaseModel
     const METHOD_QQ_H5 = 'QQH5';
     const METHOD_BANK_QUICK = 'WYKJ';
     const METHOD_JD_H5 = 'JDH5';
-    const METHOD_BANK_H5 = 'BANKH5';
     const METHOD_JD_QR = 'JDQR';
     const METHOD_UNIONPAY_H5 = 'UNH5';
     const METHOD_UNIONPAY_QUICK = 'UNKJ';
@@ -29,7 +28,6 @@ class Channel extends BaseModel
     const ARR_METHOD = [
         self::METHOD_WEBBANK    => '网银',
         self::METHOD_BANK_QUICK => '网银快捷',
-        self::METHOD_BANK_H5    => '网银H5',
 
         self::METHOD_WECHAT_QR      => '微信扫码',
         self::METHOD_WECHAT_H5      => '微信H5',
@@ -63,7 +61,6 @@ class Channel extends BaseModel
         self::METHOD_JD_H5          => 'jdH5',
         self::METHOD_JD_QR          => 'jdQr',
         self::METHOD_UNIONPAY_H5    => 'unionPayH5',
-        self::METHOD_BANK_H5        => 'bankH5',
         self::METHOD_WECHAT_CODEBAR => 'wechatCodeBar',
         self::METHOD_QQ_CODEBAR     => 'qqCodeBar',
         self::METHOD_ALIAPY_CODEBAR => 'alipayCodeBar',
