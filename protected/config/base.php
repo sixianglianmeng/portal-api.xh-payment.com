@@ -43,7 +43,7 @@ $config = [
         ],
         'db' => [
             'class' => 'yii\db\Connection',
-            'dsn' => 'mysql:host=35.229.128.154',
+            'dsn' => 'mysql:host=35.229.128.154;dbname=xh_payment_com',
             'username' => 'xh_payment_com',
             'password' => 'xf8LxyLRZmNM62Jd',
             'charset' => 'utf8',
