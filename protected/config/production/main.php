@@ -7,9 +7,9 @@ $config = \yii\helpers\ArrayHelper::merge(
         'components' => [
             'db' => [
                 'class' => 'yii\db\Connection',
-                'dsn' => 'mysql:host=127.0.0.1;dbname=suhui_paymemt_com',
-                'username' => 'suhui_paymemt',
-                'password' => 'z4wIx7wouBOJi90A',
+                'dsn' => 'mysql:host=127.0.0.1;dbname=xh_payment',
+                'username' => 'xh_payment',
+                'password' => 'Hkz4wIxIJtJusidaf234iK',
                 'charset' => 'utf8',
                 'tablePrefix' => 'p_',
                 'enableSchemaCache' => true,
