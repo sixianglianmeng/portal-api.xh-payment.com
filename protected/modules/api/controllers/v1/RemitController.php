@@ -507,7 +507,8 @@ class RemitController extends BaseController
     {
         $userObj = Yii::$app->user->identity;
         $user = $userObj->getMainAccount();
-        if($user->paymethodinfo->allow_manual_remit != 1){
+
+        if($user->paymentInfo->allow_manual_remit != 1){
             return ResponseHelper::formatOutput(Macro::ERR_ALLOW_MANUAL_REMIT, "不支持手工提款");
         }
         //允许的排序

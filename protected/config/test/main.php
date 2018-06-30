@@ -22,9 +22,6 @@ $config = \yii\helpers\ArrayHelper::merge(
             ],
         ],
         'params' => [
-            'domain.cdn' => 't1.gateway.gd95516.com',
-            'domain.gateway.rpc' => 't1.gateway.gd95516.com',
-            'corsOriginDomain' => ['*','t1.gateway.gd95516.com'],
         ],
     ]
 );

@@ -84,6 +84,7 @@ class ChannelController extends BaseController
         foreach ($accounts as $i=>$a){
             $records[$i]['id'] = $a->id;
             $records[$i]['channel_name'] = $a->channel_name;
+            $records[$i]['parent_name'] = $a->channel->name;
             $records[$i]['channel_id'] = $a->channel_id;
             $records[$i]['merchant_id'] = $a->merchant_id;
             $records[$i]['merchant_account'] = $a->merchant_account;

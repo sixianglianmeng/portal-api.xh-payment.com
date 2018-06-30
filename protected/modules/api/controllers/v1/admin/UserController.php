@@ -64,7 +64,7 @@ class UserController extends BaseController
             User::ARR_STATUS);
         $data['status'] = ControllerParameterValidator::getRequestParam($arrAllParams, 'status',null,Macro::CONST_PARAM_TYPE_ARRAY_HAS_KEY,'状态错误',User::ARR_STATUS);
         //管理员只能开代理
-        $data['group_id'] = User::GROUP_AGENT;//ControllerParameterValidator::getRequestParam($arrAllParams, 'group_id',null,Macro::CONST_PARAM_TYPE_ARRAY_HAS_KEY,'账户类型错误',User::ARR_GROUP);
+        $data['group_id'] = ControllerParameterValidator::getRequestParam($arrAllParams, 'group_id',null,Macro::CONST_PARAM_TYPE_ARRAY_HAS_KEY,'账户类型错误',User::ARR_GROUP);
         $data['remit_fee'] = ControllerParameterValidator::getRequestParam($arrAllParams, 'remit_fee',null,Macro::CONST_PARAM_TYPE_DECIMAL,'结算手续费错误');
         $data['pay_method'] = ControllerParameterValidator::getRequestParam($arrAllParams, 'pay_method',null,Macro::CONST_PARAM_TYPE_ARRAY,'收款方式及费率配置错误');
         $data['recharge_quota_pertime'] = ControllerParameterValidator::getRequestParam($this->allParams, 'recharge_quota_pertime',0,Macro::CONST_PARAM_TYPE_DECIMAL,'充值单笔限额错误');
@@ -76,8 +76,7 @@ class UserController extends BaseController
         $data['allow_manual_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_manual_remit',1,Macro::CONST_PARAM_TYPE_INT,'允许手工结算错误');
         $data['allow_api_fast_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_api_fast_remit',1,Macro::CONST_PARAM_TYPE_INT,'接口结算不需审核错误');
         //管理员开的账户均为顶级账户
-        $parentAccountName = '';//ControllerParameterValidator::getRequestParam($arrAllParams, 'parentMerchantAccount',null,Macro::CONST_PARAM_TYPE_USERNAME,
-        //'上级帐号错误');
+        $parentAccountName = ControllerParameterValidator::getRequestParam($arrAllParams, 'parentMerchantAccount',null,Macro::CONST_PARAM_TYPE_USERNAME,'上级帐号错误');
         //收款和出款通道在通道切换处统一设置
         $channelAccountId = ControllerParameterValidator::getRequestParam($arrAllParams, 'channel',0,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'收款通道错误');
         $remitChannelAccountId = ControllerParameterValidator::getRequestParam($arrAllParams, 'remit_channel',0,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'出款通道错误');

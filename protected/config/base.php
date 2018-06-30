@@ -94,7 +94,7 @@ $config = [
                 'file' => [
                     'class' => '\power\yii2\log\FileTarget',
                     'levels' => ['error', 'warning'],
-                    'logFile' => '@runtime/log/err.log',
+                    'logFile' => '@runtime/log/err'.date('md').'.log',
                     'enableRotation' => true,
                     'maxFileSize' => 1024 * 100,
                     'logVars' => [],
@@ -102,7 +102,7 @@ $config = [
                 'notice' => [
                     'class' => '\power\yii2\log\FileTarget',
                     'levels' => ['notice', 'trace','info','warning','error'],//'profile',
-                    'logFile' => '@runtime/log/common.log',
+                    'logFile' => '@runtime/log/common'.date('md').'.log',
                     'enableRotation' => true,
                     'maxFileSize' => 1024 * 100,
                     'logVars' => [],
@@ -151,7 +151,7 @@ $config = [
     'params' => [
         'secret'   => [        // 参数签名私钥, 由客户端、服务端共同持有
             'test'          => 'e09813f8015339fc445f3a84bb8c4023',
-            'agent.payment' => '736a0658e8a20f70ba5e53dc1ae9dc9f',
+            'agent.payment' => '736a0658e80f70ba5e53dc1ae9dc9f_xinhui',
         ],
 
         'paymentGateWayApiDefaultSignType' => 'md5',//rsa
@@ -159,9 +159,6 @@ $config = [
         'user.apiTokenExpire' => 3600*10,
         'user.passwordResetTokenExpire' => 600,
         'user.rateLimit' => [60, 60],
-        'domain.cdn' => 'dev.portail-api.pub-payment.com',
-        'domain.gateway.rpc' => 'dev.gateway.pub-payment.com',
-        'corsOriginDomain' => ['*','dev.portail-api.pub-payment.com'],
         'user.defaultPassword' => 'Pass123',
     ],
 ];
