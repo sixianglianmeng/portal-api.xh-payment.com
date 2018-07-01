@@ -17,7 +17,7 @@ $config = \yii\helpers\ArrayHelper::merge(
             'redis' => [
                 'class' => 'yii\redis\Connection',
                 'hostname' => '127.0.0.1',
-                'port' => 63780,
+                'port' => 63781,
                 'database' => 0,
             ],
         ],

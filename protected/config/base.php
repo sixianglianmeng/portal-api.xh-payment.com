@@ -53,7 +53,7 @@ $config = [
         'redis' => [
             'class' => 'yii\redis\Connection',
             'hostname' => '127.0.0.1',
-            'port' => 6380,
+            'port' => 6379,
             'database' => 0,
         ],
         'formatter' => [
