@@ -11,6 +11,7 @@ use app\common\models\model\TagRelation;
 use app\common\models\model\User;
 use app\common\models\model\UserPaymentInfo;
 use app\components\Macro;
+use app\components\RpcPaymentGateway;
 use app\components\Util;
 use app\lib\helpers\ControllerParameterValidator;
 use app\lib\helpers\ResponseHelper;
@@ -1233,5 +1234,38 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
             }
         }
         return ResponseHelper::formatOutput(Macro::SUCCESS);
+    }
+
+    /**
+     * 修改用户余额
+     * @role admin
+     */
+    public function actionChangeBalance()
+    {
+        $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId', null, Macro::CONST_PARAM_TYPE_INT, '用户id错误');
+        $amount = ControllerParameterValidator::getRequestParam($this->allParams, 'amount',null,Macro::CONST_PARAM_TYPE_DECIMAL,'金额错误');
+
+        $user = User::findOne(['id'=>$userId]);
+        if(!$user){
+            ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
+        }
+        //接口日志埋点
+        Yii::$app->params['operationLogFields'] = [
+            'table'=>'p_users',
+            'pk'=>$user->id,
+            'order_no'=>$user->id,
+        ];
+
+        $opUser = Yii::$app->user->identity;
+        $data[] = [
+            'user_id'=>$user->id,
+            'amount'=>$amount,
+            'op_username'=>$opUser->username,
+            'op_userid'=>$opUser->id,
+        ];
+
+        $ret = RpcPaymentGateway::call('/account/change-balance', $data);
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS, '解冻成功');
     }
 }
