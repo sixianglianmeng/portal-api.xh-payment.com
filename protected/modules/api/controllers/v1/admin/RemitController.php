@@ -140,7 +140,7 @@ class RemitController extends BaseController
 
         $filter = $this->baseFilter;
         $filter['id'] = $idList;
-        $filter['status'] = Remit::STATUS_NONE;
+        $filter['status'] = Remit::STATUS_DEDUCT;
         $maxNum = 100;
         if(count($idList)>$maxNum){
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, "单次最多设置{$maxNum}个订单");

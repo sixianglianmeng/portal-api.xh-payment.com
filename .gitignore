@@ -1,3 +1,7 @@
+/.settings/
+*/.DS_Store
+.DS_Store
+Thumbs.db
 .idea/
 node_modules/
 build/Release/
