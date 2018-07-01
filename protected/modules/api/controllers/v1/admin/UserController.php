@@ -954,6 +954,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
             $user->financial_password_hash = '';
         }elseif ($type ==2){
             $user->key_2fa = '';
+            $user->key_2fa_token = '';
         }elseif ($type == 3){
             $user->status = $status;
         }elseif ($type == 4){
