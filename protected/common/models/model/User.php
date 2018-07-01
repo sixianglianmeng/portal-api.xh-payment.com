@@ -1,6 +1,7 @@
 <?php
 namespace app\common\models\model;
 
+use app\common\exceptions\OperationFailureException;
 use app\components\Macro;
 use app\components\Util;
 use Yii;
@@ -405,10 +406,114 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         $password = md5($password.$this->username);
         $this->financial_password_hash=Yii::$app->security->generatePasswordHash($password);
     }
-    public function validateFinancialPassword($password){
-        $password = md5($password.$this->username);
-        return Yii::$app->security->validatePassword($password,$this->financial_password_hash);
+
+    /**
+     * 检测资金密码是否设置
+     */
+    public function checkFinancialPasswordIsSet()
+    {
+        return $this->financial_password_hash!='';
     }
+
+    public function validateFinancialPassword($password){
+        if(!$this->checkFinancialPasswordIsSet()){
+            throw new OperationFailureException('请先设置资金密码',Macro::FAIL);
+        }
+
+        $cacheKey = 'validateFinancialPassword_ret_'.$this->id;
+        $limitData = Yii::$app->cache->get($cacheKey);
+        $limitDuration = 1800;
+        $maxTime = 5;
+        if($limitData){
+            $limitData = json_decode($limitData,true);
+            if(isset($limitData['ts']) && $limitData['ts']>(time()-$limitDuration)){
+                if(isset($limitData['times']) && $limitData['times']>=$maxTime){
+                    throw new OperationFailureException('资金密码失败次数过多，请稍候重试或联系客服。',Macro::FAIL);
+                }
+            }
+        }else{
+            $limitData = [
+                'times'=>0,
+                'ts'=>time(),
+            ];
+        }
+
+        $password = md5($password.$this->username);
+        $ret = false;
+        if(!Yii::$app->security->validatePassword($password,$this->financial_password_hash)){
+            $limitData['times'] += 1;
+            $limitData['ts'] = time();
+            Yii::info('validate err: '.$cacheKey.\GuzzleHttp\json_encode($limitData));
+        }else{
+            $ret = true;
+            $limitData = [];
+        }
+        Yii::$app->cache->set($cacheKey,json_encode($limitData),$limitDuration);
+
+        return $ret;
+    }
+
+    /**
+     * 校验用户二步验证码是否设置
+     */
+    public function checkKey2faIsSet()
+    {
+        return $this->key_2fa!='';
+    }
+
+    /**
+     * 校验用户二步验证码(google验证码)
+     * @param string $key2fa
+     * @return bool
+     */
+    public function validateKey2fa(string $key2fa){
+        if(!$this->checkKey2faIsSet()){
+            throw new OperationFailureException('请先设置安全密码',Macro::FAIL);
+        }
+
+        $cacheKey = 'validateKey2fa_ret_'.$this->id;
+        $limitData = Yii::$app->cache->get($cacheKey);
+        $limitDuration = 1800;
+        $maxTime = 5;
+        if($limitData){
+            $limitData = json_decode($limitData,true);
+            if(isset($limitData['ts']) && $limitData['ts']>(time()-$limitDuration)){
+                if(isset($limitData['times']) && $limitData['times']>=$maxTime){
+                    throw new OperationFailureException('安全密码失败次数过多，请稍候重试或联系客服。',Macro::FAIL);
+                }
+            }
+        }else{
+            $limitData = [
+                'times'=>0,
+                'ts'=>time(),
+            ];
+        }
+
+        $ret = false;
+        $googleObj = new \PHPGangsta_GoogleAuthenticator();
+        if(!$googleObj->verifyCode($this->key_2fa, $key2fa,2)){
+            $limitData['times'] += 1;
+            $limitData['ts'] = time();
+        }else{
+            $ret = true;
+            $limitData = [];
+        }
+        Yii::$app->cache->set($cacheKey,json_encode($limitData),$limitDuration);
+
+        return $ret;
+    }
+
+    /**
+     * 清除用户资金密码等安全判断缓存
+     * 可在用户资金密码等错误次数过多，需要手动恢复时调用
+     */
+    public function clearSecurityErrorCache()
+    {
+        Yii::$app->cache->delete('validateKey2fa_ret_'.$this->id);
+        Yii::$app->cache->delete('validateFinancialPassword_ret_'.$this->id);
+    }
+
+
     public function getSlatedPlainPassword($password)
     {
         $password = md5($this->salt.$password.$this->username);

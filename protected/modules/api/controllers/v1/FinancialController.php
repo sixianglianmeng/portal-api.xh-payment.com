@@ -122,9 +122,9 @@ class FinancialController extends BaseController
                 $record['uid'] = $d->uid;
                 $record['username'] = mb_convert_encoding($d->username,'GBK');
                 $record['event_type_str'] = mb_convert_encoding(Financial::getEventTypeStr($d->event_type),'GBK');
+                $record['balance_before'] = $d->balance_before;
                 $record['amount'] = $d->amount;
                 $record['balance'] = $d->balance;
-                $record['balance_before'] = $d->balance_before;
                 $record['status_str'] = mb_convert_encoding(Financial::getStatusStr($d->status),'GBK');
                 $record['created_at'] = date('Y-m-d H:i:s',$d->created_at);
                 $record['bak'] = $d->bak;

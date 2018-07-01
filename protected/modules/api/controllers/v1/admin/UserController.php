@@ -285,6 +285,7 @@ class UserController extends BaseController
 
         $searchFilter = $this->getSearchFilter($field,$subField);
         $query = $searchFilter['query'];
+        $query->orderBy("{$sort[0]} {$sort[1]}");
 
         //生成分页数据
         $p = new ActiveDataProvider([
@@ -296,6 +297,7 @@ class UserController extends BaseController
             'sort' => [
                 'defaultOrder' => [
 //                    $sort[0] => $sort[1],
+//                    'created_at'=>'DESC'
                 ]
             ],
         ]);

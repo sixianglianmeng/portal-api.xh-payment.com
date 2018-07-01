@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\api\controllers\v1;
 
+use app\common\exceptions\OperationFailureException;
 use app\common\models\form\LoginForm;
 use app\common\models\model\LogOperation;
 use app\common\models\model\User;
@@ -155,6 +156,7 @@ class UserController extends BaseController
             'balance' => $user->balance,
             'role' => [User::getGroupEnStr($user->group_id)],
             'permissions' => $user->getPermissions(),
+            'main_merchant_id' => $user->getMainAccount()->id,
         ];
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
@@ -225,6 +227,13 @@ class UserController extends BaseController
      */
     public function actionGetAuthKey()
     {
+        $user = Yii::$app->user->identity;
+        if(!$user->isMainAccount()){
+            throw new OperationFailureException('只有主账号有此操作权限',Macro::FAIL);
+        }
+
+        $this->checkSecurityInfo();
+
         $payInfo = Yii::$app->user->identity->paymentInfo;
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功',$payInfo->app_key_md5);
     }
@@ -234,7 +243,14 @@ class UserController extends BaseController
      */
     public function actionEditAuthKey()
     {
-        $authKey = ControllerParameterValidator::getRequestParam($this->allParams,'authKey','',Macro::CONST_PARAM_TYPE_STRING,'商户Key错误',[0,50]);
+        $user = Yii::$app->user->identity;
+        if(!$user->isMainAccount()){
+            throw new OperationFailureException('只有主账号有此操作权限',Macro::FAIL);
+        }
+
+        $this->checkSecurityInfo();
+
+        $authKey = ControllerParameterValidator::getRequestParam($this->allParams,'authKey','',Macro::CONST_PARAM_TYPE_STRING,'商户Key格式错误',[0,50]);
         $payInfo = Yii::$app->user->identity->paymentInfo;
         $payInfo->app_key_md5 = $authKey;
         $payInfo->save();
@@ -407,5 +423,49 @@ class UserController extends BaseController
         $user->setFinancialPassword($newPass);
         $user->save();
         return ResponseHelper::formatOutput(Macro::SUCCESS);
+    }
+
+    /**
+     * 检测是否是主账户及校验安全属性(资金密码或google令牌)
+     */
+    protected function checkSecurityInfo(){
+        $user = Yii::$app->user->identity;
+
+        //检测有效期，例如5分钟内检测过可跳过
+        $checkValidDuration = 300;
+        $cacheKey = 'checkMainAccountAndSecurityInfo_ret_'.$this->id;
+        $ts = Yii::$app->cache->get($cacheKey);
+        if($ts && $ts>(time()-$checkValidDuration)){
+            return true;
+        }
+
+        $finacialPwd = ControllerParameterValidator::getRequestParam($this->allParams,'finacialPwd','',Macro::CONST_PARAM_TYPE_PASSWORD,'资金密码格式错误',[6,16]);
+        $key2fa = ControllerParameterValidator::getRequestParam($this->allParams,'key2fa','',Macro::CONST_PARAM_TYPE_INT,'安全令牌验证码格式错误',[6]);
+        if(empty($finacialPwd) && empty($key2fa)){
+            throw new OperationFailureException('资金密码或安全令牌格式错误',Macro::FAIL);
+        }
+
+        $validate = false;
+        if($finacialPwd){
+            if($user->validateFinancialPassword($finacialPwd)){
+                $validate=true;
+            }else{
+                throw new OperationFailureException('资金密码错误',Macro::FAIL);
+            }
+
+        }
+        if($key2fa){
+            if($user->validateKey2fa($key2fa)){
+                $validate=true;
+            }else{
+                throw new OperationFailureException('安全令牌错误',Macro::FAIL);
+            }
+
+        }
+        if(!$validate){
+            throw new OperationFailureException('资金密码或安全令牌错误',Macro::FAIL);
+        }
+
+        Yii::$app->cache->set($cacheKey,time(),$checkValidDuration);
     }
 }
