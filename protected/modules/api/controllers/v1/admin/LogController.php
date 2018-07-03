@@ -9,6 +9,7 @@
 namespace app\modules\api\controllers\v1\admin;
 use app\common\models\model\LogApiRequest;
 use app\common\models\model\LogOperation;
+use app\common\models\model\LogSystem;
 use app\components\Macro;
 use app\lib\helpers\ControllerParameterValidator;
 use app\lib\helpers\ResponseHelper;
@@ -76,10 +77,13 @@ class LogController extends BaseController
             $query->andWhere(['event_type'=>$eventType]);
         }
         if ($dateStart) {
-            $query->andFilterCompare('u.created_at', '>=' . strtotime($dateStart));
+            $query->andFilterCompare('created_at', '>=' . strtotime($dateStart));
         }
         if ($dateEnd) {
-            $query->andFilterCompare('u.created_at', '<' . strtotime($dateEnd));
+            $query->andFilterCompare('created_at', '<' . strtotime($dateEnd));
+        }
+        if($merchantName){
+            $query->andWhere(['like','merchant_name',$merchantName]);
         }
 
         $sorts = [
@@ -165,7 +169,9 @@ class LogController extends BaseController
             $query->andFilterCompare('u.created_at', '<' . strtotime($dateEnd));
             $updateFilter[] = "u.created_at<" . strtotime($dateEnd);
         }
-
+        if($username){
+            $query->andWhere(['like','username',$username]);
+        }
         $sorts = [
             'created_at-'=>['created_at',SORT_DESC],
         ];
@@ -202,6 +208,88 @@ class LogController extends BaseController
         $to = $page*$perPage;
         $data = [
             'fieldLabels'=>(new LogOperation())->attributeLabels(),
+            'data'=>$records,
+            "pagination"=>[
+                "total" =>  $total,
+                "per_page" =>  $perPage,
+                "current_page" =>  $page,
+                "last_page" =>  $lastPage,
+                "from" =>  $from,
+                "to" =>  $to
+            ]
+        ];
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
+    }
+
+    /**
+     * 系统错误日志
+     * @roles admin
+     */
+    public function actionSystemLogList()
+    {
+        $user = Yii::$app->user->identity;
+
+        $title = ControllerParameterValidator::getRequestParam($this->allParams, 'title', 0, Macro::CONST_PARAM_TYPE_STRING, '搜索关键字错误');
+        $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',
+            Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
+        $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',
+            Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
+
+        $sort = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 15, Macro::CONST_PARAM_TYPE_SORT, '分页参数错误',[1,100]);
+        $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
+        $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,1000]);
+
+        $query = LogSystem::find();
+        if($title){
+            $query->andWhere(['like','message',$title]);
+        }
+        if ($dateStart) {
+            $query->andFilterCompare('log_time', '>=' . strtotime($dateStart));
+            $updateFilter[] = "log_time>=" . strtotime($dateStart);
+        }
+        if ($dateEnd) {
+            $query->andFilterCompare('created_at', '<' . strtotime($dateEnd));
+            $updateFilter[] = "log_time<" . strtotime($dateEnd);
+        }
+
+        $sorts = [
+            'created_at-'=>['log_time',SORT_DESC],
+        ];
+        if(!empty($sorts[$sort])){
+            $sort = $sorts[$sort];
+        }else{
+            $sort =['log_time',SORT_DESC];
+        }
+        //生成分页数据
+        $p = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => $perPage,
+                'page' => $page-1,
+            ],
+            'sort' => [
+                'defaultOrder' => [
+                    $sort[0] => $sort[1],
+                ]
+            ],
+        ]);
+
+        $records=[];
+        foreach ($p->getModels() as $i=>$d){
+            $records[$i] = $d->toArray();
+            $records[$i]['log_time'] = date('Ymd H:i:s',$d->log_time);
+            $records[$i]['message'] = str_replace("\n","<br />",$records[$i]['message']);
+        }
+
+        //分页数据
+        $pagination = $p->getPagination();
+        $total = $pagination->totalCount;
+        $lastPage = ceil($pagination->totalCount/$perPage);
+        $from = ($page-1)*$perPage;
+        $to = $page*$perPage;
+        $data = [
+            'fieldLabels'=>(new LogSystem())->attributeLabels(),
             'data'=>$records,
             "pagination"=>[
                 "total" =>  $total,
