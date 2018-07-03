@@ -239,7 +239,7 @@ class UserController extends BaseController
     }
 
     /**
-     * 修改auth_key
+     * 修改商户key
      */
     public function actionEditAuthKey()
     {

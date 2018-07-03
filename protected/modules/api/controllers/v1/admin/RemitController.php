@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\api\controllers\v1\admin;
 
+use app\common\models\model\ChannelAccount;
 use app\common\models\model\LogOperation;
 use app\common\models\model\Remit;
 use app\components\Macro;
@@ -189,5 +190,58 @@ class RemitController extends BaseController
             }
         }
         return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN);
+    }
+
+    /**
+     * 切换代付订单通道
+     *
+     * @role admin
+     */
+    public function actionSwitchChannelAccount()
+    {
+        $id = ControllerParameterValidator::getRequestParam($this->allParams, 'id', null,Macro::CONST_PARAM_TYPE_ARRAY,'订单号格式错误');
+        $channelAccountId = ControllerParameterValidator::getRequestParam($this->allParams, 'channelAccountId', null,Macro::CONST_PARAM_TYPE_INT,'通道号格式错误');
+
+        $filter = $this->baseFilter;
+        $filter['id'] = $id;
+        $rawOrders = Remit::findAll($filter);
+        if(empty($rawOrders)){
+            Util::throwException(Macro::FAIL,'订单不存在');
+        }
+
+        $channelAccount = ChannelAccount::findOne($channelAccountId);
+        if(empty($channelAccount)){
+            Util::throwException(Macro::FAIL,'通道不存在');
+        }
+        $failed=[];
+        $msg = '通道切换成功';
+        $ret = Macro::SUCCESS;
+        foreach ($rawOrders as $remit){
+
+            //接口日志埋点
+            Yii::$app->params['operationLogFields'] = [
+                'table'=>'p_remit',
+                'pk'=>$remit->id,
+                'order_no'=>$remit->order_no,
+                'desc'=>'切换至：'.$channelAccount->channel_name
+            ];
+            LogOperation::inLog('ok');
+
+            if(!in_array($remit->status,[Remit::STATUS_NONE,Remit::STATUS_DEDUCT,Remit::STATUS_NOT_REFUND])){
+//                Util::throwException(Macro::FAIL,'只有未审核|失败未退款订单才能切换通道');
+                $failed[] = $remit->order_no;
+                continue;
+            }
+
+            $remit->channel_id = $channelAccount->channel_id;
+            $remit->channel_account_id = $channelAccount->id;
+            $remit->channel_merchant_id = $channelAccount->merchant_id;
+            $remit->save();
+        }
+        if($failed){
+            $msg = "部分订单状态错误，通道切换失败:".implode(",",$failed);
+            $ret = Macro::FAIL;
+        }
+        return ResponseHelper::formatOutput($ret,$msg,['failed'=>$failed]);
     }
 }

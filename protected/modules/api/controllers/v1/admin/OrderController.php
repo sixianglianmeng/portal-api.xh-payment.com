@@ -127,6 +127,8 @@ class OrderController extends BaseController
 
     /**
      * 订单退款
+     *
+     * @role admin
      */
     public function actionRefund()
     {
@@ -139,6 +141,14 @@ class OrderController extends BaseController
         if(empty($order)){
             Util::throwException(Macro::FAIL,'订单不存在');
         }
+
+        //接口日志埋点
+        Yii::$app->params['operationLogFields'] = [
+            'table'=>'p_orders',
+            'pk'=>$order->id,
+            'order_no'=>$order->order_no,
+        ];
+
         if($order->status!=Order::STATUS_PAID){
             Util::throwException(Macro::FAIL,'只有成功订单才能退款');
         }
