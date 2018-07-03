@@ -1244,6 +1244,8 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
     {
         $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId', null, Macro::CONST_PARAM_TYPE_INT, '用户id错误');
         $amount = ControllerParameterValidator::getRequestParam($this->allParams, 'amount',null,Macro::CONST_PARAM_TYPE_DECIMAL,'金额错误');
+        $bak = ControllerParameterValidator::getRequestParam($this->allParams, 'bak',null,Macro::CONST_PARAM_TYPE_STRING,'调整原因错误',[1]);
+        $balanceType = ControllerParameterValidator::getRequestParam($this->allParams, 'type',null,Macro::CONST_PARAM_TYPE_ENUM,'金额类型错误',[1,2]);
 
         $user = User::findOne(['id'=>$userId]);
         if(!$user){
@@ -1256,12 +1258,11 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
             'order_no'=>$user->id,
         ];
 
-        $opUser = Yii::$app->user->identity;
-        $data[] = [
+        $data = [
             'user_id'=>$user->id,
             'amount'=>$amount,
-            'op_username'=>$opUser->username,
-            'op_userid'=>$opUser->id,
+            'bak'=>$bak,
+            'type'=>$balanceType,
         ];
 
         $ret = RpcPaymentGateway::call('/account/change-balance', $data);

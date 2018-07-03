@@ -105,8 +105,7 @@ class OrderController extends BaseController
 
         $filter = $this->baseFilter;
         $filter['id'] = $id;
-//        $order = Order::findOne($filter);
-        $order = Order::find()->where($filter)->limit(1)->one();
+        $order = Order::findOne($filter);
         if(!$order){
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '订单不存在');
         }
@@ -123,6 +122,35 @@ class OrderController extends BaseController
         RpcPaymentGateway::setOrderUnFrozen($orderOpList);
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '解冻成功');
+    }
+
+
+    /**
+     * 订单退款
+     */
+    public function actionRefund()
+    {
+        $id = ControllerParameterValidator::getRequestParam($this->allParams, 'id', null,Macro::CONST_PARAM_TYPE_INT,'订单号格式错误');
+        $bak = ControllerParameterValidator::getRequestParam($this->allParams, 'bak',null,Macro::CONST_PARAM_TYPE_STRING,'退款原因错误',[1]);
+
+        $filter = $this->baseFilter;
+        $filter['id'] = $id;
+        $order = Order::findOne($filter);
+        if(empty($order)){
+            Util::throwException(Macro::FAIL,'订单不存在');
+        }
+        if($order->status!=Order::STATUS_PAID){
+            Util::throwException(Macro::FAIL,'只有成功订单才能退款');
+        }
+
+        $data = [
+            'order_no'=>$order->order_no,
+            'bak'=>$bak,
+        ];
+
+        $ret = RpcPaymentGateway::call('/order/refund', $data);
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'退款成功');
     }
 
 }
