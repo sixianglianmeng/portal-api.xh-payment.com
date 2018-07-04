@@ -69,6 +69,17 @@ class Remit extends BaseModel
         self::STATUS_BANK_PROCESS_FAIL => '银行处理失败',
     ];
 
+    //订单通知状态
+    const NOTICE_STATUS_NONE = 10;
+    const NOTICE_STATUS_SUCCESS = 20;
+    const NOTICE_STATUS_FAIL = 30;
+//    订单状态 id=>描述
+    const ARR_NOTICE_STATUS = [
+        self::NOTICE_STATUS_NONE=>'未通知',
+        self::NOTICE_STATUS_SUCCESS=>'通知成功',
+        self::NOTICE_STATUS_FAIL=>'通知失败',
+    ];
+
     /**
      * @inheritdoc
      */
@@ -130,6 +141,11 @@ class Remit extends BaseModel
 
     public function getChannelAccount(){
         return $this->hasOne(ChannelAccount::className(), ['id'=>'channel_account_id']);
+    }
+
+    public function getUserPaymentInfo()
+    {
+        return $this->hasOne(UserPaymentInfo::className(), ['user_id'=>'merchant_id']);
     }
 
     /**

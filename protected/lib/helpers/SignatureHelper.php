@@ -28,9 +28,11 @@ class SignatureHelper extends SecurityHelper
 
     public static function md5Sign($params, $strSecret){
         if (is_array($params)) {
+            unset($params['key']);
             $a      = $params;
             $params = array();
             foreach ($a as $key => $value) {
+                if($value=='') continue;
                 $params[] = "$key=$value";
             }
             sort($params,SORT_STRING);

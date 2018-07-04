@@ -37,16 +37,47 @@ class BankCodes extends BaseModel
     }
 
     /**
+     * 获取通道银行
+     */
+    public static function getRechargeBankList($channelIds)
+    {
+        return self::find()->select('platform_bank_code,bank_name')->where(['in','channel_id',$channelIds])->andWhere(['can_recharge'=>1])->cache(300)->distinct()->asArray()->all();
+    }
+
+    /**
+     * 获取通道银行
+     */
+    public static function getRemitBankList($channelIds)
+    {
+        return self::find()->select('platform_bank_code,bank_name')->where(['in','channel_id',$channelIds])->andWhere(['can_remit'=>1])->cache(300)->distinct()->asArray()->all();
+    }
+
+    /**
      * 获取三方银行代码
      *
      * @param int $channelId 渠道id
      * @param string $platformCode 本支付平台的银行代码
+     * @param string $type 查找类型recharge支持充值,remit支持代付,all支持所有
      *
      * @return string
      */
-    public static function getChannelBankCode($channelId, $platformCode)
+    public static function getChannelBankCode(int $channelId, string $platformCode, string $type='recharge')
     {
-        $code = self::findOne(['channel_id'=>$channelId,'platform_bank_code'=>$platformCode]);
+        $filter = ['channel_id'=>$channelId,'platform_bank_code'=>$platformCode];
+        switch ($type){
+            case 'recharge':
+                $filter['can_recharge']=1;
+                break;
+            case 'remit':
+                $filter['can_remit']=1;
+                break;
+            case 'all':
+                $filter['can_recharge']=1;
+                $filter['can_remit']=1;
+                break;
+
+        }
+        $code = self::findOne($filter);
 
         return $code?$code->channel_bank_code:'';
     }

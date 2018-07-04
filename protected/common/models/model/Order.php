@@ -57,6 +57,7 @@ class Order extends BaseModel
     const STATUS_PAID = 20;
     const STATUS_FREEZE = 30;
     const STATUS_FAIL = 40;
+    const STATUS_REFUND = 50;
 
 //    充值订单状态
     const ARR_STATUS = [
@@ -65,6 +66,7 @@ class Order extends BaseModel
         self::STATUS_PAID=>'已支付',
         self::STATUS_FREEZE=>'冻结',
         self::STATUS_FAIL=>'支付失败',
+        self::STATUS_REFUND=>'已退款',
     ];
 
 //    订单通知状态
@@ -108,6 +110,10 @@ class Order extends BaseModel
         return $this->hasOne(ChannelAccount::className(), ['id'=>'channel_account_id']);
     }
 
+    public function getUserPaymentInfo()
+    {
+        return $this->hasOne(UserPaymentInfo::className(), ['user_id'=>'merchant_id']);
+    }
     /**
      * 获取支付方式配置信息
      *

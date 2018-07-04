@@ -1,6 +1,7 @@
 <?php
 namespace app\components;
 
+use app\common\exceptions\OperationFailureException;
 use app\common\models\model\Channel;
 use yii\base\Security;
 
@@ -155,7 +156,7 @@ class Util
                 $exp =  "/^[0-9a-z]{32}$/i";
                 break;
             case Macro::CONST_PARAM_TYPE_BANK_NO:
-                $exp =  "/^\d{6,24}$/i";
+                $exp = preg_match("/^\d{6,24}$/i",$val) && self::checkLuhn($val);
                 break;
             case Macro::CONST_PARAM_TYPE_DATE:
                 $ts = strtotime($val.' 0:0');
@@ -231,8 +232,6 @@ class Util
                 $exp = (!empty($val) && !empty(Macro::BANK_LIST[$val]));
                 break;
             case Macro::CONST_PARAM_TYPE_PAYTYPE:
-//                $codes = Macro::getAllBankCode();
-                $val = intval($val);
                 $exp = (!empty($val) && !empty(Channel::ARR_METHOD[$val]));
                 break;
             default:
@@ -345,6 +344,22 @@ class Util
             return iconv('gbk', 'utf-8', $word);
         }
     }
+
+    /*
+     * unicode字符串转换为utf8字符串
+     */
+    public static function unicode2utf8($str)
+    {
+        if (!$str) return $str;
+        $decode = json_decode($str);
+        if ($decode) return $decode;
+        $str    = '["' . $str . '"]';
+        $decode = json_decode($str);
+        if (count($decode) == 1) {
+            return $decode[0];
+        }
+        return $str;
+    }
     /**
      * 获取客户端IP地址
      * @param integer $type 返回类型 0 返回IP地址 1 返回IPV4地址数字
@@ -362,7 +377,7 @@ class Util
         foreach (['HTTP_CF_CONNECTING_IP','HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED',  'REMOTE_ADDR', 'HTTP_CLIENT_IP'] as $key) {
             if (array_key_exists($key, $_SERVER) === true) {
                 foreach (explode(',', $_SERVER[$key]) as $ip) {
-                    $ip = trim($ip); // just to be safe
+                    $ip = trim($ip);
 
                     if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
                         $ip = '';
@@ -383,12 +398,56 @@ class Util
     }
 
     /**
+     * CURL JSON POST请求
+     *
+     * param string $url 请求的URL
+     * param array $data post的数组
+     * param array $headers 请求header
+     * param int $timeoutMs 超时毫秒数
+     */
+    public static function curlPostJson(string $url, array $data, array $headers=[], $timeoutMs=5000)
+    {
+        $ch        = curl_init();
+        $headers[] = "Accept-Charset: utf-8";
+        $headers[] = "Accept:application/json";
+        $headers[] = "Content-Type:application/json;charset=utf-8";
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Safari/537.36');
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_AUTOREFERER, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT_MS, $timeoutMs);
+        $result = curl_exec($ch);
+
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($httpCode!=200) {
+            Yii::error('post request failed. url-' . $url . ' params-' . json_encode($data) .' '. $result);
+
+            throw new OperationFailureException('请求远程失败:'.$result, $httpCode);
+        }
+        if (curl_errno($ch)) {
+            Yii::error('post request failed. url-' . $url . ' params-' . json_encode($data) . ' errno-' . curl_errno($ch) . ' error-' . curl_error($ch));
+
+            throw new OperationFailureException('请求远程失败:'.curl_error($ch), $httpCode);
+        }
+
+        curl_close($ch);
+
+        return $result;
+    }
+
+    /**
      * CURL POST
      *
      * param url 抓取的URL
      * param data post的数组
      */
-    public static function curlPost($url, $data, $headers=[])
+    public static function curlPost($url, $data, $headers=[], $timeoutMs=5000)
     {
         $ch        = curl_init();
         $headers[] = "Accept-Charset: utf-8";
@@ -396,14 +455,66 @@ class Util
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1);
+//        curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; MSIE 5.01; Windows NT 5.0)');
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Safari/537.36');
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_AUTOREFERER, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT_MS, $timeoutMs);
         $result = curl_exec($ch);
+
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($httpCode!=200) {
+            Yii::error('post request failed. url-' . $url . ' params-' . json_encode($data) .' '. $result);
+
+            throw new OperationFailureException('请求远程失败:'.$result, $httpCode);
+        }
+        if (curl_errno($ch)) {
+            Yii::error('post request failed. url-' . $url . ' params-' . json_encode($data) . ' errno-' . curl_errno($ch) . ' error-' . curl_error($ch));
+
+            throw new OperationFailureException('请求远程失败:'.curl_error($ch), $httpCode);
+        }
+
+        //关闭curl
+        curl_close($ch);
+
+        return $result;
+    }
+
+    /**
+     * CURL GET
+     *
+     * param url 抓取的URL
+     */
+    public static function curlGet($url, $headers=[])
+    {
+        $ch        = curl_init();
+        $headers[] = "Accept-Charset: utf-8";
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Safari/537.36');
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_AUTOREFERER, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($httpCode!=200) {
+            Yii::error('post request failed. url-' . $url . ' params-' . json_encode($data) .' '. $result);
+
+            throw new OperationFailureException('请求远程失败:'.$result, $httpCode);
+        }
+        if (curl_errno($ch)) {
+            Yii::error('post request failed. url-' . $url . ' params-' . json_encode($data) . ' errno-' . curl_errno($ch) . ' error-' . curl_error($ch));
+
+            throw new OperationFailureException('请求远程失败:'.curl_error($ch), $httpCode);
+        }
 
         //关闭curl
         curl_close($ch);
@@ -826,5 +937,32 @@ class Util
         }
 
         return $list;
+    }
+
+    /**
+     * 银行卡Luhn算法校验
+     *
+     * @param string $num
+     * @return bool
+     */
+    public static function checkLuhn($num){
+        if(empty($num)) return false;
+        $num_arr = str_split($num);
+        krsort($num_arr);
+        foreach ($num_arr as $key=>&$value){
+            if(($key+1)%2 == 0){
+                $value = $value*2;
+                if($value>=10){
+                    $value = 1 + ($value % 10);
+                }
+            }
+        }
+        $total = array_sum($num_arr);
+        if(($total%10) == 0){
+            // 符合Luhn算法
+            return true;
+        }else{
+            return false;
+        }
     }
 }

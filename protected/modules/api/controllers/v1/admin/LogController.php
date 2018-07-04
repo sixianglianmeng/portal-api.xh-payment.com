@@ -55,8 +55,9 @@ class LogController extends BaseController
 
         $eventType= ControllerParameterValidator::getRequestParam($this->allParams, 'event_type', 0, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '事件类型错误');
         $eventId= ControllerParameterValidator::getRequestParam($this->allParams, 'event_id', '', Macro::CONST_PARAM_TYPE_STRING, '事件ID错误',[5]);
-        $merchantName = ControllerParameterValidator::getRequestParam($this->allParams, 'merchant_name', '',
-            Macro::CONST_PARAM_TYPE_USERNAME,'商户名错误',[0,32]);
+        $merchantName = ControllerParameterValidator::getRequestParam($this->allParams, 'merchant_name', '',Macro::CONST_PARAM_TYPE_USERNAME,'商户名错误',[0,32]);
+        $merchantId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchant_id', '',
+            Macro::CONST_PARAM_TYPE_INT,'商户ID错误');
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',
             Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',
@@ -84,6 +85,9 @@ class LogController extends BaseController
         }
         if($merchantName){
             $query->andWhere(['like','merchant_name',$merchantName]);
+        }
+        if($merchantId){
+            $query->andWhere(['merchant_id',$merchantId]);
         }
 
         $sorts = [

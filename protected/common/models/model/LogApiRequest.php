@@ -44,25 +44,27 @@ class LogApiRequest extends BaseModel
     const EVENT_TYPE_OUT_RECHARGE_NOTIFY = 204;
     const EVENT_TYPE_OUT_REMIT_ADD = 220;
     const EVENT_TYPE_OUT_REMIT_QUERY = 221;
+    const EVENT_TYPE_OUT_REMIT_NOTIFY = 222;
     const EVENT_TYPE_OUT_BALANCE_QUERY = 230;
 
     const ARR_EVENT_TYPE = [
-        self::EVENT_TYPE_IN_RECHARGE_ADD => '商户充值请求',
+        self::EVENT_TYPE_IN_RECHARGE_ADD    => '商户充值请求',
         self::EVENT_TYPE_IN_RECHARGE_RETURN => '三方充值同步回调',
         self::EVENT_TYPE_IN_RECHARGE_NOTIFY => '三方充值异步回调',
-        self::EVENT_TYPE_IN_RECHARGE_QUERY => '商户充值查询',
-        self::EVENT_TYPE_IN_REMIT_ADD => '商户提款请求',
-        self::EVENT_TYPE_IN_REMIT_QUERY => '商户提款查询',
-        self::EVENT_TYPE_IN_REMIT_NOTIFY => '三方提款异步回调',
-        self::EVENT_TYPE_IN_BALANCE_QUERY => '商户余额查询',
+        self::EVENT_TYPE_IN_RECHARGE_QUERY  => '商户充值查询',
+        self::EVENT_TYPE_IN_REMIT_ADD       => '商户提款请求',
+        self::EVENT_TYPE_IN_REMIT_QUERY     => '商户提款查询',
+        self::EVENT_TYPE_IN_REMIT_NOTIFY    => '三方提款异步回调',
+        self::EVENT_TYPE_IN_BALANCE_QUERY   => '商户余额查询',
 
-        self::EVENT_TYPE_OUT_RECHARGE_ADD => '请求到三方充值',
+        self::EVENT_TYPE_OUT_RECHARGE_ADD       => '请求到三方充值',
         self::EVENT_TYPE_OUT_RECHARGE_BATCH_ADD => '请求到三方批量充值',
-        self::EVENT_TYPE_OUT_RECHARGE_QUERY => '请求到三方余额查询',
-        self::EVENT_TYPE_OUT_RECHARGE_NOTIFY => '订单通知商户',
-        self::EVENT_TYPE_OUT_REMIT_ADD => '请求到三方提款',
-        self::EVENT_TYPE_OUT_REMIT_QUERY => '请求到三方提款查询',
-        self::EVENT_TYPE_OUT_BALANCE_QUERY => '请求到三方余额查询',
+        self::EVENT_TYPE_OUT_RECHARGE_QUERY     => '请求到三方余额查询',
+        self::EVENT_TYPE_OUT_RECHARGE_NOTIFY    => '订单通知商户',
+        self::EVENT_TYPE_OUT_REMIT_NOTIFY       => '出款通知商户',
+        self::EVENT_TYPE_OUT_REMIT_ADD          => '请求到三方提款',
+        self::EVENT_TYPE_OUT_REMIT_QUERY        => '请求到三方提款查询',
+        self::EVENT_TYPE_OUT_BALANCE_QUERY      => '请求到三方余额查询',
     ];
 
     /**
