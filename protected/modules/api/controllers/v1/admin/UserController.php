@@ -77,10 +77,14 @@ class UserController extends BaseController
         $data['allow_manual_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_manual_remit',1,Macro::CONST_PARAM_TYPE_INT,'允许手工结算错误');
         $data['allow_api_fast_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_api_fast_remit',1,Macro::CONST_PARAM_TYPE_INT,'接口结算不需审核错误');
         //管理员开的账户均为顶级账户
-        $parentAccountName = ControllerParameterValidator::getRequestParam($arrAllParams, 'parentMerchantAccount',null,Macro::CONST_PARAM_TYPE_USERNAME,'上级帐号错误');
+        $parentAccountName = ControllerParameterValidator::getRequestParam($arrAllParams, 'parentMerchantAccount','',Macro::CONST_PARAM_TYPE_USERNAME,'上级帐号错误');
         //收款和出款通道在通道切换处统一设置
         $channelAccountId = ControllerParameterValidator::getRequestParam($arrAllParams, 'channel',0,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'收款通道错误');
         $remitChannelAccountId = ControllerParameterValidator::getRequestParam($arrAllParams, 'remit_channel',0,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'出款通道错误');
+
+        if($data['group_id']==User::GROUP_MERCHANT && empty($parentAccountName)){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'商户必须指定上级代理');
+        }
 
         //校验上级商户帐号
         $parentAccount = null;
