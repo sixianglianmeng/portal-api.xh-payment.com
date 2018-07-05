@@ -239,11 +239,14 @@ class UserController extends BaseController
             $methodConfig->payment_info_id = $userPayment->id;
             $methodConfig->method_id = $pm['id'];
             $methodConfig->method_name = Channel::getPayMethodsStr($pm['id']);
-            $methodConfig->fee_rate = $pm['rate'];
+            $methodConfig->fee_rate = $pm['rate']??0;
             $methodConfig->parent_method_config_id = $pm['parent_method_config_id'];
             $methodConfig->parent_recharge_rebate_rate = $pm['parent_recharge_rebate_rate'];
             $methodConfig->all_parent_method_config_id = $pm['all_parent_method_config_id'];
             $methodConfig->status = ($pm['status']==MerchantRechargeMethod::STATUS_ACTIVE)?MerchantRechargeMethod::STATUS_ACTIVE:MerchantRechargeMethod::STATUS_INACTIVE;
+            if(empty($methodConfig->fee_rate)){
+                $methodConfig->status = MerchantRechargeMethod::STATUS_INACTIVE;
+            }
 
             if($channelAccountId){
                 $methodConfig->channel_account_id = $channel->id;
