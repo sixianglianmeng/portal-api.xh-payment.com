@@ -96,7 +96,7 @@ class OrderController extends BaseController
 
         $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status','',Macro::CONST_PARAM_TYPE_INT,'订单状态错误',[0,100]);
 
-        $method = ControllerParameterValidator::getRequestParam($this->allParams, 'methodOptions','',Macro::CONST_PARAM_TYPE_INT,'支付类型错误',[0,100]);
+        $method = ControllerParameterValidator::getRequestParam($this->allParams, 'method','',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'支付类型错误',[0,100]);
 
         $channelAccount = ControllerParameterValidator::getRequestParam($this->allParams, 'channelAccount','',Macro::CONST_PARAM_TYPE_INT,'通道号错误',[0,100]);
 
