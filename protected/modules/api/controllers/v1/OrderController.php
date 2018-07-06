@@ -127,17 +127,12 @@ class OrderController extends BaseController
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天');
             $dateStart=$dateEnd-86400*31;
         }
-        $dateStart = strtotime($dateStart);
-        $dateEnd = strtotime($dateEnd);
-        if(($dateEnd-$dateStart)>86400*31){
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天');
-            $dateStart=$dateEnd-86400*31;
-        }
+
         if($dateStart){
             $query->andFilterCompare('created_at', '>='.$dateStart);
         }
         if($dateEnd){
-            $query->andFilterCompare('created_at', '<'.$dateStart);
+            $query->andFilterCompare('created_at', '<'.$dateEnd);
         }
         if($minMoney){
             $query->andFilterCompare('amount', '>='.$minMoney);
@@ -242,13 +237,16 @@ class OrderController extends BaseController
             $records[$i]['status'] = $d->status;
             $records[$i]['bank_code'] = $d->bank_code;
             $records[$i]['bank_name'] = BankCodes::getBankNameByCode($d->bank_code);
-            $records[$i]['channel_account_name'] = $channelAccountOptions[$d->channel_account_id] ;
+            $records[$i]['channel_account_name'] = $channelAccountOptions[$d->channel_account_id];
             $records[$i]['pay_method_code_str'] = Channel::getPayMethodsStr($d->pay_method_code);
             $records[$i]['status_str'] = $d->getStatusStr();
             $records[$i]['notify_status'] = $d->notify_status;
             $records[$i]['notify_status_str'] = $d->getNotifyStatusStr();
             $records[$i]['created_at'] = date('Y-m-d H:i:s',$d->created_at);
             $records[$i]['notify_ret'] = $d->notify_ret;
+            $records[$i]['settlement_type'] = $d->settlement_type;
+            $records[$i]['expect_settlement_at'] = date('Y-m-d H:i:s',$d->expect_settlement_at);
+            $records[$i]['settlement_at'] = $d->settlement_at?date('Y-m-d H:i:s',$d->settlement_at):'';
             if($d->notify_status === Order::NOTICE_STATUS_FAIL) $records[$i]['notify_ret'] = $d->notify_ret;
         }
 
@@ -436,7 +434,7 @@ class OrderController extends BaseController
             $query->andFilterCompare('created_at', '>='.$dateStart);
         }
         if($dateEnd){
-            $query->andFilterCompare('created_at', '<'.$dateStart);
+            $query->andFilterCompare('created_at', '<'.$dateEnd);
         }
         if($minMoney){
             $query->andFilterCompare('amount', '>='.$minMoney);

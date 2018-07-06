@@ -6,6 +6,7 @@ use Yii;
 
 class SiteConfig extends BaseModel
 {
+    static private $_vals = [];
     public static function getDb()
     {
         return \Yii::$app->db;
@@ -31,6 +32,7 @@ class SiteConfig extends BaseModel
     /**
      *
      * 从缓存中获取站点配置
+     * 获取优先级为类静态变量-缓存-mysql
      *
      * @param strint $key 配置项key
      *
@@ -38,6 +40,10 @@ class SiteConfig extends BaseModel
      */
     public static function cacheGetContent($key)
     {
+        if(!empty(self::$_vals[$key])){
+            return self::$_vals[$key];
+        }
+
         $content = Yii::$app->redis->hget(Macro::CACHE_HSET_SITE_CONFIG,$key);
         if(!$content){
             $config = self::findOne(['title'=>$key]);
@@ -47,6 +53,7 @@ class SiteConfig extends BaseModel
             }
         }
         $content=$content??'';
+        self::$_vals[$key] = $content;
 
         return $content;
     }
@@ -66,6 +73,8 @@ class SiteConfig extends BaseModel
                 if($k==0) continue;
 
                 $content[$redisContent[$k-1]] = $v;
+
+                self::$_vals[$redisContent[$k-1]] = $v;
             }
         }
 
@@ -81,6 +90,7 @@ class SiteConfig extends BaseModel
     public static function delAllCache()
     {
         Yii::$app->redis->del(Macro::CACHE_HSET_SITE_CONFIG);
+        self::$_vals = [];
 
         return true;
     }

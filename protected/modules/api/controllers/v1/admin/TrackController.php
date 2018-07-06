@@ -104,7 +104,7 @@ class TrackController extends BaseController
             $query->andFilterCompare('pt.created_at', '>='.$dateStart);
         }
         if($dateEnd){
-            $query->andFilterCompare('pt.created_at', '<'.$dateStart);
+            $query->andFilterCompare('pt.created_at', '<'.$dateEnd);
         }
         if($orderNo){
             $query->andWhere(['or','po.order_no="'.$orderNo.'"','pr.order_no="'.$orderNo.'"']);

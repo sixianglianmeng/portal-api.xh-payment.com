@@ -217,4 +217,21 @@ class LogicUser
             return false;
         }
     }
+
+    /*
+     * 更新账户待结算余额
+     *
+     * decimal $amount 更新的冻结金额
+     * int $eventType 导致更新的事件类型
+     * string $eventId 导致更新的事件唯一ID
+     * decimal $eventAmount 事件本身金额
+     * string $clientIp 客户端IP
+     * string $bak 备注
+     * int $opUid 操作者UID
+     * int $opUsername 操作者用户名
+     *
+     */
+    public function changeUserUnsettleBalance($amount, $eventType='', $eventId=0, $eventAmount=0, $clientIp='', $bak='', $opUid=0, $opUsername=''){
+        $this->user->updateCounters(['unsettle_balance' => $amount]);
+    }
 }

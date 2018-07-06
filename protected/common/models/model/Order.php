@@ -58,6 +58,7 @@ class Order extends BaseModel
     const STATUS_FREEZE = 30;
     const STATUS_FAIL = 40;
     const STATUS_REFUND = 50;
+    const STATUS_SETTLEMENT = 60;
 
 //    充值订单状态
     const ARR_STATUS = [
@@ -67,6 +68,7 @@ class Order extends BaseModel
         self::STATUS_FREEZE=>'冻结',
         self::STATUS_FAIL=>'支付失败',
         self::STATUS_REFUND=>'已退款',
+        self::STATUS_SETTLEMENT=>'已结算',
     ];
 
 //    订单通知状态

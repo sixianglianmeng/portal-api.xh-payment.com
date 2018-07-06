@@ -96,7 +96,7 @@ class RemitController extends BaseController
             $query->andFilterCompare('created_at', '>='.$dateStart);
         }
         if($dateEnd){
-            $query->andFilterCompare('created_at', '<'.$dateStart);
+            $query->andFilterCompare('created_at', '<'.$dateEnd);
         }
         if($minMoney){
             $query->andFilterCompare('amount', '>='.$minMoney);
@@ -554,7 +554,7 @@ class RemitController extends BaseController
             $query->andFilterCompare('created_at', '>='.$dateStart);
         }
         if($dateEnd){
-            $query->andFilterCompare('created_at', '<'.$dateStart);
+            $query->andFilterCompare('created_at', '<'.$dateEnd);
         }
         if($minMoney){
             $query->andFilterCompare('amount', '>='.$minMoney);

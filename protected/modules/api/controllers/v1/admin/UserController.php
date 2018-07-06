@@ -4,6 +4,7 @@ namespace app\modules\api\controllers\v1\admin;
 use app\common\models\model\Channel;
 use app\common\models\model\ChannelAccount;
 use app\common\models\model\ChannelAccountRechargeMethod;
+use app\common\models\model\Financial;
 use app\common\models\model\MerchantRechargeMethod;
 use app\common\models\model\SiteConfig;
 use app\common\models\model\Tag;
@@ -247,6 +248,7 @@ class UserController extends BaseController
             if(empty($methodConfig->fee_rate)){
                 $methodConfig->status = MerchantRechargeMethod::STATUS_INACTIVE;
             }
+            $methodConfig->settlement_type = $pm['settlement_type']??'D1';
 
             if($channelAccountId){
                 $methodConfig->channel_account_id = $channel->id;
@@ -599,6 +601,11 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
 //        $data['user_type'] = Util::ArrayKeyValToDimetric($data['user_type'],'id','name');
         $data['tags'] =(new Query())->select('id,name,pinyin')->from(Tag::tableName())->all();// Tag::find()->field()->all();
         $data['tags'] = ArrayHelper::merge([['id'=>Macro::SELECT_OPTION_ALL,'name'=>'全部','pinyin'=>'qb']],$data['tags']);
+
+        $data['remitMaxFee'] =  SiteConfig::cacheGetContent('remit_max_fee');
+        $data['rechargeMaxRate'] =  SiteConfig::cacheGetContent('recharge_max_rate');
+        $data['settlementType'] =  MerchantRechargeMethod::getAllSettlementType();
+
         return ResponseHelper::formatOutput(Macro::SUCCESS,'', $data);
     }
 
@@ -837,6 +844,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         foreach ($rate as $key => $val){
             $methods['rate'][$val['id']] = $val['rate'];
             $methods['status'][$val['id']] = $val['status'];
+            $methods['settlement_type'][$val['id']] = $val['settlement_type'];
             $methods['min_rate'][$val['id']] = 0;
             if($rateSection['parent_rate']){
                 $methods['min_rate'][$val['id']] = $rateSection['parent_rate'][$val['id']]??0;
@@ -879,13 +887,14 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $userInfo['recharge_quota_perday']       = $paymentInfo->recharge_quota_perday;
         $userInfo['remit_quota_pertime']         = $paymentInfo->remit_quota_pertime;
         $userInfo['recharge_quota_pertime']      = $paymentInfo->recharge_quota_pertime;
+        $userInfo['merchant_key']                = $paymentInfo->app_key_md5;
         $userInfo['group_name']                  = User::ARR_GROUP[$user->group_id];
         $userInfo['status_name']                 = User::ARR_STATUS[$user->status];
         $userInfo['status']                      = $user->status;
         $userInfo['is_financial']                = $user->financial_password_hash ? '是' : '否';
-        $userInfo['financial_password_hash_len'] = strlen($user->financial_password_hash)>0?1:0;
+        $userInfo['financial_password_hash_len'] = strlen($user->financial_password_hash) > 0 ? 1 : 0;
         $userInfo['is_key_2fa']                  = $user->key_2fa ? '是' : '否';
-        $userInfo['key_2fa_len']                 = strlen($user->key_2fa)>0?1:0;
+        $userInfo['key_2fa_len']                 = strlen($user->key_2fa) > 0 ? 1 : 0;
         $userInfo['balance']                     = $user->balance;
         $userInfo['frozen_balance']              = $user->frozen_balance;
         $userInfo['asset']                       = $user->balance + $user->frozen_balance;
@@ -897,7 +906,6 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $userInfo['allow_api_remit']             = $paymentInfo->allow_api_remit;
         $userInfo['allow_manual_recharge']       = $paymentInfo->allow_manual_recharge;
         $userInfo['allow_manual_remit']          = $paymentInfo->allow_manual_remit;
-
 
         //处理代理
         if($user->all_parent_agent_id){
@@ -941,6 +949,11 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $data['methods'] = $methods;
         $data['payMethodsOptions'] = Channel::ARR_METHOD;
         $data['agentOptions'] = $agentOptions ?? [];
+
+        $data['remitMaxFee'] =  SiteConfig::cacheGetContent('remit_max_fee');
+        $data['rechargeMaxRate'] =  SiteConfig::cacheGetContent('recharge_max_rate');
+        $data['settlementType'] =  MerchantRechargeMethod::getAllSettlementType();
+
         return ResponseHelper::formatOutput(Macro::SUCCESS,'', $data);
     }
 

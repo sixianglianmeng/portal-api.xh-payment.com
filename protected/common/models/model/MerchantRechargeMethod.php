@@ -26,7 +26,6 @@ class MerchantRechargeMethod extends BaseModel
         return $this->hasOne(ChannelAccount::className(), ['id'=>'channel_account_id']);
     }
 
-
     /**
      * 获取渠道账户支付方式配置信息
      *
@@ -119,6 +118,52 @@ class MerchantRechargeMethod extends BaseModel
             }
         }
         return $rateSection;
+    }
+
+    /**
+     * 根据账期类型获取预计到账时间戳
+     *
+     * @param string $type
+     */
+    public static function getExpectSettlementTime(string $type){
+
+        $type = strtoupper($type);
+        if(!in_array($type, self::getAllSettlementType())){
+            $type = 'T1';
+        }
+        $timeType = substr($type,0,1);
+        $days = substr($type,1);
+
+        $nowTs = time();
+        $settlementTime = $nowTs;
+        if($days==0){
+            return $nowTs;
+        }
+
+        if($timeType=='D'){
+            $settlementTime += intval($days)*86400;
+        }if($timeType=='T'){
+            $wDay = date('w');
+            if($wDay>=4){
+                $settlementTime += ((6-$wDay)+$days)*86400;
+            }else{
+                $settlementTime += intval($days)*86400;
+            }
+        }
+
+        return $settlementTime;
+    }
+
+    /**
+     * 获取所有导致类型
+     *
+     * @return array
+     */
+    public static function getAllSettlementType()
+    {
+        $typeStr =  SiteConfig::cacheGetContent('all_settlement_type');
+        $types = explode(',', $typeStr);
+        return $types;
     }
 
 }

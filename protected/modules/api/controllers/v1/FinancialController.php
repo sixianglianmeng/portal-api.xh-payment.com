@@ -228,7 +228,7 @@ class FinancialController extends BaseController
             $query->andFilterCompare('created_at', '>='.$dateStart);
         }
         if($dateEnd){
-            $query->andFilterCompare('created_at', '<'.$dateStart);
+            $query->andFilterCompare('created_at', '<'.$dateEnd);
         }
         if($orderNo){
             $query->andwhere(['event_id' => $orderNo]);

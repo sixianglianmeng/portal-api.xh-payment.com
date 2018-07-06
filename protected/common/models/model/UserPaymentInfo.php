@@ -80,7 +80,9 @@ class UserPaymentInfo extends BaseModel
                 'name'=>$m->method_name,
                 'channel_account_name'=>$m->channel_account_name,
                 'channel_account_id'=>$m->channel_account_id,
-                'status' => $m->status
+                'status' => $m->status,
+                'manual_status' => $m->manual_status,
+                'settlement_type' => $m->settlement_type,
             ];
         }
 
@@ -181,6 +183,7 @@ class UserPaymentInfo extends BaseModel
             $methodConfig->parent_recharge_rebate_rate = $pm['parent_recharge_rebate_rate'];
             $methodConfig->status = ($pm['status']==MerchantRechargeMethod::STATUS_ACTIVE)?MerchantRechargeMethod::STATUS_ACTIVE:MerchantRechargeMethod::STATUS_INACTIVE;
             $methodConfig->fee_rate = $pm['rate'];
+            $methodConfig->settlement_type = $pm['settlement_type']??'';
             $methodConfig->save();
         }
     }

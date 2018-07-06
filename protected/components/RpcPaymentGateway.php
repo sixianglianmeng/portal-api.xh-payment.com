@@ -187,7 +187,8 @@ class RpcPaymentGateway
     {
 
         $params['_nonce_'] = Util::uuid();
-        $params['_sign_'] = md5(Yii::$app->params['secret']['agent.payment'].$params['_nonce_']);
+        $key = SiteConfig::cacheGetContent('gateway_rpc_key');
+        $params['_sign_'] = md5($key.$params['_nonce_']);
         $params['op_uid'] = Yii::$app->user->identity->id;
         $params['op_username'] = Yii::$app->user->identity->username;
         $params['op_ip'] = Yii::$app->request->userIP;
