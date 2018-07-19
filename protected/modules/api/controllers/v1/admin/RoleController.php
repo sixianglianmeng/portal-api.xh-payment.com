@@ -250,12 +250,17 @@ class RoleController extends BaseController
         $auth->removeChildren($role);
         foreach ($permissions as $pName){
             $per = $auth->createPermission($pName);
-//            $auth->addChild($role, $per);
+            //分级菜单必须有上级菜单权限
+            if(strpos($pName,'|')!==false){
+                var_dump($pName);
+                $pNameArr = explode('|',$pName);
+                $parentPer = $auth->createPermission($pNameArr[0]);
+                if (!$auth->hasChild($role, $parentPer)) {
+                    $auth->addChild($role, $parentPer);
+                }
+            }
             if (!$auth->hasChild($role, $per)) {
                 $auth->addChild($role, $per);
-//                echo "{$vuebtn->name} asign to {$roles[$v5]->name}\n";
-            }else{
-
             }
 
         }

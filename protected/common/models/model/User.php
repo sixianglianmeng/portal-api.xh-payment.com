@@ -292,7 +292,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         if($this->parent_merchant_id==0){
             return $this;
         }else{
-            self::findOne(['id'=>$this->parent_merchant_id]);
+            return self::findOne(['id'=>$this->parent_merchant_id]);
         }
     }
 

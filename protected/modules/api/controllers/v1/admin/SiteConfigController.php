@@ -3,6 +3,7 @@ namespace app\modules\api\controllers\v1\admin;
 
 use app\common\models\model\SiteConfig;
 use app\components\Macro;
+use app\components\RpcPaymentGateway;
 use app\lib\helpers\ControllerParameterValidator;
 use app\lib\helpers\ResponseHelper;
 use app\modules\api\controllers\BaseController;
@@ -139,5 +140,9 @@ class SiteConfigController extends BaseController
     public function actionFlushCache()
     {
         Yii::$app->cache->flush();
+
+        $ret = RpcPaymentGateway::call('/system/clear-cache', []);
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'刷新成功成功');
     }
 }

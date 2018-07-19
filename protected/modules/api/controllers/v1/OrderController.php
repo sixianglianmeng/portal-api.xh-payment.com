@@ -244,6 +244,7 @@ class OrderController extends BaseController
             $records[$i]['notify_status_str'] = $d->getNotifyStatusStr();
             $records[$i]['created_at'] = date('Y-m-d H:i:s',$d->created_at);
             $records[$i]['notify_ret'] = $d->notify_ret;
+            $records[$i]['bak'] = str_replace("\n",'<br />', $d->bak);
             $records[$i]['settlement_type'] = $d->settlement_type;
             $records[$i]['expect_settlement_at'] = date('Y-m-d H:i:s',$d->expect_settlement_at);
             $records[$i]['settlement_at'] = $d->settlement_at?date('Y-m-d H:i:s',$d->settlement_at):'';

@@ -301,7 +301,7 @@ class ReportController extends BaseController
     {
         $user = Yii::$app->user->identity;
 
-        $channelAccountId= ControllerParameterValidator::getRequestParam($this->allParams, 'channel_account_id', '', Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '通道账户ID错误',[5]);
+        $channelAccountId= ControllerParameterValidator::getRequestParam($this->allParams, 'channelAccountId', '', Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '通道账户ID错误',[5]);
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',
             Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',
@@ -313,6 +313,85 @@ class ReportController extends BaseController
 
         $query = ReportChannelProfitDaily::find();
 
+        if($channelAccountId){
+            $query->andWhere(['channel_account_id'=>$channelAccountId]);
+        }
+
+        if ($dateStart) {
+            $query->andFilterCompare('date', '>=' . date('Ymd',strtotime($dateStart)));
+        }
+        if ($dateEnd) {
+            $query->andFilterCompare('date', '<' . date('Ymd',strtotime($dateEnd)+86400));
+        }
+
+        $sorts = [
+            'created_at-'=>['created_at',SORT_DESC],
+        ];
+        if(!empty($sorts[$sort])){
+            $sort = $sorts[$sort];
+        }else{
+            $sort =['created_at',SORT_DESC];
+        }
+        //生成分页数据
+        $p = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => $perPage,
+                'page' => $page-1,
+            ],
+            'sort' => [
+                'defaultOrder' => [
+                    $sort[0] => $sort[1],
+                ]
+            ],
+        ]);
+
+        $records=[];
+        foreach ($p->getModels() as $i=>$d){
+            $records[$i] = $d->toArray();
+            $records[$i]['created_at'] = date('Ymd H:i:s',$d->created_at);
+        }
+        //分页数据
+        $pagination = $p->getPagination();
+        $total = $pagination->totalCount;
+        $lastPage = ceil($pagination->totalCount/$perPage);
+        $from = ($page-1)*$perPage;
+        $to = $page*$perPage;
+        $data = [
+            'data'=>$records,
+            "pagination"=>[
+                "total" =>  $total,
+                "per_page" =>  $perPage,
+                "current_page" =>  $page,
+                "last_page" =>  $lastPage,
+                "from" =>  $from,
+                "to" =>  $to
+            ]
+        ];
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
+    }
+
+    /**
+     * 通道日对账
+     *
+     * @roles admin
+     */
+    public function actionChannelDailyReconciliations()
+    {
+        $user = Yii::$app->user->identity;
+
+        $channelAccountId= ControllerParameterValidator::getRequestParam($this->allParams, 'channelAccountId', '', Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '通道账户ID错误',[5]);
+        $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',
+            Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
+        $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',
+            Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
+
+        $sort = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 15, Macro::CONST_PARAM_TYPE_SORT, '分页参数错误',[1,100]);
+        $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
+        $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,1000]);
+
+        $query = ReportChannelProfitDaily::find();
         if($channelAccountId){
             $query->andWhere(['channel_account_id'=>$channelAccountId]);
         }

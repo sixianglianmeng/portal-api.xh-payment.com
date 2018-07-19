@@ -199,7 +199,7 @@ class RemitController extends BaseController
             $records[$i]['amount'] = $d->amount;
             $records[$i]['remited_amount'] = $d->remited_amount;
             $records[$i]['status'] = $d->status;
-            $records[$i]['bank_ret'] = $d->bank_ret;
+            $records[$i]['bank_ret'] = str_replace("\n",'<br />', $d->bank_ret);
             $records[$i]['status_str'] = $d->showStatusStr();
             $records[$i]['bank_no'] = $d->bank_no;
             $records[$i]['bank_account'] = $d->bank_account;

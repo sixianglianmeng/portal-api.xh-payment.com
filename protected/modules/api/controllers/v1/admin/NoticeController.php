@@ -112,6 +112,7 @@ class NoticeController extends BaseController
     }
     /**
      * 添加公告
+     * @role admin
      */
     public function actionAdd()
     {
