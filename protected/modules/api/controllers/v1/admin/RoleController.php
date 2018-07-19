@@ -252,7 +252,6 @@ class RoleController extends BaseController
             $per = $auth->createPermission($pName);
             //分级菜单必须有上级菜单权限
             if(strpos($pName,'|')!==false){
-                var_dump($pName);
                 $pNameArr = explode('|',$pName);
                 $parentPer = $auth->createPermission($pNameArr[0]);
                 if (!$auth->hasChild($role, $parentPer)) {
