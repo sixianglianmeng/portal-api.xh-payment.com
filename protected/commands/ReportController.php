@@ -301,11 +301,11 @@ WHERE d.user_id=os.user_id and d.date=os.date";
             ->andWhere(['status'=>Order::STATUS_PAID])
             ->andFilterCompare('paid_at', '>=' . $tsStart)
             ->andFilterCompare('paid_at', '<' .$tsEnd)
-            ->select(['channel_account_id','channel_id','SUM(plat_fee_profit) AS amount','SUM(amount) AS total','COUNT(*) AS count'])
+            ->select(['channel_account_id','channel_id','SUM(plat_fee_amount) AS channel_fee','SUM(plat_fee_profit) AS amount','SUM(amount) AS total','COUNT(*) AS count'])
             ->groupBy('channel_account_id');
 
         $query = (new \yii\db\Query())
-            ->select(['o.channel_account_id','o.total','c.channel_id','c.channel_name AS channel_account_name','c1.name AS channel_name','o.amount','o.count'])
+            ->select(['o.channel_account_id','o.total','c.channel_id','c.channel_name AS channel_account_name','c1.name AS channel_name','o.amount','o.count','o.channel_fee'])
             ->from(['o'=>$subQuery])
             ->leftJoin(ChannelAccount::tableName().' AS c', 'c.id = o.channel_account_id')
             ->leftJoin(Channel::tableName().' AS c1', 'c1.id = o.channel_id');
@@ -317,7 +317,7 @@ WHERE d.user_id=os.user_id and d.date=os.date";
             }
             $reports[$d['channel_account_id']]['date'] = $day;
             $reports[$d['channel_account_id']]['recharge_total'] = $d['total'];
-            $reports[$d['channel_account_id']]['recharge_amount'] = $d['amount'];
+            $reports[$d['channel_account_id']]['recharge_amount'] = $d['total'];
             $reports[$d['channel_account_id']]['recharge_count'] = $d['count'];
             $reports[$d['channel_account_id']]['channel_account_name'] = $d['channel_account_name'];
             $reports[$d['channel_account_id']]['channel_account_id'] = $d['channel_account_id'];
@@ -326,6 +326,7 @@ WHERE d.user_id=os.user_id and d.date=os.date";
             $reports[$d['channel_account_id']]['remit_amount'] = 0;
             $reports[$d['channel_account_id']]['remit_count'] = 0;
             $reports[$d['channel_account_id']]['remit_total'] = 0;
+            $reports[$d['channel_account_id']]['recharge_channel_fee'] = $d['channel_fee'];
         }
 
         //出款利润
@@ -334,11 +335,11 @@ WHERE d.user_id=os.user_id and d.date=os.date";
             ->andWhere(['status'=>Remit::STATUS_SUCCESS])
             ->andFilterCompare('remit_at', '>=' . $tsStart)
             ->andFilterCompare('remit_at', '<' .$tsEnd)
-            ->select(['channel_account_id','channel_id','SUM(plat_fee_profit) AS amount','SUM(amount) AS total','COUNT(*) AS count'])
+            ->select(['channel_account_id','channel_id','SUM(plat_fee_amount) AS channel_fee','SUM(plat_fee_profit) AS amount','SUM(amount) AS total','COUNT(*) AS count'])
             ->groupBy('channel_account_id');
 
         $query = (new \yii\db\Query())
-            ->select(['o.channel_account_id','c.channel_id','o.total','c.channel_name AS channel_account_name','total','c1.name AS channel_name','o.amount','o.count'])
+            ->select(['o.channel_account_id','c.channel_id','o.total','c.channel_name AS channel_account_name','total','c1.name AS channel_name','o.amount','o.count','o.channel_fee'])
             ->from(['o'=>$subQuery])
             ->leftJoin(ChannelAccount::tableName().' AS c', 'c.id = o.channel_account_id')
             ->leftJoin(Channel::tableName().' AS c1', 'c1.id = o.channel_id');
@@ -355,17 +356,80 @@ WHERE d.user_id=os.user_id and d.date=os.date";
                 $reports[$d['channel_account_id']]['channel_name'] = $d['channel_name'];
 
             }
-            $reports[$d['channel_account_id']]['remit_amount'] = $d['amount'];
+            $reports[$d['channel_account_id']]['remit_amount'] = $d['total'];
             $reports[$d['channel_account_id']]['remit_count'] = $d['count'];
             $reports[$d['channel_account_id']]['remit_total'] = $d['total'];
+            $reports[$d['channel_account_id']]['recharge_channel_fee'] = 0;
+            $reports[$d['channel_account_id']]['remit_channel_fee'] = $d['channel_fee'];
         }
 
         $fields = ['date','recharge_total','recharge_amount','recharge_count','channel_account_name','channel_account_id','channel_id','channel_name',
-            'remit_amount','remit_count','remit_total'
+            'remit_amount','remit_count','remit_total','recharge_channel_fee','remit_channel_fee','plat_sum'
         ];
+
+        foreach ($reports as $i=>$d){
+            foreach ($fields as $f){
+                if(!isset($reports[$i][$f])) $reports[$i][$f]=0;
+            }
+
+            //当天渠道结余
+            $reports[$i]['plat_sum'] =  $reports[$i]['recharge_amount']-$reports[$i]['remit_amount']-$reports[$i]['recharge_channel_fee']-$reports[$i]['remit_channel_fee'];
+        }
+
         Yii::$app->db->createCommand()->delete(ReportChannelProfitDaily::tableName(), "date={$day}")->execute();
         $okCount = Yii::$app->db->createCommand()->batchInsert(ReportChannelProfitDaily::tableName(),$fields,$reports)->execute();
 
+        $this->actionReconciliation();
+    }
+
+
+    /**
+     * 渠道对账
+     *
+     * ./protected/yii report/reconciliation
+     */
+    public function actionReconciliation()
+    {   $day = $this->day ? date('Ymd', strtotime($this->day)) : date('Ymd',strtotime('-1 day'));
+        $tsStart = strtotime($day);
+        $tsEnd = $tsStart+86400;
+
+        //找出当天0点和24点余额
+        //0点余额
+        $sql = "SELECT a.channel_account_id,balance,frozen_balance,a.created_at FROM p_channel_account_balance_snap a, 
+(SELECT channel_account_id,MIN(created_at) AS created_at FROM `p_channel_account_balance_snap` WHERE created_at>={$tsStart} AND created_at<{$tsEnd} GROUP BY channel_account_id) b 
+WHERE a.channel_account_id=b.channel_account_id AND a.created_at=b.created_at";
+        $startBalance =  Yii::$app->db->createCommand($sql)->queryAll();
+        foreach ($startBalance as $sb){
+            $data = [
+                'channel_balance_begin'=>$sb['balance'],
+                'channel_balance_begin_ts'=>$sb['created_at'],
+                'channel_frozen_balance_begin'=>$sb['frozen_balance'],
+                'channel_frozen_balance_begin_ts'=>$sb['created_at'],
+            ];
+            echo json_encode($data).PHP_EOL;
+            ReportChannelProfitDaily::updateAll($data,['date' => $day, 'channel_account_id'=>$sb['channel_account_id']]);
+        }
+
+        //24点余额
+        $tomorrowTsStart = $tsStart+86400;
+        $tomorrowTsEnd = $tsEnd+86400;
+        $sql = "SELECT a.channel_account_id,balance,frozen_balance,a.created_at FROM p_channel_account_balance_snap a, 
+(SELECT channel_account_id,MIN(created_at) AS created_at FROM `p_channel_account_balance_snap` WHERE created_at>={$tomorrowTsStart} AND created_at<{$tomorrowTsEnd} GROUP BY channel_account_id) b 
+WHERE a.channel_account_id=b.channel_account_id AND a.created_at=b.created_at";
+        $endBalance =  Yii::$app->db->createCommand($sql)->queryAll();
+        foreach ($endBalance as $sb){
+            $data = [
+                'channel_balance_end'=>$sb['balance'],
+                'channel_balance_end_ts'=>$sb['created_at'],
+                'channel_frozen_balance_end'=>$sb['frozen_balance'],
+                'channel_frozen_balance_end_ts'=>$sb['created_at'],
+            ];
+            ReportChannelProfitDaily::updateAll($data,['date' => $day, 'channel_account_id'=>$sb['channel_account_id']]);
+        }
+        //计算充值平台渠道方日结余
+        $sql = "UPDATE p_report_channel_profilt_daily SET channel_sum=(channel_balance_end+channel_frozen_balance_end-channel_balance_begin-channel_frozen_balance_begin)
+ WHERE created_at>={$tsStart} AND created_at<{$tsEnd}";
+        Yii::$app->db->createCommand($sql)->execute();
     }
 
 }

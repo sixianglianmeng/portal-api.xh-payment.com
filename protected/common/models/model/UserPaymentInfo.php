@@ -183,7 +183,7 @@ class UserPaymentInfo extends BaseModel
             $methodConfig->parent_recharge_rebate_rate = $pm['parent_recharge_rebate_rate'];
             $methodConfig->status = ($pm['status']==MerchantRechargeMethod::STATUS_ACTIVE)?MerchantRechargeMethod::STATUS_ACTIVE:MerchantRechargeMethod::STATUS_INACTIVE;
             $methodConfig->fee_rate = $pm['rate'];
-            $methodConfig->settlement_type = $pm['settlement_type']??'';
+            $methodConfig->settlement_type = $pm['settlement_type']??SiteConfig::cacheGetContent('default_settlement_type');
             $methodConfig->save();
         }
     }
