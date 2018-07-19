@@ -83,6 +83,9 @@ class UserController extends BaseController
         $channelAccountId = ControllerParameterValidator::getRequestParam($arrAllParams, 'channel',0,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'收款通道错误');
         $remitChannelAccountId = ControllerParameterValidator::getRequestParam($arrAllParams, 'remit_channel',0,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'出款通道错误');
 
+        $remitFeeCanBeZero = SiteConfig::cacheGetContent('remit_fee_can_be_zero');
+        $rechargeFeeCanBeZero = SiteConfig::cacheGetContent('recharge_fee_can_be_zero');
+
         if($data['group_id']==User::GROUP_MERCHANT && empty($parentAccountName)){
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'商户必须指定上级代理');
         }
@@ -134,7 +137,9 @@ class UserController extends BaseController
 
         $data['remit_fee_rebate'] = 0;
         $parentMinRate = $parentAccount ? $parentAccount->paymentInfo->payMethods:[];
-
+        if(!$remitFeeCanBeZero && empty($data['remit_fee'])){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'出款费率不能为0');
+        }
         foreach ($data['pay_method'] as $i => $pm) {
             $data['pay_method'][$i]['parent_method_config_id']     = 0;
             $data['pay_method'][$i]['parent_recharge_rebate_rate'] = 0;
@@ -245,7 +250,7 @@ class UserController extends BaseController
             $methodConfig->parent_recharge_rebate_rate = $pm['parent_recharge_rebate_rate'];
             $methodConfig->all_parent_method_config_id = $pm['all_parent_method_config_id'];
             $methodConfig->status = ($pm['status']==MerchantRechargeMethod::STATUS_ACTIVE)?MerchantRechargeMethod::STATUS_ACTIVE:MerchantRechargeMethod::STATUS_INACTIVE;
-            if(empty($methodConfig->fee_rate)){
+            if(empty($methodConfig->fee_rate) && !$rechargeFeeCanBeZero){
                 $methodConfig->status = MerchantRechargeMethod::STATUS_INACTIVE;
             }
             $methodConfig->settlement_type = $pm['settlement_type']??SiteConfig::cacheGetContent('default_settlement_type');
@@ -605,8 +610,8 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
         $data['remitMaxFee'] =  SiteConfig::cacheGetContent('remit_max_fee');
         $data['rechargeMaxRate'] =  SiteConfig::cacheGetContent('recharge_max_rate');
         $data['settlementType'] =  MerchantRechargeMethod::getAllSettlementType();
-        $data['remitFeeCanBeZero'] =  $remitFeeCanBeZero = SiteConfig::cacheGetContent('remit_fee_can_be_zero');;
-        $data['rechargeFeeCanBeZero'] =  $remitFeeCanBeZero = SiteConfig::cacheGetContent('recharge_fee_can_be_zero');;
+        $data['remitFeeCanBeZero'] =  SiteConfig::cacheGetContent('remit_fee_can_be_zero');
+        $data['rechargeFeeCanBeZero'] =  SiteConfig::cacheGetContent('recharge_fee_can_be_zero');
 
         return ResponseHelper::formatOutput(Macro::SUCCESS,'', $data);
     }
@@ -955,8 +960,8 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $data['remitMaxFee'] =  SiteConfig::cacheGetContent('remit_max_fee');
         $data['rechargeMaxRate'] =  SiteConfig::cacheGetContent('recharge_max_rate');
         $data['settlementType'] =  MerchantRechargeMethod::getAllSettlementType();
-        $data['remitFeeCanBeZero'] =  $remitFeeCanBeZero = SiteConfig::cacheGetContent('remit_fee_can_be_zero');;
-        $data['rechargeFeeCanBeZero'] =  $remitFeeCanBeZero = SiteConfig::cacheGetContent('recharge_fee_can_be_zero');;
+        $data['remitFeeCanBeZero'] =  SiteConfig::cacheGetContent('remit_fee_can_be_zero');
+        $data['rechargeFeeCanBeZero'] =  SiteConfig::cacheGetContent('recharge_fee_can_be_zero');
 
         return ResponseHelper::formatOutput(Macro::SUCCESS,'', $data);
     }
