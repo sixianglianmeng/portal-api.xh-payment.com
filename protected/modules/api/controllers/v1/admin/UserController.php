@@ -403,23 +403,35 @@ class UserController extends BaseController
             Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
 
         if(empty($switchPayChannelForm['payMethodId'])
-            || empty(Channel::ARR_METHOD[$switchPayChannelForm['payMethodId']])
             || empty($switchPayChannelForm['rechargeChannelId'])
         ){
             throw new \Exception('请选择正确的收款方式和收款通道');
         }
+        foreach ($switchPayChannelForm['payMethodId'] as $pmi){
+            if(empty(Channel::ARR_METHOD[$pmi])){
+                throw new \Exception("请选择正确的收款方式,{$pmi}不存在");
+            }
+        }
+
+//        || empty(Channel::ARR_METHOD[$switchPayChannelForm['payMethodId']])
         $channelAccount = ChannelAccount::findOne(['id'=>$switchPayChannelForm['rechargeChannelId']]);
         if(!$channelAccount){
             throw new \Exception('选择的收款通道不存在');
         }
-        $channelAccountMethod = $channelAccount->getPayMethodById($switchPayChannelForm['payMethodId']);
-        if(!$channelAccountMethod){
-            throw new \Exception('选择的收款方式和收款通道不匹配');
-        }
+
+//        var_dump($switchPayChannelForm['payMethodId']);
+//        exit;
+//        $channelAccountMethod = $channelAccount->getPayMethodById($switchPayChannelForm['payMethodId']);
+//        if(!$channelAccountMethod){
+//            throw new \Exception('选择的收款方式和收款通道不匹配');
+//        }
 
         //生成查询参数
         $searchFilter = $this->getSearchFilter();
-        $searchFilter['subUpdateFilter'][] = "m.method_id='{$switchPayChannelForm['payMethodId']}'";
+        //添加payMethodId条件是因为一个up.app_id对应多个method_id及一个商户有多个支付方式。
+        //为了筛选出只有payMethodId的p_merchant_recharge_methods表记录，防止GROUP BY up.app_id的时候获取到的通道ID不是要切换的，最终导致切换错误。
+        $channelStrWillSwitch = implode("','",$switchPayChannelForm['payMethodId']);
+        $searchFilter['subUpdateFilter'][] = "m.method_id IN ('{$channelStrWillSwitch}')";
         $updateFilterStr = implode(" AND ",$searchFilter['updateFilter'] );
         $subUpdateFilterStr = implode(" AND ",$searchFilter['subUpdateFilter']);
 
@@ -435,7 +447,7 @@ p_merchant_recharge_methods rm,
 		LEFT JOIN `p_users` `u` ON u.id = up.user_id 
 		LEFT JOIN `p_merchant_recharge_methods` `m` ON up.id = m.payment_info_id 
 		LEFT JOIN `p_tag_relations` `t` ON up.app_id = t.object_id 
-		WHERE {$subUpdateFilterStr} GROUP BY up.app_id
+		WHERE {$subUpdateFilterStr} AND m.payment_info_id IS NOT null GROUP BY up.app_id,m.method_id
 	) `p` 
 	ON u.id = p.user_id 
 	WHERE {$updateFilterStr}
@@ -539,16 +551,19 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
         if ($userId != '') {
             $query->andwhere(['u.id' => $userId]);
             $updateFilter[] = "u.id={$userId}";
+            $subUpdateFilter[] = "u.id={$userId}";
         }
         if (!empty($appIds) && is_array($appIds)) {
             foreach ($appIds as $k => $spa) {
                 $appIds[$k] = intval($spa);
             }
             $updateFilter[] = "u.id IN (" . implode(',', $appIds) . ")";
+            $subUpdateFilter[] = "u.id IN (" . implode(',', $appIds) . ")";
         }
         if ($username != '') {
             $query->andwhere(['u.username' => $username]);
             $updateFilter[] = "u.username='{$username}'";
+            $subUpdateFilter[] = "u.username='{$username}'";
         }
         if ($parentUsername != '') {
 //            $parent = User::findOne(['username' => $parentUsername]);
@@ -556,9 +571,11 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
             if ($parent) {
                 $query->andwhere(['u.parent_agent_id' => $parent->id]);
                 $updateFilter[] = "u.parent_agent_id={$parent->id}";
+                $subUpdateFilter[] = "u.parent_agent_id={$parent->id}";
             } else {
                 $query->andwhere(['u.parent_agent_id' => 0]);
                 $updateFilter[] = "u.parent_agent_id=0";
+                $subUpdateFilter[] = "u.parent_agent_id=0";
             }
         }
 
@@ -622,7 +639,7 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
      */
     public function actionChannelAccountList()
     {
-        $methodId = ControllerParameterValidator::getRequestParam($this->allParams, 'methodId', '', Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE, '收款方式错误');
+        $methodId = ControllerParameterValidator::getRequestParam($this->allParams, 'methodId', '', Macro::CONST_PARAM_TYPE_ARRAY, '收款方式错误');
 
         $accountsQuery = ChannelAccountRechargeMethod::find();
         $remitFeeCanBeZero = SiteConfig::cacheGetContent('remit_fee_can_be_zero');
@@ -634,6 +651,12 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
         if($methodId){
             $accountsQuery->andWhere(['method_id'=>$methodId]);
         }
+        //多个通道进行筛选
+        if(count($methodId)>1){
+            $accountsQuery->groupBy('channel_account_id');
+            $accountsQuery->having(['COUNT(*)' => count($methodId)]);
+        }
+
         $accounts = $accountsQuery->all();
         $data = [];
         foreach($accounts as $ac){
