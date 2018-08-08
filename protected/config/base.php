@@ -150,8 +150,6 @@ $config = [
 
     'params' => [
         'secret'   => [        // 参数签名私钥, 由客户端、服务端共同持有
-            'test'          => 'e09813f8015339fc445f3a84bb8c4023',
-            'agent.payment' => '736a0658e80f70ba5e53dc1ae9dc9f_xinhui',
         ],
 
         'paymentGateWayApiDefaultSignType' => 'md5',//rsa

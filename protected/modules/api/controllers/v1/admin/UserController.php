@@ -231,7 +231,7 @@ class UserController extends BaseController
         $userPayment->allow_manual_recharge = $data['allow_manual_recharge'];
         $userPayment->allow_api_remit = $data['allow_api_remit'];
         $userPayment->allow_manual_remit = $data['allow_manual_remit'];
-        $userPayment->allow_api_fast_remit = $data['remit_quota_pertime'];
+        $userPayment->allow_api_fast_remit = $data['allow_api_fast_remit'];
         $userPayment->save();
 
         //批量写入每种支付类型配置
@@ -428,6 +428,14 @@ class UserController extends BaseController
 
         //生成查询参数
         $searchFilter = $this->getSearchFilter();
+        //查询条件不能为空
+        if(
+            count($searchFilter['subUpdateFilter'])<=1 //默认 1=1
+         || count($searchFilter['updateFilter'])<=2 //默认 u.group_id!=10 AND parent_merchant_id=0
+        ){
+            Yii::error("切换收款通道条件错误: ".json_encode($this->allParams));
+            throw new \Exception('商户筛选条件不能为空，请刷新页面重试');
+        }
         //添加payMethodId条件是因为一个up.app_id对应多个method_id及一个商户有多个支付方式。
         //为了筛选出只有payMethodId的p_merchant_recharge_methods表记录，防止GROUP BY up.app_id的时候获取到的通道ID不是要切换的，最终导致切换错误。
         $channelStrWillSwitch = implode("','",$switchPayChannelForm['payMethodId']);

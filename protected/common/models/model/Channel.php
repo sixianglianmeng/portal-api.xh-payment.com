@@ -24,6 +24,9 @@ class Channel extends BaseModel
     const METHOD_WECHAT_CODEBAR = 'WXTM';
     const METHOD_QQ_CODEBAR = 'QQTM';
     const METHOD_ALIAPY_CODEBAR = 'ALITM';
+    const METHOD_BANK_TRANSFER = 'BANKTRANS';
+    const METHOD_ALIPAY_TRANSFER = 'ALITRANS';
+    const METHOD_WECHAT_TRANSFER = 'WXTRANS';
 
     const ARR_METHOD = [
         self::METHOD_WEBBANK    => '网银',
@@ -43,8 +46,11 @@ class Channel extends BaseModel
         self::METHOD_JD_H5          => '京东H5',
 
         self::METHOD_UNIONPAY_QR    => '银联扫码',
-        self::METHOD_UNIONPAY_H5    => '银联H5',
-        self::METHOD_UNIONPAY_QUICK => '银联快捷',
+        self::METHOD_UNIONPAY_H5     => '银联H5',
+        self::METHOD_UNIONPAY_QUICK  => '银联快捷',
+        self::METHOD_BANK_TRANSFER   => '银行转账',
+        self::METHOD_ALIPAY_TRANSFER => '支付宝转账',
+        self::METHOD_WECHAT_TRANSFER => '微信转账',
     ];
 
     const ARR_METHOD_EN = [
@@ -60,10 +66,13 @@ class Channel extends BaseModel
         self::METHOD_BANK_QUICK     => 'bankQuickPay',
         self::METHOD_JD_H5          => 'jdH5',
         self::METHOD_JD_QR          => 'jdQr',
-        self::METHOD_UNIONPAY_H5    => 'unionPayH5',
-        self::METHOD_WECHAT_CODEBAR => 'wechatCodeBar',
-        self::METHOD_QQ_CODEBAR     => 'qqCodeBar',
-        self::METHOD_ALIAPY_CODEBAR => 'alipayCodeBar',
+        self::METHOD_UNIONPAY_H5      => 'unionPayH5',
+        self::METHOD_WECHAT_CODEBAR   => 'wechatCodeBar',
+        self::METHOD_QQ_CODEBAR       => 'qqCodeBar',
+        self::METHOD_ALIAPY_CODEBAR   => 'alipayCodeBar',
+        self::METHOD_BANK_TRANSFER    => 'bankTransfer',
+        self::METHOD_ALIPAY_TRANSFER  => 'alipayTransfer',
+        self::METHOD_WECHAT_TRANSFER  => 'wechatTransfer',
     ];
 
     public static function tableName()
