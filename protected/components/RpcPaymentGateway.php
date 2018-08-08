@@ -38,9 +38,9 @@ class RpcPaymentGateway
      * @throws \Exception
      * @return array
      */
-    public static function recharge($amount, $payType, $bankCode, $merchantName)
+    public static function recharge($amount, $payType, $bankCode, $merchantName,$type)
     {
-        $ret = self::call('/order/add',['amount'=>$amount,'pay_type'=>$payType,'bank_code'=>$bankCode,'merchant_username'=>$merchantName]);
+        $ret = self::call('/order/add',['amount'=>$amount,'pay_type'=>$payType,'bank_code'=>$bankCode,'merchant_username'=>$merchantName,'type'=>$type]);
 
         return $ret;
     }

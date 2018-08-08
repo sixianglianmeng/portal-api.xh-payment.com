@@ -110,7 +110,50 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
 
     public function getParentAgent()
     {
-        return $this->hasOne(User::className(), ['id'=>'parent_agent_id']);
+        return $this->hasOne(User::class, ['id'=>'parent_agent_id']);
+    }
+
+    /**
+     * 商户开户费信息
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getAccountOpenFeeInfo()
+    {
+        return $this->hasOne(AccountOpenFee::class, ['user_id'=>'id']);
+    }
+
+    /**
+     * 是否需要支付开户费
+     *
+     * 商户且设置了开户费且未支付的需要进行支付
+     */
+    public function needPayAccountOpenFee()
+    {
+        $paid = false;
+        if($this->group_id == self::GROUP_MERCHANT){
+            $accountFee = $this->accountOpenFeeInfo;
+            if($accountFee && $accountFee->needPay()){
+                $paid = true;
+            }
+        }
+
+        return $paid;
+    }
+
+    /**
+     * 获取开户费订单链接
+     *
+     * 商户且设置了开户费且未支付的需要进行支付
+     */
+    public function getPayAccountOpenFeeOrderUrl()
+    {
+        $accountFee = $this->accountOpenFeeInfo;
+        if($accountFee->fee>0){
+
+        }
+
+        return $paid;
     }
 
     /*

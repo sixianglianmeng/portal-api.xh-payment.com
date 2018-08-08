@@ -5,6 +5,7 @@ use app\common\models\model\BankCodes;
 use app\common\models\model\Channel;
 use app\common\models\model\ChannelAccount;
 use app\common\models\model\Order;
+use app\common\models\model\SiteConfig;
 use app\common\models\model\Track;
 use app\common\models\model\User;
 use app\components\Macro;
@@ -55,10 +56,20 @@ class OrderController extends BaseController
     {
         $payeeName = ControllerParameterValidator::getRequestParam($this->allParams, 'merchant_username', '',Macro::CONST_PARAM_TYPE_USERNAME,'充值账户错误');
         $amount = ControllerParameterValidator::getRequestParam($this->allParams, 'amount', null,Macro::CONST_PARAM_TYPE_DECIMAL,'充值金额错误');
-        $payType = ControllerParameterValidator::getRequestParam($this->allParams, 'pay_type', Channel::METHOD_WEBBANK,Macro::CONST_PARAM_TYPE_INT,'充值渠道错误');
+        $type = ControllerParameterValidator::getRequestParam($this->allParams, 'type', 1,Macro::CONST_PARAM_TYPE_INT,'订单类型错误');
+        $payType = ControllerParameterValidator::getRequestParam($this->allParams, 'pay_type', Channel::METHOD_WEBBANK,Macro::CONST_PARAM_TYPE_INT,'付款类型错误');
         $bankCode = ControllerParameterValidator::getRequestParam($this->allParams, 'bank_code', '',Macro::CONST_PARAM_TYPE_INT,'银行代码错误');
 
-        if($payeeName){
+        if($type == 3){
+            $merchantName = SiteConfig::cacheGetContent('account_open_fee_in_account');
+            $merchant = User::findOne(['username'=>$merchantName]);
+            if(empty($merchant)){
+                Yii::error("系统商户开户费转入账户设置错误");
+                Util::throwException(Macro::ERR_USER_NOT_FOUND,"商户开户费账户设置错误，请联系客服！");
+            }
+            $amount = Yii::$app->user->identity->accountOpenFeeInfo->fee;
+        }
+        elseif($payeeName){
             $merchant = User::findOne(['username'=>$payeeName]);
             if(empty($merchant)){
                 Util::throwException(Macro::ERR_USER_NOT_FOUND);
@@ -66,8 +77,12 @@ class OrderController extends BaseController
         }else{
             $merchant = Yii::$app->user->identity;
         }
-
-        $ret = RpcPaymentGateway::recharge($amount,$payType,$bankCode,$merchant->username);
+        $ret = RpcPaymentGateway::recharge($amount,$payType,$bankCode,$merchant->username,$type);
+        if($type == 3){
+            Yii::$app->user->identity->accountOpenFeeInfo->order_no = $ret['data']['order_no'];
+            Yii::$app->user->identity->accountOpenFeeInfo->order_created_at = time();
+            Yii::$app->user->identity->accountOpenFeeInfo->save(false);
+        }
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '订单生成成功', $ret['data']);
 

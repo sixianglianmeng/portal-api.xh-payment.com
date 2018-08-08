@@ -189,6 +189,11 @@ class UserController extends BaseController
     public function actionGetGoogleCode()
     {
         $user = Yii::$app->user->identity;
+
+        if($user->needPayAccountOpenFee()){
+            throw new OperationFailureException('请先缴纳开户费用',Macro::FAIL);
+        }
+
         if($user->key_2fa){
             return ResponseHelper::formatOutput(Macro::ERR_USER_GOOGLE_CODE, '安全令牌已设置');
         }
@@ -209,6 +214,10 @@ class UserController extends BaseController
     public function actionSetGoogleCode()
     {
         $user = Yii::$app->user->identity;
+        if($user->needPayAccountOpenFee()){
+            throw new OperationFailureException('请先缴纳开户费用',Macro::FAIL);
+        }
+
         $key_2fa = ControllerParameterValidator::getRequestParam($this->allParams,'key_2fa','',Macro::CONST_PARAM_TYPE_INT,'验证码错误',[6]);
         $googleObj = new \PHPGangsta_GoogleAuthenticator();
         $secret = Yii::$app->redis->get('google_secret'.$user->id);
@@ -232,6 +241,10 @@ class UserController extends BaseController
             throw new OperationFailureException('只有主账号有此操作权限',Macro::FAIL);
         }
 
+        if($user->needPayAccountOpenFee()){
+            throw new OperationFailureException('请先缴纳开户费用',Macro::FAIL);
+        }
+
         $this->checkSecurityInfo();
 
         $payInfo = Yii::$app->user->identity->paymentInfo;
@@ -246,6 +259,10 @@ class UserController extends BaseController
         $user = Yii::$app->user->identity;
         if(!$user->isMainAccount()){
             throw new OperationFailureException('只有主账号有此操作权限',Macro::FAIL);
+        }
+
+        if($user->needPayAccountOpenFee()){
+            throw new OperationFailureException('请先缴纳开户费用',Macro::FAIL);
         }
 
         $this->checkSecurityInfo();
@@ -413,6 +430,10 @@ class UserController extends BaseController
         $newPass = ControllerParameterValidator::getRequestParam($this->allParams,'newPass','',Macro::CONST_PARAM_TYPE_PASSWORD,'新密码错误',[6,16]);
         $confirmPass = ControllerParameterValidator::getRequestParam($this->allParams,'confirmPass','',Macro::CONST_PARAM_TYPE_PASSWORD,'确认密码错误',[6,16]);
         $user = Yii::$app->user->identity;
+
+        if($user->needPayAccountOpenFee()){
+            throw new OperationFailureException('请先缴纳开户费用',Macro::FAIL);
+        }
 
         if($oldPass && !$user->validateFinancialPassword($oldPass)){
             return ResponseHelper::formatOutput(Macro::ERR_USER_PASSWORD, '旧密码不正确');

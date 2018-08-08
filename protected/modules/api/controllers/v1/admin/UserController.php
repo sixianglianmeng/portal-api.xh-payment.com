@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\api\controllers\v1\admin;
 
+use app\common\models\model\AccountOpenFee;
 use app\common\models\model\Channel;
 use app\common\models\model\ChannelAccount;
 use app\common\models\model\ChannelAccountRechargeMethod;
@@ -82,6 +83,7 @@ class UserController extends BaseController
         //收款和出款通道在通道切换处统一设置
         $channelAccountId = ControllerParameterValidator::getRequestParam($arrAllParams, 'channel',0,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'收款通道错误');
         $remitChannelAccountId = ControllerParameterValidator::getRequestParam($arrAllParams, 'remit_channel',0,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'出款通道错误');
+        $accountOpenFee = ControllerParameterValidator::getRequestParam($arrAllParams, 'account_open_fee',0,Macro::CONST_PARAM_TYPE_DECIMAL,'开户费色孩纸错误');
 
         $remitFeeCanBeZero = SiteConfig::cacheGetContent('remit_fee_can_be_zero');
         $rechargeFeeCanBeZero = SiteConfig::cacheGetContent('recharge_fee_can_be_zero');
@@ -261,6 +263,14 @@ class UserController extends BaseController
                 $methodConfig->channel_account_name = $channel->channel_name;
             }
             $methodConfig->save();
+        }
+
+        if($accountOpenFee){
+            $accountOpenInfo = new AccountOpenFee();
+            $accountOpenInfo->user_id = $user->id;
+            $accountOpenInfo->username = $user->username;
+            $accountOpenInfo->fee = $accountOpenFee;
+            $accountOpenInfo->save();
         }
 
         //账户角色授权

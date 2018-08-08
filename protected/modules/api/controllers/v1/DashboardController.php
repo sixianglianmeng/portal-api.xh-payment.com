@@ -127,6 +127,11 @@ class DashboardController extends BaseController
         $data['rate'] = UserPaymentInfo::getPayMethodsArrByAppId($user->id);
         $data['remit_fee'] = $user->paymentInfo->remit_fee;
         $data['payMethodOptions'] = Channel::ARR_METHOD;
+        $data['needPayAccountOpenFee'] = $user->needPayAccountOpenFee();
+        $data['needPayAccountOpenAmount'] = 0;
+        if($data['needPayAccountOpenFee']){
+            $data['needPayAccountOpenAmount'] = $user->accountOpenFeeInfo->fee;
+        }
         //格式化返回json结构
 //        $data = [];
 //        foreach ($user as $key=>$val){
