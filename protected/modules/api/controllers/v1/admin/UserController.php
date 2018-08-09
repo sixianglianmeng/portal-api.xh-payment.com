@@ -1006,6 +1006,8 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
 
         $data['accountOpenAmount'] = $user->accountOpenFeeInfo?$user->accountOpenFeeInfo->fee:0;
         $data['accountOpenPaid'] = $user->accountOpenFeeInfo?$user->accountOpenFeeInfo->fee_paid:0;
+        $data['accountOpenInfo'] = $user->accountOpenFeeInfo?$user->accountOpenFeeInfo->toArray():[];
+        $data['accountOpenInfo']['status_str'] = $user->accountOpenFeeInfo?AccountOpenFee::getStatusStr($user->accountOpenFeeInfo->status):'-';
 
         return ResponseHelper::formatOutput(Macro::SUCCESS,'', $data);
     }

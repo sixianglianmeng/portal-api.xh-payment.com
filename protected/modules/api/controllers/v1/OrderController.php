@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\api\controllers\v1;
 
+use app\common\models\model\AccountOpenFee;
 use app\common\models\model\BankCodes;
 use app\common\models\model\Channel;
 use app\common\models\model\ChannelAccount;
@@ -60,6 +61,7 @@ class OrderController extends BaseController
         $payType = ControllerParameterValidator::getRequestParam($this->allParams, 'pay_type', Channel::METHOD_WEBBANK,Macro::CONST_PARAM_TYPE_INT,'付款类型错误');
         $bankCode = ControllerParameterValidator::getRequestParam($this->allParams, 'bank_code', '',Macro::CONST_PARAM_TYPE_INT,'银行代码错误');
 
+        $bak = '';
         if($type == 3){
             $merchantName = SiteConfig::cacheGetContent('account_open_fee_in_account');
             $merchant = User::findOne(['username'=>$merchantName]);
@@ -67,7 +69,11 @@ class OrderController extends BaseController
                 Yii::error("系统商户开户费转入账户设置错误");
                 Util::throwException(Macro::ERR_USER_NOT_FOUND,"商户开户费账户设置错误，请联系客服！");
             }
+            if(Yii::$app->user->identity->accountOpenFeeInfo->fee_paid>0 || Yii::$app->user->identity->accountOpenFeeInfo->status == AccountOpenFee::STATUS_PAID){
+                return ResponseHelper::formatOutput(Macro::FAIL,"商户开户费已经缴纳过了！");
+            }
             $amount = Yii::$app->user->identity->accountOpenFeeInfo->fee;
+            $bak = "商户开户费用:".Yii::$app->user->identity->id.','.Yii::$app->user->identity->username;
         }
         elseif($payeeName){
             $merchant = User::findOne(['username'=>$payeeName]);
@@ -77,7 +83,7 @@ class OrderController extends BaseController
         }else{
             $merchant = Yii::$app->user->identity;
         }
-        $ret = RpcPaymentGateway::recharge($amount,$payType,$bankCode,$merchant->username,$type);
+        $ret = RpcPaymentGateway::recharge($amount,$payType,$bankCode,$merchant->username,$type,$bak);
         if($type == 3){
             Yii::$app->user->identity->accountOpenFeeInfo->order_no = $ret['data']['order_no'];
             Yii::$app->user->identity->accountOpenFeeInfo->order_created_at = time();

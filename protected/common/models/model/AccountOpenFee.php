@@ -41,4 +41,15 @@ class AccountOpenFee extends BaseModel
 
         return $paid;
     }
+
+    /**
+     * 获取状态描述
+     *
+     * @return string
+     * @author bootmall@gmail.com
+     */
+    public static function getStatusStr($status)
+    {
+        return self::ARR_STATUS[$status]??'-';
+    }
 }

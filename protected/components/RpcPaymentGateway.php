@@ -35,12 +35,14 @@ class RpcPaymentGateway
      * @param int $payType 充值渠道
      * @param string $bankCode 银行代码
      * @param string $merchantName 充值账户名
+     * @param string $type 订单类型
+     * @param string $bak 备注
      * @throws \Exception
      * @return array
      */
-    public static function recharge($amount, $payType, $bankCode, $merchantName,$type)
+    public static function recharge($amount, $payType, $bankCode, $merchantName, $type=2, $bak='')
     {
-        $ret = self::call('/order/add',['amount'=>$amount,'pay_type'=>$payType,'bank_code'=>$bankCode,'merchant_username'=>$merchantName,'type'=>$type]);
+        $ret = self::call('/order/add',['amount'=>$amount,'pay_type'=>$payType,'bank_code'=>$bankCode,'merchant_username'=>$merchantName,'type'=>$type,'bak'=>$bak]);
 
         return $ret;
     }
