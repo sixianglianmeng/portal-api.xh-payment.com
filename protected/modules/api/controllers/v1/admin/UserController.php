@@ -83,7 +83,7 @@ class UserController extends BaseController
         //收款和出款通道在通道切换处统一设置
         $channelAccountId = ControllerParameterValidator::getRequestParam($arrAllParams, 'channel',0,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'收款通道错误');
         $remitChannelAccountId = ControllerParameterValidator::getRequestParam($arrAllParams, 'remit_channel',0,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'出款通道错误');
-        $accountOpenFee = ControllerParameterValidator::getRequestParam($arrAllParams, 'account_open_fee',0,Macro::CONST_PARAM_TYPE_DECIMAL,'开户费色孩纸错误');
+        $accountOpenFee = ControllerParameterValidator::getRequestParam($arrAllParams, 'account_open_fee',0,Macro::CONST_PARAM_TYPE_DECIMAL,'开户费设置错误');
 
         $remitFeeCanBeZero = SiteConfig::cacheGetContent('remit_fee_can_be_zero');
         $rechargeFeeCanBeZero = SiteConfig::cacheGetContent('recharge_fee_can_be_zero');
@@ -1004,6 +1004,9 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $data['remitFeeCanBeZero'] =  SiteConfig::cacheGetContent('remit_fee_can_be_zero');
         $data['rechargeFeeCanBeZero'] =  SiteConfig::cacheGetContent('recharge_fee_can_be_zero');
 
+        $data['accountOpenAmount'] = $user->accountOpenFeeInfo?$user->accountOpenFeeInfo->fee:0;
+        $data['accountOpenPaid'] = $user->accountOpenFeeInfo?$user->accountOpenFeeInfo->fee_paid:0;
+
         return ResponseHelper::formatOutput(Macro::SUCCESS,'', $data);
     }
 
@@ -1338,5 +1341,31 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $ret = RpcPaymentGateway::call('/account/change-balance', $data);
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '解冻成功');
+    }
+
+    /**
+     * 设置商户开户费
+     * @role admin
+     */
+    public function actionSetAccountOpenFee()
+    {
+        $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId', null, Macro::CONST_PARAM_TYPE_INT, '用户id错误');
+        $accountOpenFee = ControllerParameterValidator::getRequestParam($this->allParams, 'amount',null,Macro::CONST_PARAM_TYPE_DECIMAL,'开户费设置错误');
+
+        $user = User::findOne(['id'=>$userId]);
+        if(!$user){
+            ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
+        }
+
+        $user->status = User::STATUS_ACTIVE;
+        $user->save();
+
+        $accountOpenInfo = new AccountOpenFee();
+        $accountOpenInfo->user_id = $user->id;
+        $accountOpenInfo->username = $user->username;
+        $accountOpenInfo->fee = $accountOpenFee;
+        $accountOpenInfo->save();
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS, '设置成功');
     }
 }
