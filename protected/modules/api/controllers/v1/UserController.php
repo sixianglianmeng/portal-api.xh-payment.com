@@ -384,14 +384,14 @@ class UserController extends BaseController
         $userObj = Yii::$app->user->identity;
         $user = $userObj->getMainAccount();
         if($user->balance<=0){
-            Util::throwException(Macro::ERR_BALANCE_NOT_ENOUGH);
+            return ResponseHelper::formatOutput(Macro::ERR_BALANCE_NOT_ENOUGH,'余额不足，不能提款');
         }
         if($user->paymentInfo->allow_manual_remit<=0){
-            Util::throwException(Macro::ERR_ALLOW_MANUAL_REMIT,'不支持手工提款');
+            return ResponseHelper::formatOutput(Macro::ERR_ALLOW_MANUAL_REMIT,'不支持手工提款');
         }
         $user->paymentInfo->getRemitChannel();
         if(!$user->paymentInfo->remit_channel_account_id){
-            Util::throwException(Macro::ERR_REMIT_CHANNEL_NOT_ENOUGH,'未指定出款渠道，请联系客服设置');
+            return ResponseHelper::formatOutput(Macro::ERR_REMIT_CHANNEL_NOT_ENOUGH,'未指定出款渠道，请联系客服设置');
         }
         if(empty($user->key_2fa)||empty($user->financial_password_hash)){
             return ResponseHelper::formatOutput(Macro::ERR_USER_2FA_EMPTY, '请先设置资金密码和手机令牌');
