@@ -422,7 +422,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     }
 
     public function setDefaultPassword(){
-        $password = Yii::$app->params['user.defaultPassword'];
+        $password = SiteConfig::cacheGetContent('user_default_password');
         $this->setPassword($password);
         return $this;
     }
