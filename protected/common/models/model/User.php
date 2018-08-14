@@ -281,9 +281,11 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         }else{
             $filter = ['and',['in','merchant_id',$allAgentIds]];
             $minFeeFilter = ['or'];
+            $countMethods = 0;
             foreach ($methods as $key => $val){
                 if($val > 0 ){
                     $minFeeFilter[]=["and","method_id='{$key}'","fee_rate<={$val}"];
+                    $countMethods += 1;
                 }
             }
             $filter[] = $minFeeFilter;
@@ -291,7 +293,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             if($merchantRechargeMethods){
                 $allAgentIds = [];
                 foreach ($merchantRechargeMethods as $key => $val){
-                    if($val['total'] == count($methods)){
+                    if($val['total'] == $countMethods){
                         $allAgentIds[$key] = $val['merchant_id'];
                     }
                 }
