@@ -50,4 +50,16 @@ class AccountController extends BaseConsoleCommand
         //账户角色授权
         $user->setGroupRole();
     }
+
+    /*
+     * 更新超级管理员密码
+     *
+     * ./protected/yii account/reset-admin-pass admin_username
+     */
+    public function actionResetAdminPass($username,$pwd)
+    {
+        $user = User::findOne(['username'=>$username]);
+        $user->setPassword($pwd);
+        $user->save();
+    }
 }
