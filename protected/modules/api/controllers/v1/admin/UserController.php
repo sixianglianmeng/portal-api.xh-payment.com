@@ -78,6 +78,7 @@ class UserController extends BaseController
         $data['allow_api_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_api_remit',1,Macro::CONST_PARAM_TYPE_INT,'允许接口结算错误');
         $data['allow_manual_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_manual_remit',1,Macro::CONST_PARAM_TYPE_INT,'允许手工结算错误');
         $data['allow_api_fast_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_api_fast_remit',1,Macro::CONST_PARAM_TYPE_INT,'接口结算不需审核错误');
+        $data['allow_manual_fast_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_manual_fast_remit','',Macro::CONST_PARAM_TYPE_INT,'手工结算不需审核错误');
         //管理员开的账户均为顶级账户
         $parentAccountName = ControllerParameterValidator::getRequestParam($arrAllParams, 'parentMerchantAccount','',Macro::CONST_PARAM_TYPE_USERNAME,'上级帐号错误');
         //收款和出款通道在通道切换处统一设置
@@ -233,7 +234,8 @@ class UserController extends BaseController
         $userPayment->allow_manual_recharge = $data['allow_manual_recharge'];
         $userPayment->allow_api_remit = $data['allow_api_remit'];
         $userPayment->allow_manual_remit = $data['allow_manual_remit'];
-        $userPayment->allow_api_fast_remit = $data['allow_api_fast_remit'];
+        $userPayment->allow_api_fast_remit = $data['allow_api_fast_remit']==''?SiteConfig::cacheGetContent('api_fast_remit_quota'):$data['allow_api_fast_remit'];
+        $userPayment->allow_manual_fast_remit = $data['allow_manual_fast_remit']==''?SiteConfig::cacheGetContent('manual_fast_remit_quota'):$data['allow_manual_fast_remit'];
         $userPayment->save();
 
         //批量写入每种支付类型配置
@@ -950,6 +952,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $userInfo['parent_agent_id']             = $user->parent_agent_id;
         $userInfo['agent']                       = '';
         $userInfo['allow_api_fast_remit']        = $paymentInfo->allow_api_fast_remit;
+        $userInfo['allow_manual_fast_remit']     = $paymentInfo->allow_manual_fast_remit;
         $userInfo['allow_api_recharge']          = $paymentInfo->allow_api_recharge;
         $userInfo['allow_api_remit']             = $paymentInfo->allow_api_remit;
         $userInfo['allow_manual_recharge']       = $paymentInfo->allow_manual_recharge;
@@ -1194,12 +1197,14 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
     public function actionUpdateApi()
     {
         $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'user_id',0,Macro::CONST_PARAM_TYPE_INT,'商户ID错误');
-        $fields = ['allow_api_fast_remit','allow_api_recharge','allow_api_remit','allow_manual_recharge','allow_manual_remit'];
+        $fields = ['allow_api_recharge','allow_api_remit','allow_manual_recharge','allow_manual_remit'];
         $data = [];
         foreach ($fields as $f){
             $data[$f] = ControllerParameterValidator::getRequestParam($this->allParams, $f,null,
                 Macro::CONST_PARAM_TYPE_ENUM,'api开关参数错误',[0,1]);
         }
+        $data['allow_api_fast_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_api_fast_remit','',Macro::CONST_PARAM_TYPE_INT,'接口结算不需审核错误');
+        $data['allow_manual_fast_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_manual_fast_remit','',Macro::CONST_PARAM_TYPE_INT,'手工结算不需审核错误');
 
         $userPaymentInfo = UserPaymentInfo::getUserDefaultPaymentInfo($userId);
         if(!$userPaymentInfo){

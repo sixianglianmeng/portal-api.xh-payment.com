@@ -147,6 +147,12 @@ class UserController extends BaseController
     public function actionProfile ()
     {
         $user = Yii::$app->user->identity;
+
+        $payConfigs = [];
+        $rawPayConfigs = $user->paymentInfo->getPayMethodsArrByAppId($user->id);
+        foreach ($rawPayConfigs as $p){
+            $payConfigs[$p['id']] = $p;
+        }
         $data = [
             'id' => $user->id,
             'username' => $user->username,
@@ -157,6 +163,7 @@ class UserController extends BaseController
             'role' => [User::getGroupEnStr($user->group_id)],
             'permissions' => $user->getPermissions(),
             'main_merchant_id' => $user->getMainAccount()->id,
+            'pay_config' => $payConfigs,
         ];
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);

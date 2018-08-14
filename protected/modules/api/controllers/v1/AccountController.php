@@ -13,6 +13,7 @@ use app\common\models\model\Financial;
 use app\common\models\model\MerchantRechargeMethod;
 use app\common\models\model\Order;
 use app\common\models\model\Remit;
+use app\common\models\model\SiteConfig;
 use app\common\models\model\User;
 use app\common\models\model\UserPaymentInfo;
 use app\components\Macro;
@@ -63,6 +64,8 @@ class AccountController extends BaseController
 
         $id = ControllerParameterValidator::getRequestParam($this->allParams, 'id', 0, Macro::CONST_PARAM_TYPE_INT, '用户id错误');
         $username = ControllerParameterValidator::getRequestParam($arrAllParams, 'username',null,Macro::CONST_PARAM_TYPE_USERNAME,'登录账户错误');
+        $email = ControllerParameterValidator::getRequestParam($arrAllParams, 'email','',Macro::CONST_PARAM_TYPE_EMAIL,'email错误',
+            User::ARR_STATUS);
         //管理员只能开代理
         $data['group_id'] = ControllerParameterValidator::getRequestParam($arrAllParams, 'group_id',null,Macro::CONST_PARAM_TYPE_ARRAY_HAS_KEY,'账户类型错误',User::ARR_GROUP);
         $data['remit_fee'] = ControllerParameterValidator::getRequestParam($arrAllParams, 'remit_fee',null,Macro::CONST_PARAM_TYPE_DECIMAL,'结算手续费错误');
@@ -74,7 +77,8 @@ class AccountController extends BaseController
         $data['allow_manual_recharge'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_manual_recharge',1,Macro::CONST_PARAM_TYPE_INT,'允许手工收款错误');
         $data['allow_api_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_api_remit',1,Macro::CONST_PARAM_TYPE_INT,'允许接口结算错误');
         $data['allow_manual_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_manual_remit',1,Macro::CONST_PARAM_TYPE_INT,'允许手工结算错误');
-        $data['allow_api_fast_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_api_fast_remit',1,Macro::CONST_PARAM_TYPE_INT,'接口结算不需审核错误');
+        $data['allow_api_fast_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_api_fast_remit','',Macro::CONST_PARAM_TYPE_INT,'接口结算不需审核错误');
+        $data['allow_manual_fast_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_manual_fast_remit','',Macro::CONST_PARAM_TYPE_INT,'手工结算不需审核错误');
         //收款和出款通道在通道切换处统一设置
         $channelAccountId = ControllerParameterValidator::getRequestParam($arrAllParams, 'channel',0,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'收款通道错误');
         $remitChannelAccountId = ControllerParameterValidator::getRequestParam($arrAllParams, 'remit_channel',0,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'出款通道错误');
@@ -160,6 +164,7 @@ class AccountController extends BaseController
             }
             $user = new User();
             $user->username = $username;
+            $user->email = $email;
             $user->setDefaultPassword();
             $userPayment = new UserPaymentInfo();
         }
@@ -198,12 +203,13 @@ class AccountController extends BaseController
         $userPayment->remit_fee = $data['remit_fee'];
         $userPayment->recharge_quota_pertime = $data['recharge_quota_pertime'];
         $userPayment->remit_quota_pertime = $data['remit_quota_pertime'];
-        $userPayment->allow_api_recharge = $data['allow_api_recharge'];
-        $userPayment->allow_manual_recharge = $data['allow_manual_recharge'];
-        $userPayment->allow_api_remit = $data['allow_api_remit'];
-        $userPayment->allow_manual_remit = $data['allow_manual_remit'];
-        $userPayment->allow_api_fast_remit = $data['remit_quota_pertime'];
-        $userPayment->remit_quota_pertime = $data['allow_api_fast_remit'];
+        $userPayment->allow_api_recharge = 1;//$data['allow_api_recharge'];
+        $userPayment->allow_manual_recharge = 1;//$data['allow_manual_recharge'];
+        $userPayment->allow_api_remit = 1;//$data['allow_api_remit'];
+        $userPayment->allow_manual_remit = 1;//$data['allow_manual_remit'];
+        $userPayment->allow_api_fast_remit = SiteConfig::cacheGetContent('api_fast_remit_quota');
+        $userPayment->allow_manual_fast_remit = SiteConfig::cacheGetContent('manual_fast_remit_quota');
+        $userPayment->remit_quota_pertime = $data['remit_quota_pertime'];
         $userPayment->save();
 
         //批量写入每种支付类型配置
