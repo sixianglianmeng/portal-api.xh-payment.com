@@ -764,6 +764,7 @@ DELETE FROM p_tag_relations where object_type=1 AND object_id IN
 	    SELECT m.id as m_id,`up`.`user_id`,`up`.`channel_account_id`, `up`.`remit_channel_account_id`,`m`.`method_id`,m.app_id FROM `p_user_payment_info` `up`
 		LEFT JOIN `p_merchant_recharge_methods` `m` ON up.id = m.payment_info_id
 		LEFT JOIN `p_tag_relations` `t` ON up.app_id = t.object_id 
+		LEFT JOIN `p_users` `u` ON u.id = up.user_id 
 		WHERE {$subUpdateFilterStr}  GROUP BY up.app_id
 	) `p`
 	ON u.id = p.user_id
@@ -783,6 +784,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
 	    SELECT m.id as m_id,`up`.`user_id`,`up`.`channel_account_id`, `up`.`remit_channel_account_id`,`m`.`method_id`,m.app_id FROM `p_user_payment_info` `up` 
 		LEFT JOIN `p_merchant_recharge_methods` `m` ON up.id = m.payment_info_id 
 		LEFT JOIN `p_tag_relations` `t` ON up.app_id = t.object_id 
+		LEFT JOIN `p_users` `u` ON u.id = up.user_id 
 		WHERE {$subUpdateFilterStr}  GROUP BY up.app_id
 	) `p` 
 	ON u.id = p.user_id 
@@ -844,7 +846,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
             $filter[] =['like', 'name', $tag];
         }
         $tags = Tag::find($filter)->all();
-        $data = [];
+        $data = [[Macro::SELECT_OPTION_ALL=>'全部']];
         foreach($tags as $t){
             $data[] = [
                 'id'=>$t->id,
