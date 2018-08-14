@@ -55,6 +55,20 @@ class UtilController extends BaseController
     }
 
     /**
+     * 接口文档
+     *
+     * @role user_base
+     * @author bootmall@gmail.com
+     */
+    public function actionDocument(){
+        $data = [
+            'document_link'=>SiteConfig::cacheGetContent('api_document_url')
+        ];
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
+    }
+
+    /**
      * 获取站点信息
      *
      * @role user_base
