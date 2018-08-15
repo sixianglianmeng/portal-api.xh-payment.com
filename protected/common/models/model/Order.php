@@ -165,8 +165,9 @@ class Order extends BaseModel
      * @param $group_id 商户类型 10 - 管理员 20 - 代理 30 - 商户
      * @param $merchant_id 商户ID
      * @param $type today 今天 Yesterday 昨天
+     * @param $status 订单状态 默认20已结算
      */
-    public static function getYesterdayTodayOrder($group_id,$merchant_id,$type)
+    public static function getYesterdayTodayOrder($group_id,$merchant_id,$type,$status=self::STATUS_SETTLEMENT)
     {
         $order = [];
         $orderQuery = self::find();
@@ -191,9 +192,10 @@ class Order extends BaseModel
         if($group_id == 30){
             $orderQuery->andWhere(['merchant_id'=>$merchant_id]);
         }
-        $orderQuery->andWhere(['status'=>20]);
+        $orderQuery->andWhere(['status'=>$status]);
         $orderQuery->select('sum(amount) as amount,count(id) as total,sum(fee_amount) as fee_amount');
         $order = $orderQuery->asArray()->all();
+
         return $order;
     }
 }

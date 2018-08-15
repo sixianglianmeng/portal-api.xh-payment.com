@@ -404,8 +404,6 @@ class RemitController extends BaseController
      */
     public function actionSingleBatchRemit()
     {
-        return ResponseHelper::formatOutput(Macro::FAIL, '此功能暂未开放', []);
-
         $user = Yii::$app->user->identity;
         $financial_password_hash = ControllerParameterValidator::getRequestParam($this->allParams, 'financial_password_hash','',Macro::CONST_PARAM_TYPE_STRING,'资金密码必须在8位以上');
         $key_2fa = ControllerParameterValidator::getRequestParam($this->allParams,'key_2fa','',Macro::CONST_PARAM_TYPE_INT,'验证码错误',[6]);

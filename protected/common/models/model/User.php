@@ -425,6 +425,24 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         return Yii::$app->security->validatePassword($password,$this->password_hash);
     }
 
+    /**
+     * 检测当前请求ip是否中商户配置的白名单中
+     * @return bool
+     */
+    public function validLoginIp()
+    {
+        if($this->bind_login_ip){
+            $ip = Yii::$app->request->remoteIP;
+            $allowIps = json_decode($this->bind_login_ip);
+
+            if($allowIps && !in_array($ip,$allowIps)){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function setDefaultPassword(){
         $password = SiteConfig::cacheGetContent('user_default_password');
         $this->setPassword($password);

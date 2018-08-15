@@ -91,18 +91,36 @@ class DashboardController extends BaseController
         $data['user']['remit_yesterday_total_success'] = 0;
         $data['user']['remit_yesterday_total_fail'] = 0;
         $data['user']['remit_yesterday_amount_fail'] = 0;
-        $orderToday = Order::getYesterdayTodayOrder($user->group_id,$user->id,'today');
+        //已支付
+        $orderToday = Order::getYesterdayTodayOrder($user->group_id,$user->id,'today', [Order::STATUS_SETTLEMENT,Order::STATUS_PAID]);
         //$orderToday = $orderTodayQuery->asArray()->all();
         if(!empty($orderToday)){
             $data['user']['order_today_amount'] = $orderToday['amount'] ?? 0 ;
             $data['user']['order_today_total'] = $orderToday['total'] ?? 0 ;
             $data['user']['order_today_fee_amount'] = $orderToday['fee_amount'] ?? 0 ;
         }
+        //待结算
+        $orderPaidToday = Order::getYesterdayTodayOrder($user->group_id,$user->id,'today', Order::STATUS_PAID);
+        //$orderToday = $orderTodayQuery->asArray()->all();
+        if(!empty($orderPaidToday)){
+            $data['user']['order_today_paid_amount'] = $orderPaidToday['amount'] ?? 0 ;
+            $data['user']['order_today_paid_total'] = $orderPaidToday['total'] ?? 0 ;
+            $data['user']['order_today_paid_fee_amount'] = $orderPaidToday['fee_amount'] ?? 0 ;
+        }
+
         $orderYesterday = Order::getYesterdayTodayOrder($user->group_id,$user->id,'yesterday');
         if(!empty($orderYesterday)){
             $data['user']['order_yesterday_amount'] = $orderYesterday['amount'] ?? 0 ;
             $data['user']['order_yesterday_total'] = $orderYesterday['total'] ?? 0 ;
             $data['user']['order_yesterday_fee_amount'] = $orderYesterday['fee_amount'] ?? 0 ;
+        }
+        //待结算
+        $orderPaidYesterday = Order::getYesterdayTodayOrder($user->group_id,$user->id,'yesterday', Order::STATUS_PAID);
+        //$orderToday = $orderTodayQuery->asArray()->all();
+        if(!empty($orderPaidYesterday)){
+            $data['user']['order_yesterday_paid_amount'] = $orderPaidYesterday['amount'] ?? 0 ;
+            $data['user']['order_yesterday_paid_total'] = $orderPaidYesterday['total'] ?? 0 ;
+            $data['user']['order_yesterday_paid_fee_amount'] = $orderPaidYesterday['fee_amount'] ?? 0 ;
         }
         $remitTodaySuccess = Remit::getYesterdayTodayRemit($user->group_id,$user->id,'today',1);
         if(!empty($remitTodaySuccess)){

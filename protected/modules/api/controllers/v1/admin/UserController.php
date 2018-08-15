@@ -881,6 +881,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $userInfo['id'] = $user->id;
         $userInfo['username'] = $user->username;
         $userInfo['email'] = $user->email;
+        $userInfo['bind_login_ip'] = $user->bind_login_ip;
         $userInfo['created_at'] = date('Y-m-d H:i:s',$user->created_at);
         $rate = UserPaymentInfo::getPayMethodsArrByAppId($user->id);
         $lowerUser = User::find()->where(['parent_agent_id'=>$user->id])->select('id')->asArray()->all();
@@ -1376,5 +1377,27 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $accountOpenInfo->save();
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '设置成功');
+    }
+
+    /**
+     * 绑定商户登录ip
+     *
+     * @role admin
+     */
+    public function actionBindLoginIp()
+    {
+        $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId',0,Macro::CONST_PARAM_TYPE_INT,'商户ID错误');
+        $ip = ControllerParameterValidator::getRequestParam($this->allParams, 'ip',null,Macro::CONST_PARAM_TYPE_ARRAY,'API接口IP地址错误');
+        $user = User::findOne(['id'=>$userId]);
+        if(!$user){
+            ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
+        }
+
+        if($ip){
+            $user->bind_login_ip = json_encode($ip);
+            $user->save();
+        }
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS);
     }
 }

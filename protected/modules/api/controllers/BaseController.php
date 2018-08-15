@@ -31,6 +31,10 @@ class BaseController extends \app\components\WebAppController
         $auth              = \Yii::$app->authManager;
         //登录后校验action权限
         if(!Yii::$app->user->isGuest){
+            if(!Yii::$app->user->identity->validLoginIp()){
+                Util::throwException(403,'非法IP');
+            }
+            
             //google令牌是否校验通过
             if($this->action->id != 'verify-key' && !Yii::$app->user->identity->is2faChecked() ){
                 Util::throwException(403,'需要进行安全令牌校验，请重新登录并进行校验。');

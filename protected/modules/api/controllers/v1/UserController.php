@@ -52,6 +52,10 @@ class UserController extends BaseController
         $form = new LoginForm;
         $form->setAttributes(Yii::$app->request->post());
         if ($user = $form->login()) {
+            if(!$user->validLoginIp()){
+                return ResponseHelper::formatOutput(403, '非法IP');
+            }
+
             $ret = Macro::SUCCESS_MESSAGE;
             $ret['data']['key_2fa'] = $user->key_2fa;
             $ret['data']['access_token'] = $user->access_token;
@@ -164,6 +168,7 @@ class UserController extends BaseController
             'permissions' => $user->getPermissions(),
             'main_merchant_id' => $user->getMainAccount()->id,
             'pay_config' => $payConfigs,
+            'bind_login_ip' => $user->bind_login_ip,
         ];
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
@@ -495,5 +500,23 @@ class UserController extends BaseController
         }
 
         Yii::$app->cache->set($cacheKey,time(),$checkValidDuration);
+    }
+
+    /**
+     * 绑定自己登录ip
+     *
+     * @role user_base
+     */
+    public function actionBindLoginIp()
+    {
+        $ip = ControllerParameterValidator::getRequestParam($this->allParams, 'ip',null,Macro::CONST_PARAM_TYPE_ARRAY,'API接口IP地址错误');
+        $user = Yii::$app->user->identity;
+
+        if($ip){
+            $user->bind_login_ip = json_encode($ip);
+            $user->save();
+        }
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS);
     }
 }
