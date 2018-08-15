@@ -249,7 +249,7 @@ class ReportController extends BaseController
 
         $subQuery = (new \yii\db\Query())
             ->from(Order::tableName())
-            ->andWhere(['status'=>Order::STATUS_PAID])
+            ->andWhere(['status'=>[Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])
             ->andFilterCompare('paid_at', '>=' . strtotime($dateStart))
             ->andFilterCompare('paid_at', '<' . (strtotime($dateEnd)+86400))
             ->select(['channel_account_id,pay_method_code,SUM(amount) AS amount'])

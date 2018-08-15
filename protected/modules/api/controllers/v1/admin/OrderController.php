@@ -202,7 +202,7 @@ class OrderController extends BaseController
         }
 
         $filter = $this->baseFilter;
-        $filter['status'] = Order::STATUS_PAID;
+        $filter['status'] = [Order::STATUS_SETTLEMENT,Order::STATUS_PAID];
 
         $query = (new \yii\db\Query())
             ->select(['id','order_no','status'])
@@ -270,7 +270,7 @@ class OrderController extends BaseController
             LogOperation::inLog('ok');
 
             if($order['status']!=Order::STATUS_PAID){
-                Util::throwException(Macro::FAIL,'只有成功订单才能退款:'.$order['order_no']);
+                Util::throwException(Macro::FAIL,'只有成功订单才能结算:'.$order['order_no']);
             }
 
 

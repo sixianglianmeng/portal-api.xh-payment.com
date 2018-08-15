@@ -215,7 +215,7 @@ class ReportController extends \yii\console\Controller
         $tsStart = strtotime($day);
         $tsEnd = $tsStart+86400;
         $allOrderfilter = "paid_at>={$tsStart} AND paid_at<{$tsEnd}";
-        $successOrderfilter = "status=".Order::STATUS_PAID." AND paid_at>={$tsStart} AND paid_at<{$tsEnd}";
+        $successOrderfilter = "status IN (".implode(",",[Order::STATUS_SETTLEMENT,Order::STATUS_PAID]).") AND paid_at>={$tsStart} AND paid_at<{$tsEnd}";
 
         //写入所有代理所有订单汇总
         $sql = "REPLACE INTO p_report_recharge_daily (date, user_id, username,user_goup_id, total_amount, total_count, avg_amount,created_at)
@@ -298,7 +298,7 @@ WHERE d.user_id=os.user_id and d.date=os.date";
         //收款利润
         $subQuery = (new \yii\db\Query())
             ->from(Order::tableName())
-            ->andWhere(['status'=>Order::STATUS_PAID])
+            ->andWhere(['status'=>[Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])
             ->andFilterCompare('paid_at', '>=' . $tsStart)
             ->andFilterCompare('paid_at', '<' .$tsEnd)
             ->select(['channel_account_id','channel_id','SUM(plat_fee_amount) AS channel_fee','SUM(plat_fee_profit) AS amount','SUM(amount) AS total','COUNT(*) AS count'])

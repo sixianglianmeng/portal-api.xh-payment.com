@@ -282,8 +282,8 @@ class OrderController extends BaseController
         //表格底部合计
         $summery['total'] = $pagination->totalCount;
         $summery['amount'] = $query->sum('amount');
-        $summery['paid_amount'] = $summeryQuery->andwhere(['status' => Order::STATUS_PAID])->sum('paid_amount');
-        $summery['paid_count'] = $summeryQuery->andwhere(['status' => Order::STATUS_PAID])->count('paid_amount');
+        $summery['paid_amount'] = $summeryQuery->andwhere(['status' => [Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])->sum('paid_amount');
+        $summery['paid_count'] = $summeryQuery->andwhere(['status' => [Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])->count('paid_amount');
 
         //查询订单是否有调单记录
         $trackOptions = [];
@@ -535,8 +535,8 @@ class OrderController extends BaseController
         //表格底部合计
         $summery['total'] = $pagination->totalCount;
         $summery['amount'] = $query->sum('amount');
-        $summery['paid_amount'] = $summeryQuery->andwhere(['status' => Order::STATUS_PAID])->sum('paid_amount');
-        $summery['paid_count'] = $summeryQuery->andwhere(['status' => Order::STATUS_PAID])->count('paid_amount');
+        $summery['paid_amount'] = $summeryQuery->andwhere(['status' => [Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])->sum('paid_amount');
+        $summery['paid_count'] = $summeryQuery->andwhere(['status' => [Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])->count('paid_amount');
 
         //查询订单是否有调单记录
         $trackOptions = [];

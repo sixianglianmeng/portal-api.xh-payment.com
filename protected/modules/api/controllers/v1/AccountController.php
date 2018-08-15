@@ -925,7 +925,7 @@ class AccountController extends BaseController
         //生成查询参数
         $userQuery = (new Query())->select(["merchant_id","merchant_account","sum(amount) as amount","count(amount) as num","substring_index(REPLACE(substring_index(all_parent_agent_id,'{$user->id},',-1),']',','),',',1) AS first_child_id"])
             ->from(Order::tableName())
-            ->where(['status'=>Order::STATUS_PAID])
+            ->where(['status'=>[Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])
             ->orderBy("merchant_id ASC");
 
         $where = [
