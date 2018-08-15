@@ -259,7 +259,6 @@ class RemitController extends BaseController
      */
     public function actionBatchRemit()
     {
-        return ResponseHelper::formatOutput(Macro::FAIL, '此功能暂未开放', []);
 
         $uploadId = ControllerParameterValidator::getRequestParam($this->allParams, 'upload_id',0,Macro::CONST_PARAM_TYPE_INT,'上传文件ID错误');
 //        $uploadInfo = UploadedFile::findOne(['id'=>$uploadId]);
