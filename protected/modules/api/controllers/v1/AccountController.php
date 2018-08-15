@@ -410,7 +410,6 @@ class AccountController extends BaseController
             $records[$i]['remit_channel_name']      = $u->paymentInfo->remit_channel_account_name;
             $records[$i]['pay_config'] = $u->paymentInfo->getPayMethodsArrByAppId($u->id) ;
             $records[$i]['remit_fee'] = $u->paymentInfo->remit_fee;
-            $records[$i]['pay_status'] = $u->paymentInfo->status;
             $records[$i]['remit_fee'] = $u->paymentInfo->remit_fee;
             $records[$i]['account_open_fee_status'] = $u->account_open_fee_status;
             $records[$i]['account_open_fee_status_str'] = User::ARR_ACCOUNT_OPEN_FEE_STATUS[$u->account_open_fee_status];
