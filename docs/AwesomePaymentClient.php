@@ -4,7 +4,7 @@
  * 支付平台接口demo
  *
  * @version 1.2
- * @require php>=7.0。如需支持PHP5.4+，请取消所有方法中的参数类型声明
+ * @require php>=5.4
  */
 class AwesomePaymentClientClient
 {
@@ -20,11 +20,12 @@ class AwesomePaymentClientClient
      * @param string $merchantKey 商户密钥
      * @param string $apiBaseUri 支付服务器地址
      */
-    public function __construct(string $merchantCode, string $merchantKey, string $apiBaseUri=''){
+    public function __construct($merchantCode, $merchantKey, $apiBaseUri = '')
+    {
         $this->merchantCode = $merchantCode;
         $this->merchantKey  = $merchantKey;
-        if($apiBaseUri){
-            $this->apiBaseUri  = $apiBaseUri;
+        if ($apiBaseUri) {
+            $this->apiBaseUri = $apiBaseUri;
         }
     }
 
@@ -36,24 +37,24 @@ class AwesomePaymentClientClient
     {
 
         $merchantCode = '3035971';
-        $merchantKey = 'adbf0sb6b-f4ka-32af-7329-f19d5b42';
+        $merchantKey  = 'adbf0sb6b-f4ka-32af-7329-f19d5b42';
 
         $apiBaseUri = 'https://gateway.gd95516.com';
 
-        $orderNo = date('YmdHis').mt_rand(10000,99999);
-        $api = new AwesomePaymentClient($merchantCode, $merchantKey, $apiBaseUri);
+        $orderNo = date('YmdHis') . mt_rand(10000, 99999);
+        $api     = new AwesomePaymentClient($merchantCode, $merchantKey, $apiBaseUri);
 
         //API后台下单
         AwesomePaymentClient::mlog("API后台下单");
-        $order = $api->order($orderNo,'WY',mt_rand(1,10),'http://www.demo.com/recharge/notify','ABC');
+        $order = $api->order($orderNo, 'WY', mt_rand(1, 10), 'http://www.demo.com/recharge/notify', 'ABC');
         //订单查询
         AwesomePaymentClient::mlog("订单查询");
         $ret = $api->orderStatus($orderNo);
 
-        $orderNo = date('YmdHis').mt_rand(10000,99999);
+        $orderNo = date('YmdHis') . mt_rand(10000, 99999);
         //代付出款
         AwesomePaymentClient::mlog("代付出款");
-        $ret = $api->remit($orderNo,1,'ABC','付芬芳','6228230475512431468','http://www.demo.com/remit/notify');
+        $ret = $api->remit($orderNo, 1, 'ABC', '付芬芳', '6228230475512431468', 'http://www.demo.com/remit/notify');
         //代付订单查询
         AwesomePaymentClient::mlog("代付订单查询");
         $ret = $api->remitStatus($orderNo);
@@ -77,26 +78,25 @@ class AwesomePaymentClientClient
      *
      * @return array
      */
-    public function order(string $orderNo, string $payType, float $orderAmount, string $notifyUrl,
-                          string $bankCode='', string $returnUrl='', string $returnParams=''
-    ){
+    public function order($orderNo, $payType, $orderAmount, $notifyUrl, $bankCode = '', $returnUrl = '', $returnParams = '')
+    {
         $params = [
-            'merchant_code'=>$this->merchantCode,
-            'order_no'=>$orderNo,
-            'pay_type'=>$payType,
-            'bank_code'=>$bankCode,
-            'order_amount'=>$orderAmount,
-            'order_time'=>time(),
-            'customer_ip'=>self::getClinetIp(),
-            'notify_url'=>$notifyUrl,
-            'return_url'=>$returnUrl,
-            'return_params'=>$returnParams,
+            'merchant_code' => $this->merchantCode,
+            'order_no' => $orderNo,
+            'pay_type' => $payType,
+            'bank_code' => $bankCode,
+            'order_amount' => $orderAmount,
+            'order_time' => time(),
+            'customer_ip' => self::getClinetIp(),
+            'notify_url' => $notifyUrl,
+            'return_url' => $returnUrl,
+            'return_params' => $returnParams,
         ];
 
-        $params['sign'] = self::md5Sign($params,$this->merchantKey);
+        $params['sign'] = self::md5Sign($params, $this->merchantKey);
 
-        $url = $this->apiBaseUri.'/api/v1/order';
-        $ret = self::sendRequest($url,$params);
+        $url = $this->apiBaseUri . '/api/v1/order';
+        $ret = self::sendRequest($url, $params);
     }
 
     /**
@@ -106,17 +106,18 @@ class AwesomePaymentClientClient
      *
      * @return array
      */
-    public function orderStatus(string $orderNo){
+    public function orderStatus($orderNo)
+    {
         $params = [
-            'merchant_code'=>$this->merchantCode,
-            'order_no'=>$orderNo,
-            'query_time'=>time(),
+            'merchant_code' => $this->merchantCode,
+            'order_no' => $orderNo,
+            'query_time' => time(),
         ];
 
-        $params['sign'] = self::md5Sign($params,$this->merchantKey);
+        $params['sign'] = self::md5Sign($params, $this->merchantKey);
 
-        $url = $this->apiBaseUri.'/api/v1/query';
-        $ret = self::sendRequest($url,$params);
+        $url = $this->apiBaseUri . '/api/v1/query';
+        $ret = self::sendRequest($url, $params);
 
         return $ret;
     }
@@ -127,23 +128,24 @@ class AwesomePaymentClientClient
      *
      * @param sting $requestJson 回调请求json字符串
      */
-    public function orderNotifyHandle($requestJson){
+    public function orderNotifyHandle($requestJson)
+    {
         //$requestJson = file_get_contents("php://input");
-        if(empty($requestJson)){
+        if (empty($requestJson)) {
             throw new \Exception("回调json字符串为空");
         }
 
-        $request = json_decode($requestJson,true);
-        if(empty($request)){
+        $request = json_decode($requestJson, true);
+        if (empty($request)) {
             throw new \Exception("回调json字符串转化为数组后为空");
         }
-        $localSign = self::md5Sign($request,$this->merchantKey);
-        if(empty($request['sign']) || $request['sign']!=$localSign){
+        $localSign = self::md5Sign($request, $this->merchantKey);
+        if (empty($request['sign']) || $request['sign'] != $localSign) {
             throw new \Exception("回调加密校验失败");
         }
-        if(!empty($request['trade_status']) && $request['trade_status']=='success'
+        if (!empty($request['trade_status']) && $request['trade_status'] == 'success'
             && !empty($request['order_amount'])
-        ){
+        ) {
             //支付成功，进行订单处理
         }
     }
@@ -160,23 +162,22 @@ class AwesomePaymentClientClient
      *
      * @return array
      */
-    public function remit(string $orderNo,float $orderAmount,string $bankCode, string $accountName, string $accountNumber,
-                          string $notifyUrl = ''
-    ){
+    public function remit($orderNo, $orderAmount, $bankCode, $accountName, $accountNumber, $notifyUrl = '')
+    {
         $params = [
-            'merchant_code'=>$this->merchantCode,
-            'order_no'=>$orderNo,
-            'order_amount'=>$orderAmount,
-            'order_time'=>time(),
-            'account_name'=>$accountName,
-            'account_number'=>$accountNumber,
-            'bank_code'=>$bankCode,
+            'merchant_code' => $this->merchantCode,
+            'order_no' => $orderNo,
+            'order_amount' => $orderAmount,
+            'order_time' => time(),
+            'account_name' => $accountName,
+            'account_number' => $accountNumber,
+            'bank_code' => $bankCode,
         ];
 
-        $params['sign'] = self::md5Sign($params,$this->merchantKey);
+        $params['sign'] = self::md5Sign($params, $this->merchantKey);
 
-        $url = $this->apiBaseUri.'/api/v1/remit';
-        $ret = self::sendRequest($url,$params);
+        $url = $this->apiBaseUri . '/api/v1/remit';
+        $ret = self::sendRequest($url, $params);
 
         return $ret;
     }
@@ -188,17 +189,18 @@ class AwesomePaymentClientClient
      *
      * @return array
      */
-    public function remitStatus(string $orderNo){
+    public function remitStatus($orderNo)
+    {
         $params = [
-            'merchant_code'=>$this->merchantCode,
-            'order_no'=>$orderNo,
-            'query_time'=>time(),
+            'merchant_code' => $this->merchantCode,
+            'order_no' => $orderNo,
+            'query_time' => time(),
         ];
 
-        $params['sign'] = self::md5Sign($params,$this->merchantKey);
+        $params['sign'] = self::md5Sign($params, $this->merchantKey);
 
-        $url = $this->apiBaseUri.'/api/v1/remit_query';
-        $ret = self::sendRequest($url,$params);
+        $url = $this->apiBaseUri . '/api/v1/remit_query';
+        $ret = self::sendRequest($url, $params);
 
         return $ret;
     }
@@ -208,16 +210,17 @@ class AwesomePaymentClientClient
      *
      * @return array
      */
-    public function balance(){
+    public function balance()
+    {
         $params = [
-            'merchant_code'=>$this->merchantCode,
-            'query_time'=>time(),
+            'merchant_code' => $this->merchantCode,
+            'query_time' => time(),
         ];
 
-        $params['sign'] = self::md5Sign($params,$this->merchantKey);
+        $params['sign'] = self::md5Sign($params, $this->merchantKey);
 
-        $url = $this->apiBaseUri.'/api/v1/balance';
-        $ret = self::sendRequest($url,$params);
+        $url = $this->apiBaseUri . '/api/v1/balance';
+        $ret = self::sendRequest($url, $params);
 
         return $ret;
     }
@@ -226,12 +229,13 @@ class AwesomePaymentClientClient
      * 文本日志记录
      * @param sting|array|object $log
      */
-    static  public function mlog($msg){
-        $file = __DIR__.'/common'.date('ymd').'.log';
-        if(is_array($msg)) $log = json_encode($msg,JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    static public function mlog($msg)
+    {
+        $file = __DIR__ . '/common' . date('ymd') . '.log';
+        if (is_array($msg)) $log = json_encode($msg, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $msg = date("Ymd H:i:s ") . ' ' . $msg . PHP_EOL;
         echo $msg;
-        file_put_contents($file, $msg,FILE_APPEND);
+        file_put_contents($file, $msg, FILE_APPEND);
     }
 
     /**
@@ -241,24 +245,25 @@ class AwesomePaymentClientClient
      * @param string $strSecret 签名密钥
      * @return string
      */
-    public static function md5Sign(array $params, string $strSecret){
+    public static function md5Sign($params, $strSecret)
+    {
         unset($params['key']);
 
-        $signParams      = [];
+        $signParams = [];
         foreach ($params as $key => $value) {
-            if($value == '') continue;
+            if ($value == '') continue;
             $signParams[] = "$key=$value";
         }
 
-        sort($signParams,SORT_STRING);
+        sort($signParams, SORT_STRING);
         $strToSign = implode('&', $signParams);
 
-        self::mlog("请求参数：".json_encode($params,JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-        self::mlog("参数排序后字符串：".$strToSign);
-        self::mlog("加上key后字符串：".$strToSign.'&key='.$strSecret);
+        self::mlog("请求参数：" . json_encode($params, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        self::mlog("参数排序后字符串：" . $strToSign);
+        self::mlog("加上key后字符串：" . $strToSign . '&key=' . $strSecret);
 
-        $signStr = md5($strToSign.'&key='.$strSecret);
-        self::mlog("md5签名值：".$signStr);
+        $signStr = md5($strToSign . '&key=' . $strSecret);
+        self::mlog("md5签名值：" . $signStr);
         return $signStr;
     }
 
@@ -295,14 +300,14 @@ class AwesomePaymentClientClient
      * param array $headers 请求header
      * param int $timeoutMs 超时毫秒数
      */
-    public static function curlPost(string $url, array $data, array $headers=[], $timeoutMs=10000)
+    public static function curlPost($url, $data, $headers = [], $timeoutMs = 10000)
     {
         $ch        = curl_init();
         $headers[] = "Accept-Charset: utf-8";
         $headers[] = "Accept:application/json";
         $headers[] = "Content-Type:application/json;charset=utf-8";
 
-        $data = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+        $data = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -314,8 +319,8 @@ class AwesomePaymentClientClient
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT_MS, $timeoutMs);
-        $result = curl_exec($ch);
-        $httpCode = curl_getinfo($ch,CURLINFO_HTTP_CODE);
+        $result   = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 //        self::mlog("{$url}, {$data}, {$httpCode}, {$result}");
         self::mlog("请求地址：{$url}");
         self::mlog("请求数据：{$data}");
@@ -334,10 +339,10 @@ class AwesomePaymentClientClient
      *
      * @return array
      */
-    public static function sendRequest(string $url, array $data)
+    public static function sendRequest($url, $data)
     {
         $retStr = self::curlPost($url, $data);
-        $ret = json_decode($retStr, true);
+        $ret    = json_decode($retStr, true);
         return $ret;
     }
 }

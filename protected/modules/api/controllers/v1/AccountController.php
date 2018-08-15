@@ -64,7 +64,7 @@ class AccountController extends BaseController
 
         $id = ControllerParameterValidator::getRequestParam($this->allParams, 'id', 0, Macro::CONST_PARAM_TYPE_INT, '用户id错误');
         $username = ControllerParameterValidator::getRequestParam($arrAllParams, 'username',null,Macro::CONST_PARAM_TYPE_USERNAME,'登录账户错误');
-        $email = ControllerParameterValidator::getRequestParam($arrAllParams, 'email','',Macro::CONST_PARAM_TYPE_EMAIL,'email错误',
+        $email = ControllerParameterValidator::getRequestParam($arrAllParams, 'email',null,Macro::CONST_PARAM_TYPE_EMAIL,'email错误',
             User::ARR_STATUS);
         //管理员只能开代理
         $data['group_id'] = ControllerParameterValidator::getRequestParam($arrAllParams, 'group_id',null,Macro::CONST_PARAM_TYPE_ARRAY_HAS_KEY,'账户类型错误',User::ARR_GROUP);
