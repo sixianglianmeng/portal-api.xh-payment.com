@@ -4,6 +4,7 @@ namespace app\modules\api\controllers\v1;
 use app\common\exceptions\OperationFailureException;
 use app\common\models\form\LoginForm;
 use app\common\models\model\LogOperation;
+use app\common\models\model\SiteConfig;
 use app\common\models\model\User;
 use app\components\Macro;
 use app\components\Util;
@@ -216,7 +217,7 @@ class UserController extends BaseController
         $name = $user->username;
         //$url = $googleObj->getQRCodeGoogleUrl($name, $secret);
 //        $host = Yii::$app->request->hostInfo;
-        $host = SiteConfig::cacheGetContent('google_key_domain');;
+        $host = SiteConfig::cacheGetContent('google_key_domain');
         $expectedChl = 'otpauth://totp/'.$name.'@'.$host.'?secret='.$secret;
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功',$expectedChl);
