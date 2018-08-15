@@ -10,9 +10,6 @@ class SiteController extends \yii\web\Controller
 {
     public function actionIndex()
     {
-        $user = User::findOne(['id'=>43]);
-        $user->setGroupRole();
-
         exit('nginx 2.1.17');
     }
 
