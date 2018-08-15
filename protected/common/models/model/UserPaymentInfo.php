@@ -44,6 +44,10 @@ class UserPaymentInfo extends BaseModel
         return $this->hasOne(ChannelAccount::className(), ['id'=>'remit_channel_account_id']);
     }
 
+//    public function getAccountOpenFee()
+//    {
+//        return $this->hasOne(AccountOpenFee::className(),['id'=>'user_id']);
+//    }
     /**
      * 获取appId对应的所有支付方式数组
      *

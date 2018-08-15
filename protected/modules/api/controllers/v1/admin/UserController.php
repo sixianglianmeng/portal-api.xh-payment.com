@@ -308,7 +308,7 @@ class UserController extends BaseController
 
         //生成查询参数
         $subField = "up.user_id,up.remit_fee,up.channel_account_name,up.channel_account_id,up.remit_channel_account_id,up.remit_channel_account_name";//,m.method_id,m.method_name
-        $field = "p.*,u.id,u.username,u.status,u.parent_agent_id,u.group_id,u.frozen_balance,u.balance,u.created_at,u.financial_password_hash,u.key_2fa";
+        $field = "p.*,u.id,u.username,u.status,u.parent_agent_id,u.group_id,u.frozen_balance,u.balance,u.created_at,u.financial_password_hash,u.key_2fa,u.account_open_fee,u.account_open_fee_status";
 
         $searchFilter = $this->getSearchFilter($field,$subField);
         $query = $searchFilter['query'];
@@ -341,6 +341,9 @@ class UserController extends BaseController
             $records[$i]['frozen_balance']     = $u['frozen_balance'] ?? '0';
             $records[$i]['status']             = $u['status'];
             $records[$i]['status_str']         = User::getStatusStr($u['status']);
+            $records[$i]['account_open_fee_status']         = $u['account_open_fee_status'];
+            $records[$i]['account_open_fee_status_str']    = User::ARR_ACCOUNT_OPEN_FEE_STATUS[$u['account_open_fee_status']];
+            $records[$i]['account_open_fee']   = $u['account_open_fee'];
             $records[$i]['group_id']           = $u['group_id'];
             $records[$i]['group_str']          = User::getGroupStr($u['group_id']);
             $records[$i]['created_at']         = date('Y-m-d H:i:s', $u['created_at']);
@@ -493,8 +496,8 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
         $parentUsername = ControllerParameterValidator::getRequestParam($this->allParams, 'parentUsername', '',
             Macro::CONST_PARAM_TYPE_USERNAME, '商户父帐号错误', [0, 32]);
 
-        $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status', '',
-            Macro::CONST_PARAM_TYPE_INT, '状态错误', [0, 100]);
+        $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status', '', Macro::CONST_PARAM_TYPE_INT, '状态错误', [0, 100]);
+        $account_open_fee_status = ControllerParameterValidator::getRequestParam($this->allParams, 'accountOpenFeeStatus', '', Macro::CONST_PARAM_TYPE_INT, '开户费缴纳状态错误', [0, 100]);
         $type = ControllerParameterValidator::getRequestParam($this->allParams, 'type', '',
             Macro::CONST_PARAM_TYPE_INT, '账户类型错误', [0, 100]);
 //        $payType = ControllerParameterValidator::getRequestParam($this->allParams, 'payMedhod', '',
@@ -567,6 +570,10 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
             $query->andwhere(['u.status' => $status]);
             $updateFilter[] = "u.status={$status}";
         }
+        if ($account_open_fee_status != '') {
+            $query->andwhere(['u.account_open_fee_status' => $account_open_fee_status]);
+//            $updateFilter[] = "u.account_open_fee_status={$account_open_fee_status}";
+        }
 
         if ($userId != '') {
             $query->andwhere(['u.id' => $userId]);
@@ -623,6 +630,7 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
 
         $data = [
             'user_status' => empty($all)?User::ARR_STATUS:ArrayHelper::merge(User::ARR_STATUS,[Macro::SELECT_OPTION_ALL=>'全部']),
+            'account_open_fee_status' => empty($all)?User::ARR_ACCOUNT_OPEN_FEE_STATUS:ArrayHelper::merge(User::ARR_ACCOUNT_OPEN_FEE_STATUS,[Macro::SELECT_OPTION_ALL=>'全部']),
             'user_type' => empty($all)?User::ARR_GROUP:ArrayHelper::merge([Macro::SELECT_OPTION_ALL=>'全部'],User::ARR_GROUP),
             'pay_method' => empty($all)?Channel::ARR_METHOD:ArrayHelper::merge([Macro::SELECT_OPTION_ALL=>'全部'],Channel::ARR_METHOD),
         ];

@@ -42,6 +42,13 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     const DEFAULT_RECHARGE_RATE = 0.6;
     const DEFAULT_REMIT_FEE = 0.6;
 
+    const ACCOUNT_OPEN_FEE_STATUS_NO = 0;
+    const ACCOUNT_OPEN_FEE_STATUS_YES = 1;
+    const ARR_ACCOUNT_OPEN_FEE_STATUS = [
+        self::ACCOUNT_OPEN_FEE_STATUS_NO => '未缴费',
+        self::ACCOUNT_OPEN_FEE_STATUS_YES => '已缴费',
+    ];
+
     public static function tableName()
     {
         return '{{%users}}';

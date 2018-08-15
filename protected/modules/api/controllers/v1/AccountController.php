@@ -27,7 +27,7 @@ use yii\db\Query;
 use yii\helpers\ArrayHelper;
 
 /*
- * 子账户相关功能
+ * 商户管理
  */
 class AccountController extends BaseController
 {
@@ -337,6 +337,7 @@ class AccountController extends BaseController
         $remit = ControllerParameterValidator::getRequestParam($this->allParams, 'remit','',Macro::CONST_PARAM_TYPE_INT,'下发通道错误',[0,100]);
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
+        $account_open_fee_status = ControllerParameterValidator::getRequestParam($this->allParams, 'accountOpenFeeStatus','',Macro::CONST_PARAM_TYPE_INT,'开户缴费状态错误',[0,100]);
 
         if($sort && !empty($sorts[$sort])){
             $sort = $sorts[$sort];
@@ -348,7 +349,7 @@ class AccountController extends BaseController
         $filter = $this->baseFilter;
 
         $subQuery = UserPaymentInfo::find()->alias('upi')
-            //->joinWith('paymentChannel c1')
+//            ->joinWith('accountOpenFee c1')
             ->joinWith('remitChannel c2');
         if($remit!=''){
             $subQuery->andwhere(['c2.id' => $remit]);
@@ -371,6 +372,9 @@ class AccountController extends BaseController
 
         if($status!=''){
             $query->andwhere(['u.status' => $status]);
+        }
+        if($account_open_fee_status != ''){
+            $query->andwhere(['u.account_open_fee_status' => $account_open_fee_status]);
         }
         if($userId){
             $query->andwhere(['u.id' => $userId]);
@@ -406,6 +410,11 @@ class AccountController extends BaseController
             $records[$i]['remit_channel_name']      = $u->paymentInfo->remit_channel_account_name;
             $records[$i]['pay_config'] = $u->paymentInfo->getPayMethodsArrByAppId($u->id) ;
             $records[$i]['remit_fee'] = $u->paymentInfo->remit_fee;
+            $records[$i]['pay_status'] = $u->paymentInfo->status;
+            $records[$i]['remit_fee'] = $u->paymentInfo->remit_fee;
+            $records[$i]['account_open_fee_status'] = $u->account_open_fee_status;
+            $records[$i]['account_open_fee_status_str'] = User::ARR_ACCOUNT_OPEN_FEE_STATUS[$u->account_open_fee_status];
+            $records[$i]['account_open_fee'] = $u->account_open_fee;
         }
         $level = [];
         if($merchantId){
@@ -865,6 +874,7 @@ class AccountController extends BaseController
 
         $data = [
             'user_status' => empty($all)?User::ARR_STATUS:ArrayHelper::merge(User::ARR_STATUS,[Macro::SELECT_OPTION_ALL=>'全部']),
+            'account_open_fee_status' => empty($all)?User::ARR_ACCOUNT_OPEN_FEE_STATUS:ArrayHelper::merge(User::ARR_ACCOUNT_OPEN_FEE_STATUS,[Macro::SELECT_OPTION_ALL=>'全部']),
             'user_type' => empty($all)?User::ARR_GROUP:ArrayHelper::merge([Macro::SELECT_OPTION_ALL=>'全部'],User::ARR_GROUP),
             'pay_method' => empty($all)?Channel::ARR_METHOD:ArrayHelper::merge([Macro::SELECT_OPTION_ALL=>'全部'],Channel::ARR_METHOD),
         ];
