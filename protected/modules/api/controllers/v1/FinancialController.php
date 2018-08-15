@@ -80,15 +80,15 @@ class FinancialController extends BaseController
 
         $dateStart = strtotime($dateStart);
         $dateEnd = strtotime($dateEnd);
-        if(($dateEnd-$dateStart)>86400*31){
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天');
-            $dateStart=$dateEnd-86400*31;
+        if(($dateEnd-$dateStart)>86400*15){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过15天');
+            $dateStart=$dateEnd-86400*15;
         }
         if($dateStart){
-            $query->andFilterCompare('created_at', '>='.$dateStart);
+            $query->andFilterCompare('created_at', '>='.strtotime(date("Y-m-d 00:00:00",$dateStart)));
         }
         if($dateEnd){
-            $query->andFilterCompare('created_at', '<'.$dateEnd);
+            $query->andFilterCompare('created_at', '<'.strtotime(date("Y-m-d 23:59:59",$dateEnd)));
         }
         if($orderNo){
             $query->andwhere(['event_id' => $orderNo]);
@@ -220,15 +220,15 @@ class FinancialController extends BaseController
         $query->andWhere(['uid'=>$user->id]);
         $dateStart = strtotime($dateStart);
         $dateEnd = strtotime($dateEnd);
-        if(($dateEnd-$dateStart)>86400*31){
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天');
-            $dateStart=$dateEnd-86400*31;
+        if(($dateEnd-$dateStart)>86400*15){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过15天');
+            $dateStart=$dateEnd-86400*15;
         }
         if($dateStart){
-            $query->andFilterCompare('created_at', '>='.$dateStart);
+            $query->andFilterCompare('created_at', '>='.strtotime(date("Y-m-d 00:00:00",$dateStart)));
         }
         if($dateEnd){
-            $query->andFilterCompare('created_at', '<'.$dateEnd);
+            $query->andFilterCompare('created_at', '<'.strtotime(date("Y-m-d 23:59:59",$dateEnd)));
         }
         if($orderNo){
             $query->andwhere(['event_id' => $orderNo]);
