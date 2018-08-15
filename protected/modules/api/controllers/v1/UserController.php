@@ -210,7 +210,8 @@ class UserController extends BaseController
         //$code = $googleObj->getCode($secret);
         $name = $user->username;
         //$url = $googleObj->getQRCodeGoogleUrl($name, $secret);
-        $host = Yii::$app->request->hostInfo;
+//        $host = Yii::$app->request->hostInfo;
+        $host = SiteConfig::cacheGetContent('google_key_domain');;
         $expectedChl = 'otpauth://totp/'.$name.'@'.$host.'?secret='.$secret;
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功',$expectedChl);
