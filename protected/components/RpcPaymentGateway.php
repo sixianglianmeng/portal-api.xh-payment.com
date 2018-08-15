@@ -221,11 +221,11 @@ class RpcPaymentGateway
             }
 
             if (!array_key_exists('code', $ret)) {
-                throw new OperationFailureException('远程服务器响应不正确' , Errno::INTERNAL_SERVER_ERROR);
+                throw new OperationFailureException('远程服务器响应不正确(code)', Errno::INTERNAL_SERVER_ERROR);
             }
 
             if ($ret['code'] != 0) {
-                throw new OperationFailureException($ret['message']);
+                throw new OperationFailureException($ret['message']."({$ret['code']})");
             }
 
             return $ret;
