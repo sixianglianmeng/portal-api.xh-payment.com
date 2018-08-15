@@ -134,6 +134,7 @@ class AccountController extends BaseController
                         $allMids                                               = !empty($cmr->all_parent_method_config_id) ? json_decode($cmr->all_parent_method_config_id, true) : [];
                         array_push($allMids, $cmr->id);
                         $data['pay_method'][$i]['all_parent_method_config_id'] = $allMids;
+                        $data['pay_method'][$i]['settlement_type'] = $cmr->settlement_type?$cmr->settlement_type:SiteConfig::cacheGetContent('default_settlement_type');
                     }
                 }
             }
@@ -228,6 +229,7 @@ class AccountController extends BaseController
             $methodConfig->parent_recharge_rebate_rate = $pm['parent_recharge_rebate_rate'];
             $methodConfig->all_parent_method_config_id = $pm['all_parent_method_config_id'];
             $methodConfig->status = ($pm['status']==MerchantRechargeMethod::STATUS_ACTIVE)?MerchantRechargeMethod::STATUS_ACTIVE:MerchantRechargeMethod::STATUS_INACTIVE;
+            $methodConfig->settlement_type = $pm['settlement_type']??SiteConfig::cacheGetContent('default_settlement_type');
 
             if($channelAccountId){
                 $methodConfig->channel_account_id = $channel->id;
