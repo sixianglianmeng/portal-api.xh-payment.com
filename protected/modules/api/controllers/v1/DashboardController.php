@@ -93,7 +93,7 @@ class DashboardController extends BaseController
         $data['user']['remit_yesterday_amount_fail'] = 0;
         //已支付
         $orderToday = Order::getYesterdayTodayOrder($user->group_id,$user->id,'today', [Order::STATUS_SETTLEMENT,Order::STATUS_PAID]);
-        Yii::info('orderToday----',$orderToday);
+        Yii::info('orderToday----',json_encode($orderToday));
         //$orderToday = $orderTodayQuery->asArray()->all();
         if(!empty($orderToday)){
             $data['user']['order_today_amount'] = $orderToday['amount'] ?? 0 ;
