@@ -5,7 +5,9 @@ use app\common\exceptions\OperationFailureException;
 use app\common\models\model\Channel;
 use app\common\models\model\ChannelAccount;
 use app\common\models\model\ChannelAccountRechargeMethod;
+use app\common\models\model\MerchantRechargeMethod;
 use app\common\models\model\User;
+use app\common\models\model\UserPaymentInfo;
 use app\components\Macro;
 use app\components\RpcPaymentGateway;
 use app\lib\helpers\ControllerParameterValidator;
@@ -222,7 +224,11 @@ class ChannelController extends BaseController
         if($channelId){
             $channelAccount->channel_id = $channelId;
         }
+        $channelNameChanged = false;
         if($channelName){
+            if($id && $channelAccount->channel_name!=$channelName){
+                $channelNameChanged = true;
+            }
             $channelAccount->channel_name = $channelName;
         }
         if($merchantId){
@@ -287,6 +293,11 @@ class ChannelController extends BaseController
             $methodObj->fee_rate = empty($val['rate'])?0:$val['rate'];
             //$methodObj->status = $val['status'];
             $methodObj->save();
+        }
+        if($channelNameChanged){
+            ChannelAccountRechargeMethod::updateAll(['channel_account_name'=>$channelName],['channel_account_id'=>$id]);
+            MerchantRechargeMethod::updateAll(['channel_account_name'=>$channelName],['channel_account_id'=>$id]);
+            UserPaymentInfo::updateAll(['remit_channel_account_name'=>$channelName],['remit_channel_account_id'=>$id]);
         }
         return ResponseHelper::formatOutput(Macro::SUCCESS);
     }
