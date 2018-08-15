@@ -211,17 +211,17 @@ class RpcPaymentGateway
             Yii::info("gateway rpc call({$path}): ".$jsonData.' ret:'.$jsonRet);
 
             if ($jsonRet === false || empty($jsonRet)) {
-                throw new OperationFailureException('远程服务器操作失败');
+                throw new OperationFailureException('远程服务器操作失败'.$jsonRet);
             }
 
             try{
                 $ret = json_decode($jsonRet, true);
             }catch(\Exception $ex){
-                throw new OperationFailureException('远程服务器响应不正确');
+                throw new OperationFailureException('远程服务器响应不正确'.$jsonRet);
             }
 
             if (!array_key_exists('code', $ret)) {
-                throw new OperationFailureException('远程服务器响应不正确(code)', Errno::INTERNAL_SERVER_ERROR);
+                throw new OperationFailureException('远程服务器响应不正确(code):' . $jsonRet, Errno::INTERNAL_SERVER_ERROR);
             }
 
             if ($ret['code'] != 0) {
