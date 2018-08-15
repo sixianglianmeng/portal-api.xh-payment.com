@@ -196,6 +196,6 @@ class Order extends BaseModel
         $orderQuery->select('sum(amount) as amount,count(id) as total,sum(fee_amount) as fee_amount');
         $order = $orderQuery->asArray()->all();
 
-        return $order;
+        return $order[0];
     }
 }
