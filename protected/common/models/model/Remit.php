@@ -215,6 +215,6 @@ class Remit extends BaseModel
             $remitQuery->select('count(id) as total,sum(amount) as amount');
         }
         $order = $remitQuery->asArray()->all();
-        return $order;
+        return $order[0];
     }
 }
