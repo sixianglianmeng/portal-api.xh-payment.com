@@ -1,6 +1,7 @@
 <?php
 namespace app\common\models\model;
 
+use app\common\exceptions\OperationFailureException;
 use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
@@ -145,7 +146,7 @@ class UserPaymentInfo extends BaseModel
 
                     if ($pm['id'] == $cmr->method_id && $pm['status'] == '1') {
                         if ($pm['rate'] < $cmr->fee_rate) {
-                            throw new \app\common\exceptions\OperationFailureException("收款渠道费率不能低于上级费率(" . Channel::ARR_METHOD[$pm['id']] . ":{$cmr->fee_rate})");
+                            throw new OperationFailureException("收款渠道费率不能低于上级费率(" . Channel::ARR_METHOD[$pm['id']] . ":{$cmr->fee_rate})");
                         }
                         //提前计算好需要给上级的分润比例
                         $allMids = [];
@@ -176,15 +177,15 @@ class UserPaymentInfo extends BaseModel
                 $methodConfig->merchant_account = $this->username;
 
                 $methodConfig->payment_info_id = $this->id;
-                $methodConfig->parent_method_config_id = $pm['parent_method_config_id'];
-                $methodConfig->all_parent_method_config_id = $pm['all_parent_method_config_id'];
             }
 
+            $methodConfig->parent_method_config_id = $pm['parent_method_config_id'];
+            $methodConfig->all_parent_method_config_id = $pm['all_parent_method_config_id'];
             $methodConfig->parent_recharge_rebate_rate = $pm['parent_recharge_rebate_rate'];
             $methodConfig->status = ($pm['status']==MerchantRechargeMethod::STATUS_ACTIVE)?MerchantRechargeMethod::STATUS_ACTIVE:MerchantRechargeMethod::STATUS_INACTIVE;
             $methodConfig->fee_rate = $pm['rate'];
             $methodConfig->settlement_type = $pm['settlement_type']??SiteConfig::cacheGetContent('default_settlement_type');
-            $methodConfig->save();
+            $methodConfig->save(false);
         }
     }
     
