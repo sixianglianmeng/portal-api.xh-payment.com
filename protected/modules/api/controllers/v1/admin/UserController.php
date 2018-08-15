@@ -1370,7 +1370,11 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $user->status = User::STATUS_ACTIVE;
         $user->save();
 
-        $accountOpenInfo = new AccountOpenFee();
+        $accountOpenInfo = AccountOpenFee::findOne(['user_id'=>$userId]);
+        if(!$accountOpenInfo){
+            $accountOpenInfo = new AccountOpenFee();
+        }
+
         $accountOpenInfo->user_id = $user->id;
         $accountOpenInfo->username = $user->username;
         $accountOpenInfo->fee = $accountOpenFee;
