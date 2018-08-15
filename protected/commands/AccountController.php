@@ -24,15 +24,15 @@ class AccountController extends BaseConsoleCommand
     /*
      * 新增超级管理员
      *
-     * ./protected/yii account/add-admin admin_username
+     * ./protected/yii account/add-admin admin_username pwd
      */
-    public function actionAddAdmin($username)
+    public function actionAddAdmin($username,$pwd)
     {
         $user           = new User();
         $user->username = $username;
         $user->nickname = $username;
         $user->email    = '';
-        $user->setDefaultPassword();
+        $user->setPassword($pwd);
 
 
         $user->parent_agent_id = 0;
@@ -54,7 +54,7 @@ class AccountController extends BaseConsoleCommand
     /*
      * 更新超级管理员密码
      *
-     * ./protected/yii account/reset-admin-pass admin_username
+     * ./protected/yii account/reset-admin-pass admin_username pwd
      */
     public function actionResetAdminPass($username,$pwd)
     {
