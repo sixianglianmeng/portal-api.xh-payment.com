@@ -93,12 +93,14 @@ class DashboardController extends BaseController
         $data['user']['remit_yesterday_amount_fail'] = 0;
         //已支付
         $orderToday = Order::getYesterdayTodayOrder($user->group_id,$user->id,'today', [Order::STATUS_SETTLEMENT,Order::STATUS_PAID]);
+        Yii::info('orderToday----',$orderToday);
         //$orderToday = $orderTodayQuery->asArray()->all();
         if(!empty($orderToday)){
             $data['user']['order_today_amount'] = $orderToday['amount'] ?? 0 ;
             $data['user']['order_today_total'] = $orderToday['total'] ?? 0 ;
             $data['user']['order_today_fee_amount'] = $orderToday['fee_amount'] ?? 0 ;
         }
+        Yii::info('order_today_amount----',$data['user']['order_today_amount']);
         //待结算
         $orderPaidToday = Order::getYesterdayTodayOrder($user->group_id,$user->id,'today', Order::STATUS_PAID);
         //$orderToday = $orderTodayQuery->asArray()->all();
@@ -142,6 +144,7 @@ class DashboardController extends BaseController
             $data['user']['remit_yesterday_total_fail'] = $remitYesterdaySuccess['total'] ?? 0;
             $data['user']['remit_yesterday_amount_fail'] = $remitYesterdaySuccess['amount'] ?? 0;
         }
+        Yii::info('user----',$data['user']);
         $data['rate'] = UserPaymentInfo::getPayMethodsArrByAppId($user->id);
         $data['remit_fee'] = $user->paymentInfo->remit_fee;
         $data['payMethodOptions'] = Channel::ARR_METHOD;
