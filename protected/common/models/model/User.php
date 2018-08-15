@@ -432,7 +432,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     public function validLoginIp()
     {
         if($this->bind_login_ip){
-            $ip = Yii::$app->request->remoteIP;
+            $ip = Util::getClientIp();
             $allowIps = json_decode($this->bind_login_ip);
 
             if($allowIps && !in_array($ip,$allowIps)){

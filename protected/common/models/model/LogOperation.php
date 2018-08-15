@@ -2,6 +2,7 @@
 
     namespace app\common\models\model;
 
+    use app\components\Util;
     use Yii;
 
     class LogOperation extends BaseModel
@@ -74,7 +75,7 @@
                 strpos($actionID,'list')!==false
                 || strpos($actionID,'option')!==false
                 || in_array($type, $actionsDoNotNeedLog)
-                || !in_array($type, $actionsNeedLog)
+//                || !in_array($type, $actionsNeedLog)
             ){
                 return true;
             }
@@ -114,7 +115,7 @@
             $logData['title']          = $label;
             $logData['user_id']        = Yii::$app->user->identity ? Yii::$app->user->identity->id : 0;
             $logData['username']       = Yii::$app->user->identity ? Yii::$app->user->identity->username : '';
-            $logData['ip']             = Yii::$app->request->getRemoteIP();
+            $logData['ip']             = Util::getClientIp();
             $logData['table']          = $table;
             $logData['desc']           = $desc;
             $logData['content_before'] = $contentBefore;
