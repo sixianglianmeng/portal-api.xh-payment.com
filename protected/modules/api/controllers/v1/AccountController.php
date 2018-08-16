@@ -1008,13 +1008,13 @@ class AccountController extends BaseController
         $rate = ControllerParameterValidator::getRequestParam($this->allParams, 'rate', null, Macro::CONST_PARAM_TYPE_DECIMAL, '收款费率有错');
         $method_id = ControllerParameterValidator::getRequestParam($this->allParams, 'method_id', null, Macro::CONST_PARAM_TYPE_STRING, '充值类型错误');
         $selfPayment = MerchantRechargeMethod::find()->where(['method_id'=>$method_id,'merchant_id'=>$mainAccount->id])->one();
-        if(empty($selfPayment->channel_id)){
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'收款渠道帐号未配置');
-        }
-        if($rate < 0 || $selfPayment->fee_rate ==0 || $rate <  $selfPayment->fee_rate){
+        if($rate < 0 || $selfPayment->fee_rate == 0 || $rate <  $selfPayment->fee_rate){
             return ResponseHelper::formatOutput(Macro::ERR_ACCOUNT_PAYMENT_RATE, '下级商户收款费率不能低于自己');
         }
         $paymentObj = MerchantRechargeMethod::find()->where(['method_id'=>$method_id,'merchant_id'=>$merchantId])->one();
+        if($paymentObj->fee_rate > 0){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '下级商户收款费率已设置');
+        }
         $paymentObj->fee_rate = $rate;
         $paymentObj->save();
         return ResponseHelper::formatOutput(Macro::SUCCESS,'操作成功');
