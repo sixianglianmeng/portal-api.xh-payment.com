@@ -93,7 +93,7 @@ class RpcPaymentGateway
     }
 
     /**
-     * 强制到第三方查询同步充值出款状态
+     * 强制到第三方查询同步出款状态
      *
      * @param int $inSeconds 多少小时之内的
      * @param array $orderNoList 要同步的出款号列表
@@ -103,6 +103,24 @@ class RpcPaymentGateway
     public static function syncRemitStatus($inSeconds = 1800, $orderNoList = null)
     {
         $ret = self::call('/remit/sync-status',['inSeconds'=>$inSeconds,'orderNoList'=>$orderNoList]);
+
+        return $ret;
+    }
+
+    /**
+     * 到第三方查询出款状态
+     * 仅查询显示,不处理订单业务
+     *
+     * @param string $orderNo 要同步的出款号列表
+     * @throws \Exception
+     * @return array
+     */
+    public static function syncRemitStatusRealtime($orderNo)
+    {
+        if(!$orderNo){
+            throw new OperationFailureException("订单号不能为空");
+        }
+        $ret = self::call('/remit/sync-status-realtime',['orderNo'=>$orderNo]);
 
         return $ret;
     }

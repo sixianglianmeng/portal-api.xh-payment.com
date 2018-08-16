@@ -94,9 +94,9 @@ class RemitController extends BaseController
 
         $orderOpList = [];
         $orderOpList[] = ['order_no'=>$order->order_no];
-        RpcPaymentGateway::syncRemitStatus(0, $orderOpList);
+        $ret = RpcPaymentGateway::syncRemitStatusRealtime($order->order_no);
 
-        return ResponseHelper::formatOutput(Macro::SUCCESS, '订单已同步');
+        return ResponseHelper::formatOutput(Macro::SUCCESS, $ret['message']);
     }
 
     /**
