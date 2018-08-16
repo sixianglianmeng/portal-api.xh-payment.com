@@ -188,7 +188,7 @@ class RemitController extends BaseController
                 return ResponseHelper::formatOutput(Macro::SUCCESS,'',[$remit]);
             }
         }
-        return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN);
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',[]);
     }
 
     /**
