@@ -97,6 +97,8 @@ class ChannelController extends BaseController
             $records[$i]['remit_quota_pertime'] = $a->remit_quota_pertime;
             $records[$i]['remit_quota_perday'] = $a->remit_quota_perday;
             $records[$i]['recharge_quota_perday'] = $a->recharge_quota_perday;
+            $records[$i]['min_recharge_pertime'] = $a->min_recharge_pertime;
+            $records[$i]['min_remit_pertime'] = $a->min_remit_pertime;
             $records[$i]['pay_methods'] = $a->getChannelMethodsArr();
             $records[$i]['status'] = $a->status;
             $records[$i]['created_at'] = date('Y-m-d H:i:s',$a->created_at);
@@ -211,6 +213,8 @@ class ChannelController extends BaseController
         $rechargeQuotaPertime = ControllerParameterValidator::getRequestParam($this->allParams, 'rechargeQuotaPertime','',Macro::CONST_PARAM_TYPE_DECIMAL,'单次提款限额错误');
         $remitQuotaPertime = ControllerParameterValidator::getRequestParam($this->allParams, 'remitQuotaPertime','',Macro::CONST_PARAM_TYPE_DECIMAL,'单次充值限额称错误');
         $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status','',Macro::CONST_PARAM_TYPE_INT,'状态错误');
+        $minRechargePertime = ControllerParameterValidator::getRequestParam($this->allParams, 'minRechargePertime',0,Macro::CONST_PARAM_TYPE_DECIMAL,'单次最低充值错误');
+        $minRemitPertime = ControllerParameterValidator::getRequestParam($this->allParams, 'minRemitPertime',0,Macro::CONST_PARAM_TYPE_DECIMAL,'单次最低出款错误');
 
         $channel = null;
         if($id){
@@ -221,7 +225,7 @@ class ChannelController extends BaseController
             $channel = Channel::findOne($channelId);
         }
 
-        if($channelId){
+        if($channelId!=''){
             $channelAccount->channel_id = $channelId;
         }
         $channelNameChanged = false;
@@ -231,11 +235,11 @@ class ChannelController extends BaseController
             }
             $channelAccount->channel_name = $channelName;
         }
-        if($merchantId){
+        if($merchantId!=''){
             $channelAccount->merchant_id = $merchantId;
             $channelAccount->app_id = $merchantId;
         }
-        if($appId) {
+        if($appId!='') {
             $channelAccount->app_id = $appId;
         }
         $exisitAccount = ChannelAccount::findOne(['app_id'=>$channelAccount->app_id,'channel_id'=>$channelAccount->channel_id]);
@@ -245,27 +249,26 @@ class ChannelController extends BaseController
             }
         }
 
-        if($merchantAccount){
+        if($merchantAccount!=''){
             $channelAccount->merchant_account = $merchantAccount;
         }
-        if($appSecrets){
+        if($appSecrets!=''){
             $channelAccount->app_secrets = json_encode($appSecrets,JSON_UNESCAPED_SLASHES);
         }
-        if($remitFee){
+        if($remitFee!=''){
             $channelAccount->remit_fee = $remitFee;
         }
-        if($remitQuotaPerday){
+        if($remitQuotaPerday!=''){
             $channelAccount->remit_quota_perday = $remitQuotaPerday;
         }
-        if($rechargeQuotaPerday){
+        if($rechargeQuotaPerday!=''){
             $channelAccount->recharge_quota_perday = $rechargeQuotaPerday;
         }
-        if($rechargeQuotaPertime){
+        if($rechargeQuotaPertime!=''){
             $channelAccount->recharge_quota_pertime = $rechargeQuotaPertime;
         }
-        if($remitQuotaPertime){
+        if($remitQuotaPertime!=''){
             $channelAccount->remit_quota_pertime = $remitQuotaPertime;
-
         }
         if($channel && !$gatewayUri){
             $channelAccount->gateway_base_uri = $channel->gateway_base_uri;
@@ -275,6 +278,9 @@ class ChannelController extends BaseController
         if($status!=''){
             $channelAccount->status = $status;
         }
+        $channelAccount->min_recharge_pertime = $minRechargePertime;
+        $channelAccount->min_remit_pertime = $minRemitPertime;
+
         $channelAccount->save();
         foreach ($pay_methods as $key=>$val){
             $methodObj = ChannelAccountRechargeMethod::find()
@@ -294,11 +300,13 @@ class ChannelController extends BaseController
             //$methodObj->status = $val['status'];
             $methodObj->save();
         }
+
         if($channelNameChanged){
             ChannelAccountRechargeMethod::updateAll(['channel_account_name'=>$channelName],['channel_account_id'=>$id]);
             MerchantRechargeMethod::updateAll(['channel_account_name'=>$channelName],['channel_account_id'=>$id]);
             UserPaymentInfo::updateAll(['remit_channel_account_name'=>$channelName],['remit_channel_account_id'=>$id]);
         }
+
         return ResponseHelper::formatOutput(Macro::SUCCESS);
     }
 

@@ -894,9 +894,10 @@ class AccountController extends BaseController
     {
         $userObj = Yii::$app->user->identity;
         $mainAccount = $userObj->getMainAccount();
-        $methods = (new Query())->select(["method_id","method_name"])
+        $methods = (new Query())->select(["id","method_id","method_name"])
             ->from(MerchantRechargeMethod::tableName())
             ->where(['app_id'=>$mainAccount->id])
+            ->andWhere(['<>', 'channel_id', ''])
             ->all();
 
         return ResponseHelper::formatOutput(Macro::SUCCESS,'', $methods);
