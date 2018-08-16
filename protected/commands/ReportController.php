@@ -301,7 +301,7 @@ WHERE d.user_id=os.user_id and d.date=os.date";
             ->andWhere(['status'=>[Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])
             ->andFilterCompare('paid_at', '>=' . $tsStart)
             ->andFilterCompare('paid_at', '<' .$tsEnd)
-            ->select(['channel_account_id','channel_id','SUM(plat_fee_amount) AS channel_fee','SUM(plat_fee_profit) AS amount','SUM(amount) AS total','COUNT(*) AS count'])
+            ->select(['channel_account_id','channel_id','SUM(plat_fee_amount) AS channel_fee','SUM(plat_fee_profit) AS plat_fee_profit','SUM(amount) AS total','COUNT(*) AS count'])
             ->groupBy('channel_account_id');
 
         $query = (new \yii\db\Query())
@@ -317,16 +317,17 @@ WHERE d.user_id=os.user_id and d.date=os.date";
             }
             $reports[$d['channel_account_id']]['date'] = $day;
             $reports[$d['channel_account_id']]['recharge_total'] = $d['total'];
-            $reports[$d['channel_account_id']]['recharge_amount'] = $d['total'];
+            $reports[$d['channel_account_id']]['recharge_plat_fee_profit'] = $d['plat_fee_profit'];
             $reports[$d['channel_account_id']]['recharge_count'] = $d['count'];
             $reports[$d['channel_account_id']]['channel_account_name'] = $d['channel_account_name'];
             $reports[$d['channel_account_id']]['channel_account_id'] = $d['channel_account_id'];
             $reports[$d['channel_account_id']]['channel_id'] = $d['channel_id'];
             $reports[$d['channel_account_id']]['channel_name'] = $d['channel_name'];
-            $reports[$d['channel_account_id']]['remit_amount'] = 0;
+            $reports[$d['channel_account_id']]['remit_plat_fee_profit'] = 0;
             $reports[$d['channel_account_id']]['remit_count'] = 0;
             $reports[$d['channel_account_id']]['remit_total'] = 0;
             $reports[$d['channel_account_id']]['recharge_channel_fee'] = $d['channel_fee'];
+            echo "{$i},{$d['channel_account_id']},{$d['channel_fee']},{$reports[$d['channel_account_id']]['recharge_channel_fee']}\n";
         }
 
         //出款利润
@@ -335,7 +336,7 @@ WHERE d.user_id=os.user_id and d.date=os.date";
             ->andWhere(['status'=>Remit::STATUS_SUCCESS])
             ->andFilterCompare('remit_at', '>=' . $tsStart)
             ->andFilterCompare('remit_at', '<' .$tsEnd)
-            ->select(['channel_account_id','channel_id','SUM(plat_fee_amount) AS channel_fee','SUM(plat_fee_profit) AS amount','SUM(amount) AS total','COUNT(*) AS count'])
+            ->select(['channel_account_id','channel_id','SUM(plat_fee_amount) AS channel_fee','SUM(plat_fee_profit) AS plat_fee_profit','SUM(amount) AS total','COUNT(*) AS count'])
             ->groupBy('channel_account_id');
 
         $query = (new \yii\db\Query())
@@ -354,12 +355,13 @@ WHERE d.user_id=os.user_id and d.date=os.date";
                 $reports[$d['channel_account_id']]['channel_account_id'] = $d['channel_account_id'];
                 $reports[$d['channel_account_id']]['channel_id'] = $d['channel_id'];
                 $reports[$d['channel_account_id']]['channel_name'] = $d['channel_name'];
+                $reports[$d['channel_account_id']]['recharge_channel_fee'] = 0;
+                $reports[$d['channel_account_id']]['recharge_plat_fee_profit'] = 0;
 
             }
-            $reports[$d['channel_account_id']]['remit_amount'] = $d['total'];
+            $reports[$d['channel_account_id']]['remit_plat_fee_profit'] = $d['plat_fee_profit'];
             $reports[$d['channel_account_id']]['remit_count'] = $d['count'];
             $reports[$d['channel_account_id']]['remit_total'] = $d['total'];
-            $reports[$d['channel_account_id']]['recharge_channel_fee'] = 0;
             $reports[$d['channel_account_id']]['remit_channel_fee'] = $d['channel_fee'];
         }
 
