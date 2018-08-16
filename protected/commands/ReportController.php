@@ -305,7 +305,7 @@ WHERE d.user_id=os.user_id and d.date=os.date";
             ->groupBy('channel_account_id');
 
         $query = (new \yii\db\Query())
-            ->select(['o.channel_account_id','o.total','c.channel_id','c.channel_name AS channel_account_name','c1.name AS channel_name','o.amount','o.count','o.channel_fee'])
+            ->select(['o.channel_account_id','o.total','c.channel_id','c.channel_name AS channel_account_name','c1.name AS channel_name','o.plat_fee_profit','o.count','o.channel_fee'])
             ->from(['o'=>$subQuery])
             ->leftJoin(ChannelAccount::tableName().' AS c', 'c.id = o.channel_account_id')
             ->leftJoin(Channel::tableName().' AS c1', 'c1.id = o.channel_id');
@@ -340,7 +340,7 @@ WHERE d.user_id=os.user_id and d.date=os.date";
             ->groupBy('channel_account_id');
 
         $query = (new \yii\db\Query())
-            ->select(['o.channel_account_id','c.channel_id','o.total','c.channel_name AS channel_account_name','total','c1.name AS channel_name','o.amount','o.count','o.channel_fee'])
+            ->select(['o.channel_account_id','c.channel_id','o.total','c.channel_name AS channel_account_name','total','c1.name AS channel_name','o.plat_fee_profit','o.count','o.channel_fee'])
             ->from(['o'=>$subQuery])
             ->leftJoin(ChannelAccount::tableName().' AS c', 'c.id = o.channel_account_id')
             ->leftJoin(Channel::tableName().' AS c1', 'c1.id = o.channel_id');
