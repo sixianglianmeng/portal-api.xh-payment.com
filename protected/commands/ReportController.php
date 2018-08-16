@@ -375,7 +375,7 @@ WHERE d.user_id=os.user_id and d.date=os.date";
             }
 
             //当天渠道结余
-            $reports[$i]['plat_sum'] =  $reports[$i]['recharge_amount']-$reports[$i]['remit_amount']-$reports[$i]['recharge_channel_fee']-$reports[$i]['remit_channel_fee'];
+            $reports[$i]['plat_sum'] =  $reports[$i]['recharge_total']-$reports[$i]['remit_total']-$reports[$i]['recharge_channel_fee']-$reports[$i]['remit_channel_fee'];
         }
 
         Yii::$app->db->createCommand()->delete(ReportChannelProfitDaily::tableName(), "date={$day}")->execute();
