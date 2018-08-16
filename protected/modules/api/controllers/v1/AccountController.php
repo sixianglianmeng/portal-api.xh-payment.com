@@ -1014,10 +1014,6 @@ class AccountController extends BaseController
         if($rate < 0 || $selfPayment->fee_rate ==0 || $rate <  $selfPayment->fee_rate){
             return ResponseHelper::formatOutput(Macro::ERR_ACCOUNT_PAYMENT_RATE, '下级商户收款费率不能低于自己');
         }
-        $channelPayment = ChannelAccountRechargeMethod::find()->where(['channel_id'=>$selfPayment->channel_id,'method_id'=>$method_id])->one();
-        if($rate > $channelPayment->fee_rate){
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'收款费率不能高于渠道收款费率');
-        }
         $paymentObj = MerchantRechargeMethod::find()->where(['method_id'=>$method_id,'merchant_id'=>$merchantId])->one();
         $paymentObj->fee_rate = $rate;
         $paymentObj->save();
