@@ -57,6 +57,7 @@ class ReportController extends \yii\console\Controller
         'remit_fee'=>'结算手续费总额','transfer_fee'=>'转账手续费总额','remit_refund'=>'失败返还总额','remit_fee_refund'=>'失败返还手续费总额','transfer_in'=>'平台转出总额','transfer_out'=>'平台转入总额','balance'=>'今日余额(收入-支持)'];
 
         $day = $this->day ? date('Ymd', strtotime($this->day)) : date('Ymd',strtotime('-1 day'));
+        Yii::info(['cron reporting',__FUNCTION__,$day]);
         $tsStart = strtotime($day);
         $tsEnd = $tsStart+86400;
         bcscale(6);
@@ -212,6 +213,7 @@ class ReportController extends \yii\console\Controller
     public function actionDailyRecharge()
     {
         $day = $this->day ? date('Ymd', strtotime($this->day)) : date('Ymd',strtotime('-1 day'));
+        Yii::info(['cron reporting',__FUNCTION__,$day]);
         $tsStart = strtotime($day);
         $tsEnd = $tsStart+86400;
         $allOrderfilter = "paid_at>={$tsStart} AND paid_at<{$tsEnd}";
@@ -292,6 +294,7 @@ WHERE d.user_id=os.user_id and d.date=os.date";
     public function actionChannelDailyProfit()
     {
         $day = $this->day ? date('Ymd', strtotime($this->day)) : date('Ymd',strtotime('-1 day'));
+        Yii::info(['cron reporting',__FUNCTION__,$day]);
         $tsStart = strtotime($day);
         $tsEnd = $tsStart+86400;
 
@@ -375,7 +378,7 @@ WHERE d.user_id=os.user_id and d.date=os.date";
             }
 
             //当天渠道结余
-            $reports[$i]['plat_sum'] =  $reports[$i]['recharge_total']-$reports[$i]['remit_total']-$reports[$i]['recharge_channel_fee']-$reports[$i]['remit_channel_fee'];
+            $reports[$i]['plat_sum'] =  bcsub($reports[$i]['recharge_total'],bcadd(bcadd($reports[$i]['remit_total'],$reports[$i]['recharge_channel_fee']),$reports[$i]['remit_channel_fee']));
         }
 
         Yii::$app->db->createCommand()->delete(ReportChannelProfitDaily::tableName(), "date={$day}")->execute();
@@ -391,7 +394,9 @@ WHERE d.user_id=os.user_id and d.date=os.date";
      * ./protected/yii report/reconciliation
      */
     public function actionReconciliation()
-    {   $day = $this->day ? date('Ymd', strtotime($this->day)) : date('Ymd',strtotime('-1 day'));
+    {
+        $day = $this->day ? date('Ymd', strtotime($this->day)) : date('Ymd',strtotime('-1 day'));
+        Yii::info(['cron reporting',__FUNCTION__,$day]);
         $tsStart = strtotime($day);
         $tsEnd = $tsStart+86400;
 
@@ -408,7 +413,6 @@ WHERE a.channel_account_id=b.channel_account_id AND a.created_at=b.created_at";
                 'channel_frozen_balance_begin'=>$sb['frozen_balance'],
                 'channel_frozen_balance_begin_ts'=>$sb['created_at'],
             ];
-            echo json_encode($data).PHP_EOL;
             ReportChannelProfitDaily::updateAll($data,['date' => $day, 'channel_account_id'=>$sb['channel_account_id']]);
         }
 
