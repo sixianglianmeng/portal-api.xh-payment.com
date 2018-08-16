@@ -164,7 +164,7 @@ class ReportController extends BaseController
         $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,1000]);
 
         $query = ReportRechargeDaily::find();
-        $query->andWhere(['user_goup_id'=>User::GROUP_AGENT]);
+        $query->andWhere(['user_group_id'=>User::GROUP_AGENT]);
 
         if($username){
             $query->andWhere(['like','username',$username]);

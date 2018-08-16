@@ -139,7 +139,7 @@ class ReportController extends \yii\console\Controller
                         $reportLogs[$row['uid']]['recharge_fee'] = bcadd($reportLogs[$row['uid']]['recharge_fee'], $row['amount']);
                         $reportLogs[$row['uid']]['total_cost']   = bcadd($reportLogs[$row['uid']]['total_cost'], $row['amount']);
                         break;
-                    case Financial::EVENT_TYPE_BONUS:
+                    case Financial::EVENT_TYPE_RECHARGE_BONUS:
                     case Financial::EVENT_TYPE_REMIT_BONUS:
                         $reportLogs[$row['uid']]['bonus']        = bcadd($reportLogs[$row['uid']]['bonus'], $row['amount']);
                         $reportLogs[$row['uid']]['total_income'] = bcadd($reportLogs[$row['uid']]['total_income'], $row['amount']);
@@ -220,12 +220,15 @@ class ReportController extends \yii\console\Controller
         $successOrderfilter = "status IN (".implode(",",[Order::STATUS_SETTLEMENT,Order::STATUS_PAID]).") AND paid_at>={$tsStart} AND paid_at<{$tsEnd}";
 
         //写入所有代理所有订单汇总
+        //mysql 将字段拆分成多行算法,来着 https://stackoverflow.com/questions/17942508/sql-split-values-to-multiple-rows
+        $extracTable = "(select 1 n union all select 2 union all select 3 union all select 4 union all select 5 
+        union all select 6 union all select 7 union all select 8 union all select 9 union all select 10) AS";
         $sql = "REPLACE INTO p_report_recharge_daily (date, user_id, username,user_goup_id, total_amount, total_count, avg_amount,created_at)
 	SELECT {$day} AS date, u.id AS user_id, u.username AS user_name,u.group_id AS user_goup_id, SUM(amount) AS total_amount,COUNT(*) AS total_count, AVG(amount) AS 
 	avg_amount,UNIX_TIMESTAMP() AS created_at
 	FROM (
 		SELECT o.id, SUBSTRING_INDEX(SUBSTRING_INDEX(o.pids, ',', numbers.n), ',', -1) AS pid
-		FROM p_temp_parent_uids_extract numbers
+		FROM {$extracTable} numbers
 		INNER JOIN (
 			SELECT id,REPLACE(REPLACE(p_orders.all_parent_agent_id, ']', ''), '[', '') AS pids
 			FROM p_orders
@@ -246,7 +249,7 @@ class ReportController extends \yii\console\Controller
 		FROM p_orders o
 		RIGHT JOIN (
 			SELECT o.id,SUBSTRING_INDEX(SUBSTRING_INDEX(o.pids, ',', numbers.n), ',', -1) AS pid
-			FROM p_temp_parent_uids_extract numbers
+			FROM {$extracTable} numbers
 			INNER JOIN (
 				SELECT id,REPLACE(REPLACE(p_orders.all_parent_agent_id, ']', ''), '[', '') AS pids
 				FROM p_orders
