@@ -365,8 +365,8 @@ WHERE d.user_id=os.user_id and d.date=os.date";
             $reports[$d['channel_account_id']]['remit_channel_fee'] = $d['channel_fee'];
         }
 
-        $fields = ['date','recharge_total','recharge_amount','recharge_count','channel_account_name','channel_account_id','channel_id','channel_name',
-            'remit_amount','remit_count','remit_total','recharge_channel_fee','remit_channel_fee','plat_sum'
+        $fields = ['date','recharge_total','recharge_plat_fee_profit','recharge_count','channel_account_name','channel_account_id','channel_id','channel_name',
+            'remit_plat_fee_profit','remit_count','remit_total','recharge_channel_fee','remit_channel_fee','plat_sum'
         ];
 
         foreach ($reports as $i=>$d){
