@@ -1401,16 +1401,16 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
     public function actionBindLoginIp()
     {
         $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId',0,Macro::CONST_PARAM_TYPE_INT,'商户ID错误');
-        $ip = ControllerParameterValidator::getRequestParam($this->allParams, 'ip',null,Macro::CONST_PARAM_TYPE_ARRAY,'API接口IP地址错误');
+        $ip = ControllerParameterValidator::getRequestParam($this->allParams, 'ip','',Macro::CONST_PARAM_TYPE_ARRAY,'API接口IP地址错误');
         $user = User::findOne(['id'=>$userId]);
         if(!$user){
             ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
         }
 
-        if($ip){
-            $user->bind_login_ip = json_encode($ip);
-            $user->save();
-        }
+        if($ip) $ip = json_encode($ip);
+        $user->bind_login_ip = $ip;
+
+        $user->save();
 
         return ResponseHelper::formatOutput(Macro::SUCCESS);
     }
