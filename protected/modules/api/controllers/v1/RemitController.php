@@ -615,7 +615,6 @@ class RemitController extends BaseController
             $records[$i]['bank_account'] = $d->bank_account;
             $records[$i]['bank_code'] = $d->bank_code;
             $records[$i]['bank_name'] = !empty($d->bank_name)?$d->bank_name:BankCodes::getBankNameByCode($d->bank_code);
-            $records[$i]['bak'] = $d->bak;
             $records[$i]['created_at'] = date('Y-m-d H:i:s',$d->created_at);
         }
 

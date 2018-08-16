@@ -399,8 +399,6 @@ class AccountController extends BaseController
         foreach ($p->getModels() as $i=>$u){
             $records[$i]['id']              = $u->id;
             $records[$i]['username']        = $u->username;
-            $records[$i]['balance']         = $u->balance;
-            $records[$i]['blocked_balance'] = $u->frozen_balance;
             $records[$i]['status']          = $u->status;
             $records[$i]['status_str']      = User::getStatusStr($u['status']);
             $records[$i]['group_id']        = $u['group_id'];
@@ -409,7 +407,6 @@ class AccountController extends BaseController
             $records[$i]['remit_channel_id']      = $u->paymentInfo->remit_channel_id;
             $records[$i]['remit_channel_name']      = $u->paymentInfo->remit_channel_account_name;
             $records[$i]['pay_config'] = $u->paymentInfo->getPayMethodsArrByAppId($u->id) ;
-            $records[$i]['remit_fee'] = $u->paymentInfo->remit_fee;
             $records[$i]['remit_fee'] = $u->paymentInfo->remit_fee;
             $records[$i]['account_open_fee_status'] = $u->account_open_fee_status;
             $records[$i]['account_open_fee_status_str'] = User::ARR_ACCOUNT_OPEN_FEE_STATUS[$u->account_open_fee_status];
@@ -730,7 +727,6 @@ class AccountController extends BaseController
             $records[$i]['bank_no'] = $d->bank_no;
             $records[$i]['bank_account'] = $d->bank_account;
             $records[$i]['bank_name'] = $d->bank_name;
-            $records[$i]['bak'] = $d->bak;
             $records[$i]['created_at'] = date('Y-m-d H:i:s',$d->created_at);
         }
 
@@ -845,7 +841,7 @@ class AccountController extends BaseController
         }
 
         //生成分页数据
-        $fields = ['id','uid','username','event_id','amount','balance','bak','event_id','event_type','created_at'];
+        $fields = ['id','uid','username','event_id','amount','event_id','event_type','created_at'];
         $paginationData = LogicElementPagination::getPagination($query,$fields,$page-1,$perPage,$sort);
         $records=[];
         foreach ($paginationData['data'] as $i=>$d){
