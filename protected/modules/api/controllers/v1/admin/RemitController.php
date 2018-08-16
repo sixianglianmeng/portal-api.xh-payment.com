@@ -185,7 +185,7 @@ class RemitController extends BaseController
         if($user->group_id == 10){
             $remit = Remit::find()->where(['status'=>0])->limit(1)->one();
             if(!empty($remit)){
-                return ResponseHelper::formatOutput(Macro::SUCCESS);
+                return ResponseHelper::formatOutput(Macro::SUCCESS,'',[$remit]);
             }
         }
         return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN);
