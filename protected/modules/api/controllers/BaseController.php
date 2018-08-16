@@ -37,7 +37,7 @@ class BaseController extends \app\components\WebAppController
             
             //google令牌是否校验通过
             if($this->action->id != 'verify-key' && !Yii::$app->user->identity->is2faChecked() ){
-                Util::throwException(403,'需要进行安全令牌校验，请重新登录并进行校验。');
+                Util::throwException(401,'需要进行安全令牌校验，请重新登录并进行校验。');
             }
 
             if(Yii::$app->user->identity->isAdmin()){
