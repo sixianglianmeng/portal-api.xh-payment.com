@@ -103,6 +103,7 @@ class Macro
 
     //下级管理
     const ERR_ACCOUNT_ORDER = 10301;
+    const ERR_ACCOUNT_PAYMENT_RATE = 10302;
 
     //批量excel处理错误
     const ERR_EXCEL_BATCH_REMIT = 10311;
