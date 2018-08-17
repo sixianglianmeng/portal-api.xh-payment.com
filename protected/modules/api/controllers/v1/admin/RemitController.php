@@ -208,7 +208,7 @@ class RemitController extends BaseController
             ])
             ->from(Remit::tableName())
             ->where(['bank_no'=>$cardNo])
-//            ->andFilterCompare('created_at', '>='.strtotime(date("Y-m-d 0:0")))
+            ->andFilterCompare('created_at', '>='.strtotime(date("Y-m-d 0:0")))
             ->groupBy('status')
             ->all();
         foreach ($data as $k=>$d){
