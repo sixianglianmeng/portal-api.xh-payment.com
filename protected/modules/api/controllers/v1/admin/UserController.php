@@ -634,13 +634,16 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
             'user_type' => empty($all)?User::ARR_GROUP:ArrayHelper::merge([Macro::SELECT_OPTION_ALL=>'全部'],User::ARR_GROUP),
             'pay_method' => empty($all)?Channel::ARR_METHOD:ArrayHelper::merge([Macro::SELECT_OPTION_ALL=>'全部'],Channel::ARR_METHOD),
         ];
-        $data['all_channel'] = Yii::$app->db->createCommand('SELECT id,channel_name,group_id,group_name FROM '.ChannelAccount::tableName())
+        $channelSql = 'SELECT id,channel_name,group_id,group_name FROM '.ChannelAccount::tableName()." WHERE visible=".ChannelAccount::VISIBLE_SHOW;
+        $data['all_channel'] = Yii::$app->db->createCommand($channelSql)
         ->queryAll();
         $data['all_channel'] = empty($all)?$data['all_channel']:ArrayHelper::merge([['id'=>Macro::SELECT_OPTION_ALL,'channel_name'=>'全部']],$data['all_channel']);
-        $data['channel_can_remit'] = Yii::$app->db->createCommand('SELECT id,channel_name,group_id,group_name FROM '.ChannelAccount::tableName()." WHERE status IN(".ChannelAccount::STATUS_ACTIVE.",".ChannelAccount::STATUS_RECHARGE_BANED.")")
+
+        $data['channel_can_remit'] = Yii::$app->db->createCommand("{$channelSql} AND status IN(".ChannelAccount::STATUS_ACTIVE.",".ChannelAccount::STATUS_RECHARGE_BANED.")")
             ->queryAll();
         $data['channel_can_remit'] = empty($all)?$data['channel_can_remit']:ArrayHelper::merge([['id'=>Macro::SELECT_OPTION_ALL,'channel_name'=>'全部']],$data['channel_can_remit']);
-        $data['channel_can_recharge'] = Yii::$app->db->createCommand('SELECT id,channel_name,group_id,group_name FROM '.ChannelAccount::tableName()." WHERE status IN(".ChannelAccount::STATUS_ACTIVE.",".ChannelAccount::STATUS_REMIT_BANED.")")
+
+        $data['channel_can_recharge'] = Yii::$app->db->createCommand("{$channelSql} AND status IN(".ChannelAccount::STATUS_ACTIVE.",".ChannelAccount::STATUS_REMIT_BANED.")")
             ->queryAll();
         $data['channel_can_recharge'] = empty($all)?$data['channel_can_recharge']:ArrayHelper::merge([['id'=>Macro::SELECT_OPTION_ALL,'channel_name'=>'全部']],
             $data['channel_can_recharge']);
@@ -669,19 +672,23 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
     {
         $methodId = ControllerParameterValidator::getRequestParam($this->allParams, 'methodId', '', Macro::CONST_PARAM_TYPE_ARRAY, '收款方式错误');
 
-        $accountsQuery = ChannelAccountRechargeMethod::find();
+        $accountsQuery = (new \yii\db\Query())->from(ChannelAccountRechargeMethod::tableName().' m')
+            ->select(['m.channel_account_id', 'm.channel_account_name'])
+            ->leftJoin(ChannelAccount::tableName().' a', 'm.channel_account_id=a.id');
+
         $remitFeeCanBeZero = SiteConfig::cacheGetContent('remit_fee_can_be_zero');
+        $accountsQuery->andWhere(['a.visible'=>ChannelAccount::VISIBLE_SHOW]);
         //为0表示只允许费率大于0的通道
         if($remitFeeCanBeZero=='0'){
-            $accountsQuery->andWhere(['>','fee_rate','0']);
+            $accountsQuery->andWhere(['>','m.fee_rate','0']);
         }
 
         if($methodId){
-            $accountsQuery->andWhere(['method_id'=>$methodId]);
+            $accountsQuery->andWhere(['m.method_id'=>$methodId]);
         }
         //多个通道进行筛选
         if(count($methodId)>1){
-            $accountsQuery->groupBy('channel_account_id');
+            $accountsQuery->groupBy('m.channel_account_id');
             $accountsQuery->having(['COUNT(*)' => count($methodId)]);
         }
 
@@ -689,8 +696,8 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
         $data = [];
         foreach($accounts as $ac){
             $data[] = [
-                'id'=>$ac->channel_account_id,
-                'name'=>$ac->channel_account_name,
+                'id'=>$ac['channel_account_id'],
+                'name'=>$ac['channel_account_name'],
             ];
         }
         return ResponseHelper::formatOutput(Macro::SUCCESS,'', $data);

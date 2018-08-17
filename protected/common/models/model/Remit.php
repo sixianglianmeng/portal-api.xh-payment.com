@@ -158,8 +158,10 @@ class Remit extends BaseModel
     {
         if(in_array($this->status,array(self::STATUS_CHECKED,self::STATUS_DEDUCT,self::STATUS_BANK_PROCESSING))){
             return '处理中';
-        }elseif (in_array($this->status,array(self::STATUS_REFUND,self::STATUS_NOT_REFUND,self::STATUS_BANK_NET_FAIL,self::STATUS_BANK_PROCESS_FAIL))){
+        }elseif (in_array($this->status,array(self::STATUS_NOT_REFUND,self::STATUS_BANK_NET_FAIL,self::STATUS_BANK_PROCESS_FAIL))){
             return '出款失败';
+        }elseif (in_array($this->status,array(self::STATUS_REFUND))){
+            return '失败已退款';
         }else{
             return self::ARR_STATUS[$this->status]??'-';
         }

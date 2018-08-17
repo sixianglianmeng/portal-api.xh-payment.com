@@ -241,7 +241,7 @@ class FinancialController extends BaseController
 //            $query->andwhere(['username' => $username]);
 //        }
         $summeryQuery = $query;
-        if($eventType!==''){
+        if($eventType){
             $query->andwhere(['event_type' => $eventType]);
         }
 

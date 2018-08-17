@@ -21,6 +21,13 @@ class ChannelAccount extends BaseModel
         self::STATUS_RECHARGE_BANED => '充值关闭',
     ];
 
+    const VISIBLE_SHOW = 1;
+    const VISIBLE_HIDE = 0;
+    const ARR_VISIBLE = [
+        self::VISIBLE_SHOW => '显示',
+        self::VISIBLE_HIDE => '隐藏',
+    ];
+
     public static function tableName()
     {
         return '{{%channel_accounts}}';
