@@ -921,8 +921,8 @@ class AccountController extends BaseController
         $sort = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 15, Macro::CONST_PARAM_TYPE_SORT, '分页参数错误',[1,100]);
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
         $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,1000]);
-        $merchantId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId', 0, Macro::CONST_PARAM_TYPE_INT, '商户id错误');
-        $merchantName = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantName', 0, Macro::CONST_PARAM_TYPE_INT, '商户账户错误');
+        $merchantId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchant_id', '', Macro::CONST_PARAM_TYPE_INT, '商户id错误');
+        $merchantName = ControllerParameterValidator::getRequestParam($this->allParams, 'merchant_name', '', Macro::CONST_PARAM_TYPE_USERNAME, '商户账户错误');
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
 
@@ -965,6 +965,7 @@ class AccountController extends BaseController
         if ($merchantName != '') {
             $userQuery->andwhere(['merchant_account' => $merchantName]);
         }
+
         if(!$dateStart){
             $dateStart = '-30 days';
         }
