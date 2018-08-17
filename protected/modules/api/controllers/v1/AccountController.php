@@ -9,6 +9,7 @@ namespace app\modules\api\controllers\v1;
 use app\common\models\logic\LogicElementPagination;
 use app\common\models\model\Channel;
 use app\common\models\model\ChannelAccount;
+use app\common\models\model\ChannelAccountRechargeMethod;
 use app\common\models\model\Financial;
 use app\common\models\model\MerchantRechargeMethod;
 use app\common\models\model\Order;
@@ -992,5 +993,30 @@ class AccountController extends BaseController
         ];
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
+    }
+
+    /**
+     * 修改下级商户收款费率
+     * @return array
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     */
+    public function actionEditChildRate()
+    {
+        $userObj = Yii::$app->user->identity;
+        $mainAccount = $userObj->getMainAccount();
+        $merchantId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId', null, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '商户ID错误');
+        $rate = ControllerParameterValidator::getRequestParam($this->allParams, 'rate', null, Macro::CONST_PARAM_TYPE_DECIMAL, '收款费率有错');
+        $method_id = ControllerParameterValidator::getRequestParam($this->allParams, 'method_id', null, Macro::CONST_PARAM_TYPE_STRING, '充值类型错误');
+        $selfPayment = MerchantRechargeMethod::find()->where(['method_id'=>$method_id,'merchant_id'=>$mainAccount->id])->one();
+        if($rate < 0 || $selfPayment->fee_rate == 0 || $rate <  $selfPayment->fee_rate){
+            return ResponseHelper::formatOutput(Macro::ERR_ACCOUNT_PAYMENT_RATE, '下级商户收款费率不能低于自己');
+        }
+        $paymentObj = MerchantRechargeMethod::find()->where(['method_id'=>$method_id,'merchant_id'=>$merchantId])->one();
+        if($paymentObj->fee_rate > 0){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '下级商户收款费率已设置');
+        }
+        $paymentObj->fee_rate = $rate;
+        $paymentObj->save();
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'操作成功');
     }
 }

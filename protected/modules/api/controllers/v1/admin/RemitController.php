@@ -183,7 +183,7 @@ class RemitController extends BaseController
     {
         $user = Yii::$app->user->identity;
         if($user->group_id == 10){
-            $remit = Remit::find()->where(['status'=>Remit::STATUS_NONE])->count();
+            $remit = Remit::find()->where(['status'=>[Remit::STATUS_NONE,Remit::STATUS_DEDUCT]])->count();
             if($remit > 0){
                 return ResponseHelper::formatOutput(Macro::SUCCESS,'',[$remit]);
             }
