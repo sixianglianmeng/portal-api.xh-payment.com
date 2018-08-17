@@ -61,7 +61,7 @@ class ReportController extends BaseController
         $dateEnd   = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',
             Macro::CONST_PARAM_TYPE_DATE, '结束日期错误');
 
-        $sort    = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 15, Macro::CONST_PARAM_TYPE_SORT, '分页参数错误', [1, 100]);
+        $sort    = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', '', Macro::CONST_PARAM_TYPE_SORT, '分页参数错误', [1, 100]);
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 100]);
         $page    = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 1000]);
 
@@ -102,7 +102,7 @@ class ReportController extends BaseController
         if (!empty($sorts[$sort])) {
             $sort = $sorts[$sort];
         } else {
-            $sort = ['date', SORT_DESC];
+            $sort = ['', SORT_DESC];
         }
         //生成分页数据
         $p = new ActiveDataProvider([
@@ -159,7 +159,7 @@ class ReportController extends BaseController
         $dateEnd   = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',
             Macro::CONST_PARAM_TYPE_DATE, '结束日期错误');
 
-        $sort    = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 15, Macro::CONST_PARAM_TYPE_SORT, '分页参数错误', [1, 100]);
+        $sort    = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', '', Macro::CONST_PARAM_TYPE_SORT, '分页参数错误', [1, 100]);
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 100]);
         $page    = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 1000]);
 
@@ -181,12 +181,12 @@ class ReportController extends BaseController
         }
 
         $sorts = [
-            'created_at-' => ['created_at', SORT_DESC],
+            'date-' => ['date', SORT_DESC],
         ];
         if (!empty($sorts[$sort])) {
             $sort = $sorts[$sort];
         } else {
-            $sort = ['date', SORT_DESC];
+            $sort = ['created_at', SORT_DESC];
         }
         //生成分页数据
         $p = new ActiveDataProvider([
@@ -196,7 +196,9 @@ class ReportController extends BaseController
                 'page' => $page - 1,
             ],
             'sort' => [
-                'defaultOrder' => $sort
+                'defaultOrder' => [
+                    $sort[0] => $sort[1],
+                ]
             ],
         ]);
 
@@ -241,7 +243,7 @@ class ReportController extends BaseController
         $dateEnd   = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',
             Macro::CONST_PARAM_TYPE_DATE, '结束日期错误');
 
-        $sort    = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 15, Macro::CONST_PARAM_TYPE_SORT, '分页参数错误', [1, 100]);
+        $sort    = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', '', Macro::CONST_PARAM_TYPE_SORT, '分页参数错误', [1, 100]);
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 100]);
         $page    = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 1000]);
 
@@ -311,7 +313,7 @@ class ReportController extends BaseController
         $dateEnd          = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',
             Macro::CONST_PARAM_TYPE_DATE, '结束日期错误');
 
-        $sort    = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 15, Macro::CONST_PARAM_TYPE_SORT, '分页参数错误', [1, 100]);
+        $sort    = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', '', Macro::CONST_PARAM_TYPE_SORT, '分页参数错误', [1, 100]);
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 100]);
         $page    = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 1000]);
 
@@ -331,10 +333,11 @@ class ReportController extends BaseController
         $sorts = [
             'date-' => ['date', SORT_DESC],
         ];
+
         if (!empty($sorts[$sort])) {
             $sort = $sorts[$sort];
         } else {
-            $sort = ['date', SORT_DESC];
+            $sort = ['date'=>SORT_DESC];
         }
         //生成分页数据
         $p = new ActiveDataProvider([
@@ -389,7 +392,7 @@ class ReportController extends BaseController
         $dateEnd          = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',
             Macro::CONST_PARAM_TYPE_DATE, '结束日期错误');
 
-        $sort    = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 15, Macro::CONST_PARAM_TYPE_SORT, '分页参数错误', [1, 100]);
+        $sort    = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', '', Macro::CONST_PARAM_TYPE_SORT, '分页参数错误', [1, 100]);
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 100]);
         $page    = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 1000]);
 
@@ -411,7 +414,7 @@ class ReportController extends BaseController
         if (!empty($sorts[$sort])) {
             $sort = $sorts[$sort];
         } else {
-            $sort = ['date', SORT_DESC];
+            $sort = ['created_at', SORT_DESC];
         }
         //生成分页数据
         $p = new ActiveDataProvider([
@@ -421,7 +424,9 @@ class ReportController extends BaseController
                 'page' => $page - 1,
             ],
             'sort' => [
-                'defaultOrder' => $sort
+                'defaultOrder' => [
+                    $sort[0] => $sort[1],
+                ]
             ],
         ]);
 
