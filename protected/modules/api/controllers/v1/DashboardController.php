@@ -59,6 +59,7 @@ class DashboardController extends BaseController
         }
         $logOperation = LogOperation::find()
             ->where(['user_id' => $user->id,'type'=>'v1_user_login','op_status'=>0])
+            ->andFilterCompare('created_at', '>='.(86400*20))
             ->orderBy('created_at desc')
             ->limit(2)
             ->asArray()
@@ -74,6 +75,11 @@ class DashboardController extends BaseController
                 $data['user']['last_login_time'] = date("Y-m-d H:i:s",$logOperation[0]['created_at']);
                 $data['user']['last_login_ip'] = $logOperation[0]['ip'];
             }
+        }
+        $data['isMainAccount'] =  $user->isMainAccount();
+        //主账号才显示统计数据
+        if($data['isMainAccount']){
+            return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
         }
 
         $data['user']['group_id'] = $user->group_id;
