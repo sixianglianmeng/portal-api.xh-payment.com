@@ -279,6 +279,7 @@ class AccountController extends BaseController
         $auth->revokeAll($merchant->id);
         //赋予用户基础角色
         $merchant->setBaseRole();
+        Yii::info('$filteredPermissions '.json_encode($filteredPermissions));
         foreach ($filteredPermissions as $pName){
             $roleObj = $auth->getRole($pName);
             $auth->assign($roleObj, $merchant->id);
@@ -932,7 +933,21 @@ class AccountController extends BaseController
         }
 
         //生成查询参数
-        $userQuery = (new Query())->select(["merchant_id","merchant_account","sum(amount) as amount","count(amount) as num","substring_index(REPLACE(substring_index(all_parent_agent_id,'{$user->id},',-1),']',','),',',1) AS first_child_id"])
+        $firstChildFieldStr = "";
+        /**
+         * 汇总统计商户直属下级(商户及代理)订单数据
+         *
+         * 利用substring_index可以截取订单表父级列表字段中本UID之后的所有字符串,然后再将]替换成',',最好截取掉第一个,字符之后的所有字符串,即可得到第一个直属下级
+         * sql: select substring_index(REPLACE(substring_index('[2012234,3322,333]','2012234,',-1),']',','),',',1) AS first_child_id => 3322
+         *
+         * 问题,在只有订单为本人直属下级商户的时候,以上sql将无法运作: select substring_index('[2012234]','2012234,',-1) => [2012234]. group by first_child_id之后将会只有一条记录
+         * 解决办法: 使用CASE判断是否订单是直属下级商户订单 CASE all_parent_agent_id WHEN '[2012234]' THEN merchant_id ELSE substring_index(REPLACE(substring_index(all_parent_agent_id,'2012234,',-1),']',','),',',1) END
+         */
+        //原始版,直属下级无法统计
+//        $firstChildFieldStr = "substring_index(REPLACE(substring_index(all_parent_agent_id,'{$user->id},',-1),']',','),',',1) AS first_child_id";
+        //优化如果是直属下级的订单
+        $firstChildFieldStr = "(CASE all_parent_agent_id WHEN '[{$user->id}]' THEN merchant_id ELSE substring_index(REPLACE(substring_index(all_parent_agent_id,'{$user->id},',-1),']',','),',',1) END) as first_child_id";
+        $userQuery = (new Query())->select(["merchant_id","merchant_account","sum(amount) as amount","count(amount) as num",$firstChildFieldStr])
             ->from(Order::tableName())
             ->where(['status'=>[Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])
             ->orderBy("merchant_id ASC");
