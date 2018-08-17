@@ -684,7 +684,7 @@ class AccountController extends BaseController
         if($dateEnd){
             $query->andFilterCompare('created_at', '<'.strtotime($dateEnd));
         }
-
+        Yii::info('merchant_account-----',json_encode($this->allParams));
         if(!empty($merchantNo)){
             $query->andwhere(['merchant_id' => $merchantNo]);
         }
