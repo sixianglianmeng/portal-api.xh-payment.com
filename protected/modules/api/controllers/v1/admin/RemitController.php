@@ -182,13 +182,41 @@ class RemitController extends BaseController
     public function actionRemind()
     {
         $user = Yii::$app->user->identity;
-        if($user->group_id == 10){
+        if($user->isSuperAdmin()){
             $remit = Remit::find()->where(['status'=>[Remit::STATUS_NONE,Remit::STATUS_DEDUCT]])->count();
             if($remit > 0){
                 return ResponseHelper::formatOutput(Macro::SUCCESS,'',[$remit]);
             }
         }
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',[]);
+    }
+
+    /**
+     * 银卡当天出款统计
+     * @roles admin,admin_operator,admin_service_lv1,admin_service_lv2
+     */
+    public function actionBankCardTodayStatistic()
+    {
+        $cardNo = ControllerParameterValidator::getRequestParam($this->allParams, 'cardNo', null,Macro::CONST_PARAM_TYPE_NUMERIC_STRING,'银行卡格式错误');
+
+        $user = Yii::$app->user->identity;
+        $data  = (new \yii\db\Query())
+            ->select([
+                "status",
+                "count(id) as nums",
+                "sum(amount) as amount"
+            ])
+            ->from(Remit::tableName())
+            ->where(['bank_no'=>$cardNo])
+//            ->andFilterCompare('created_at', '>='.strtotime(date("Y-m-d 0:0")))
+            ->groupBy('status')
+            ->all();
+        foreach ($data as $k=>$d){
+            $data[$k]['status_str'] = Remit::ARR_STATUS[$d['status']]??'-';
+        }
+
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
 
     /**
