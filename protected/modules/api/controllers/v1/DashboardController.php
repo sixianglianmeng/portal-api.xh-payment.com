@@ -78,7 +78,7 @@ class DashboardController extends BaseController
         }
         $data['isMainAccount'] =  $user->isMainAccount();
         //主账号才显示统计数据
-        if($data['isMainAccount']){
+        if(!$data['isMainAccount']){
             return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
         }
 
