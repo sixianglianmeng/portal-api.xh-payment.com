@@ -257,7 +257,7 @@ class UserController extends BaseController
             if(empty($methodConfig->fee_rate) && !$rechargeFeeCanBeZero){
                 $methodConfig->status = MerchantRechargeMethod::STATUS_INACTIVE;
             }
-            $methodConfig->settlement_type = $pm['settlement_type']??SiteConfig::cacheGetContent('default_settlement_type');
+            $methodConfig->settlement_type = $pm['settlement_type']?$pm['settlement_type']:SiteConfig::cacheGetContent('default_settlement_type');
 
             if($channelAccountId){
                 $methodConfig->channel_account_id = $channel->id;
