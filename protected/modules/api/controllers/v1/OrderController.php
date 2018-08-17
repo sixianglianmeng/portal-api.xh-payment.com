@@ -262,6 +262,7 @@ class OrderController extends BaseController
             $records[$i]['pay_method_code_str'] = Channel::getPayMethodsStr($d->pay_method_code);
             $records[$i]['status_str'] = $d->getStatusStr();
             $records[$i]['notify_status'] = $d->notify_status;
+            $records[$i]['notify_at'] = $d->notify_at;
             $records[$i]['notify_status_str'] = $d->getNotifyStatusStr();
             $records[$i]['created_at'] = date('Y-m-d H:i:s',$d->created_at);
             $records[$i]['notify_ret'] = $d->notify_ret;
