@@ -491,6 +491,9 @@ class AccountController extends BaseController
 
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
+        $merchantNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'商户编号错误',[0,32]);
+        $merchantAccount = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantAccount', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'商户账户错误',[0,32]);
+
 
         if(!empty($sorts[$sort])){
             $sort = $sorts[$sort];
@@ -529,7 +532,12 @@ class AccountController extends BaseController
         if($dateEnd){
             $query->andFilterCompare('created_at', '<'.strtotime($dateEnd));
         }
-
+        if($merchantNo){
+            $query->andwhere(['merchant_id' => $merchantNo]);
+        }
+        if($merchantAccount){
+            $query->andwhere(['merchant_account' => $merchantAccount]);
+        }
         if($orderNo){
             $query->andwhere(['order_no' => $orderNo]);
         }
@@ -677,10 +685,10 @@ class AccountController extends BaseController
             $query->andFilterCompare('created_at', '<'.strtotime($dateEnd));
         }
 
-        if($merchantNo){
+        if(!empty($merchantNo)){
             $query->andwhere(['merchant_id' => $merchantNo]);
         }
-        if($merchantAccount){
+        if(!empty($merchantAccount)){
             $query->andwhere(['merchant_account' => $merchantAccount]);
         }
         if($orderNo){
