@@ -102,7 +102,7 @@ class ReportController extends BaseController
         if (!empty($sorts[$sort])) {
             $sort = $sorts[$sort];
         } else {
-            $sort = ['created_at', SORT_DESC];
+            $sort = ['date', SORT_DESC];
         }
         //生成分页数据
         $p = new ActiveDataProvider([
@@ -112,9 +112,7 @@ class ReportController extends BaseController
                 'page' => $page - 1,
             ],
             'sort' => [
-                'defaultOrder' => [
-                    $sort[0] => $sort[1],
-                ]
+                'defaultOrder' => $sort
             ],
         ]);
 
@@ -188,7 +186,7 @@ class ReportController extends BaseController
         if (!empty($sorts[$sort])) {
             $sort = $sorts[$sort];
         } else {
-            $sort = ['created_at', SORT_DESC];
+            $sort = ['date', SORT_DESC];
         }
         //生成分页数据
         $p = new ActiveDataProvider([
@@ -198,9 +196,7 @@ class ReportController extends BaseController
                 'page' => $page - 1,
             ],
             'sort' => [
-                'defaultOrder' => [
-                    $sort[0] => $sort[1],
-                ]
+                'defaultOrder' => $sort
             ],
         ]);
 
@@ -333,12 +329,12 @@ class ReportController extends BaseController
         }
 
         $sorts = [
-            'created_at-' => ['created_at', SORT_DESC],
+            'date-' => ['date', SORT_DESC],
         ];
         if (!empty($sorts[$sort])) {
             $sort = $sorts[$sort];
         } else {
-            $sort = ['created_at', SORT_DESC];
+            $sort = ['date', SORT_DESC];
         }
         //生成分页数据
         $p = new ActiveDataProvider([
@@ -348,9 +344,7 @@ class ReportController extends BaseController
                 'page' => $page - 1,
             ],
             'sort' => [
-                'defaultOrder' => [
-                    $sort[0] => $sort[1],
-                ]
+                'defaultOrder' => $sort
             ],
         ]);
 
@@ -417,7 +411,7 @@ class ReportController extends BaseController
         if (!empty($sorts[$sort])) {
             $sort = $sorts[$sort];
         } else {
-            $sort = ['created_at', SORT_DESC];
+            $sort = ['date', SORT_DESC];
         }
         //生成分页数据
         $p = new ActiveDataProvider([
@@ -427,9 +421,7 @@ class ReportController extends BaseController
                 'page' => $page - 1,
             ],
             'sort' => [
-                'defaultOrder' => [
-                    $sort[0] => $sort[1],
-                ]
+                'defaultOrder' => $sort
             ],
         ]);
 
