@@ -215,7 +215,6 @@ class RemitController extends BaseController
             $data[$k]['status_str'] = Remit::ARR_STATUS[$d['status']]??'-';
         }
 
-
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
 

@@ -282,8 +282,21 @@ class OrderController extends BaseController
         //表格底部合计
         $summery['total'] = $pagination->totalCount;
         $summery['amount'] = $query->sum('amount');
-        $summery['paid_amount'] = $summeryQuery->andwhere(['status' => [Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])->sum('paid_amount');
-        $summery['paid_count'] = $summeryQuery->andwhere(['status' => [Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])->count('paid_amount');
+
+        $summery['all_status_list'] = [
+            [
+                'status'=>"_all_",
+                'status_str'=>'总计',
+                'amount'=>$summery['amount']?$summery['amount']:0,
+                'nums'=>$summery['total'],
+            ]
+        ];
+        $allStatusList = $summeryQuery->select('status,sum(amount) as amount,count(amount) as nums')->groupBy('status')->asArray()->all();
+        foreach ($allStatusList as $k=>$d){
+            $d['status_str'] = Order::ARR_STATUS[$d['status']]??'-';
+            $summery['all_status_list'][] = $d;
+        }
+
 
         //查询订单是否有调单记录
         $trackOptions = [];
