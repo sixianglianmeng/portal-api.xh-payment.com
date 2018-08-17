@@ -223,8 +223,8 @@ class ReportController extends \yii\console\Controller
         //mysql 将字段拆分成多行算法,来着 https://stackoverflow.com/questions/17942508/sql-split-values-to-multiple-rows
         $extracTable = "(select 1 n union all select 2 union all select 3 union all select 4 union all select 5 
         union all select 6 union all select 7 union all select 8 union all select 9 union all select 10) AS";
-        $sql = "REPLACE INTO p_report_recharge_daily (date, user_id, username,user_goup_id, total_amount, total_count, avg_amount,created_at)
-	SELECT {$day} AS date, u.id AS user_id, u.username AS user_name,u.group_id AS user_goup_id, SUM(amount) AS total_amount,COUNT(*) AS total_count, AVG(amount) AS 
+        $sql = "REPLACE INTO p_report_recharge_daily (date, user_id, username,user_group_id, total_amount, total_count, avg_amount,created_at)
+	SELECT {$day} AS date, u.id AS user_id, u.username AS user_name,u.group_id AS user_group_id, SUM(amount) AS total_amount,COUNT(*) AS total_count, AVG(amount) AS 
 	avg_amount,UNIX_TIMESTAMP() AS created_at
 	FROM (
 		SELECT o.id, SUBSTRING_INDEX(SUBSTRING_INDEX(o.pids, ',', numbers.n), ',', -1) AS pid
@@ -269,8 +269,8 @@ AND d.date = os.date";
 
         //写入所有商户的所有订单汇总
         $sql = "
-REPLACE INTO p_report_recharge_daily(date,user_id,username,user_goup_id,total_amount,total_count,avg_amount,created_at) 
-    SELECT {$day} AS date,merchant_id AS user_id,merchant_account AS user_name,30 AS user_goup_id,SUM(amount) AS total_amount,COUNT(*) AS total_count,avg(amount) AS 
+REPLACE INTO p_report_recharge_daily(date,user_id,username,user_group_id,total_amount,total_count,avg_amount,created_at) 
+    SELECT {$day} AS date,merchant_id AS user_id,merchant_account AS user_name,30 AS user_group_id,SUM(amount) AS total_amount,COUNT(*) AS total_count,avg(amount) AS 
     avg_amount,UNIX_TIMESTAMP() AS created_at 
     FROM p_orders o WHERE {$allOrderfilter}
     GROUP BY merchant_id";
