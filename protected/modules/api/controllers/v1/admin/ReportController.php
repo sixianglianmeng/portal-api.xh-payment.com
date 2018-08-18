@@ -252,10 +252,10 @@ class ReportController extends BaseController
             ->andWhere(['status' => [Order::STATUS_SETTLEMENT, Order::STATUS_PAID]]);
 
         if ($dateStart) {
-            $subQuery->andFilterCompare('paid_at', '>=' . date('Ymd', strtotime($dateStart)));
+            $subQuery->andFilterCompare('paid_at', '>=' .  strtotime($dateStart));
         }
         if ($dateEnd) {
-            $subQuery->andFilterCompare('paid_at', '<' . date('Ymd', strtotime($dateEnd) + 86400));
+            $subQuery->andFilterCompare('paid_at', '<' . (strtotime($dateEnd) + 86400));
         }
 
         $subQuery->select(['channel_account_id,pay_method_code,SUM(amount) AS amount'])
