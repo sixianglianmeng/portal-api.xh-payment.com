@@ -253,7 +253,7 @@ class LogController extends BaseController
             $updateFilter[] = "log_time>=" . strtotime($dateStart);
         }
         if ($dateEnd) {
-            $query->andFilterCompare('created_at', '<' . strtotime($dateEnd));
+            $query->andFilterCompare('log_time', '<' . strtotime($dateEnd));
             $updateFilter[] = "log_time<" . strtotime($dateEnd);
         }
 
