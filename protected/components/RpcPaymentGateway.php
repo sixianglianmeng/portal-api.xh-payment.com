@@ -222,7 +222,7 @@ class RpcPaymentGateway
 
         try {
             $api = $strUrl.$path;
-            $timeout = 10000;
+            $timeout = 30000;
 
             $jsonData = json_encode($params);
             $jsonRet = self::postMs($api, $jsonData, $timeout, [], $header);

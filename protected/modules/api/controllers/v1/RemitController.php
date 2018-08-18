@@ -429,10 +429,11 @@ class RemitController extends BaseController
         if($remitData && count($remitData) < 300){
             $remitArr = [];
             $balance = $user->balance;
-            $user->paymentInfo->getRemitChannel();
-            $remit_quota_pertime = $user->paymentInfo->remit_quota_pertime;
-            $channelAccount = ChannelAccount::findOne(['id'=>$user->paymentInfo->remit_channel_account_id]);
-            $channel_account_remit_quota_pertime = $channelAccount->remit_quota_pertime;
+            //不用判断单笔限额,后端接口支持自动拆分
+//            $user->paymentInfo->getRemitChannel();
+//            $remit_quota_pertime = $user->paymentInfo->remit_quota_pertime;
+//            $channelAccount = ChannelAccount::findOne(['id'=>$user->paymentInfo->remit_channel_account_id]);
+//            $channel_account_remit_quota_pertime = $channelAccount->remit_quota_pertime;
             $totalAmount = 0;
             $i = 0;
             foreach ($remitData as $val){
@@ -440,10 +441,12 @@ class RemitController extends BaseController
                     //['amount'=>'金额','bank_code'=>'银行代码','bank_no'=>'卡号','bank_account'=>'持卡人',
                     if(
                         bccomp($val['amount'], $balance, 6)===1
-                        || $remit_quota_pertime && (bccomp($val['amount'], $remit_quota_pertime, 6)===1)
-                        || $channel_account_remit_quota_pertime && (bccomp($val['amount'], $channel_account_remit_quota_pertime, 6)===1)
+                        //不用判断单笔限额,后端接口支持自动拆分
+//                        || $remit_quota_pertime && (bccomp($val['amount'], $remit_quota_pertime, 6)===1)
+//                        || $channel_account_remit_quota_pertime && (bccomp($val['amount'], $channel_account_remit_quota_pertime, 6)===1)
                     ){
-                        return ResponseHelper::formatOutput(Macro::ERR_EXCEL_BATCH_REMIT_AMOUNT, "单条提款金额（{$val['amount']}）大于当前余额($balance), 或者大于单次提款限额({$remit_quota_pertime})，或者大于渠道单次提款限额({$channel_account_remit_quota_pertime})");
+//                        return ResponseHelper::formatOutput(Macro::ERR_EXCEL_BATCH_REMIT_AMOUNT, "单条提款金额（{$val['amount']}）大于当前余额($balance), 或者大于单次提款限额({$remit_quota_pertime})，或者大于渠道单次提款限额({$channel_account_remit_quota_pertime})");
+                        return ResponseHelper::formatOutput(Macro::ERR_EXCEL_BATCH_REMIT_AMOUNT, "单条提款金额（{$val['amount']}）大于当前余额($balance)");
                     }
 
                     $remitArr[$i]['amount'] = $val['amount'];
