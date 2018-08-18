@@ -135,7 +135,7 @@
             } catch (UnauthorizedHttpException $e) {
                 return ResponseHelper::formatOutput(Macro::ERR_PERMISSION, $e->getMessage());
             } catch (OperationFailureException $e) {
-                return $this->handleException($e);
+                return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, $e->getMessage());
             } catch (\Exception $e) {
                 LogHelper::error(
                     sprintf(
@@ -168,7 +168,7 @@
                     $code                           = $e->statusCode;
                     Yii::$app->response->statusCode = $code;
                 }
-                return ResponseHelper::formatOutput($errCode, $msg);
+                return ResponseHelper::formatOutput($errCode, "服务器内部错误");
             }
         }
 

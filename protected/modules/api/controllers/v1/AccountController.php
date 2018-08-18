@@ -900,8 +900,21 @@ class AccountController extends BaseController
      */
     public function actionMyRechargeMethodList()
     {
+        $type = ControllerParameterValidator::getRequestParam($this->allParams, 'type', 1,Macro::CONST_PARAM_TYPE_INT,'订单类型错误');
+
         $userObj = Yii::$app->user->identity;
         $mainAccount = $userObj->getMainAccount();
+
+        //开户费充入系统账户,需要列出系统账户支持的充值方式
+        if($type == 3){
+            $merchantName = SiteConfig::cacheGetContent('account_open_fee_in_account');
+            $mainAccount = User::findOne(['username'=>$merchantName]);
+            if(empty($merchant)){
+                Yii::error("系统商户开户费转入账户设置错误");
+                Util::throwException(Macro::ERR_USER_NOT_FOUND,"商户开户费账户设置错误，请联系客服！");
+            }
+        }
+
         $methods = (new Query())->select(["id","method_id","method_name"])
             ->from(MerchantRechargeMethod::tableName())
             ->where(['app_id'=>$mainAccount->id])
@@ -1002,8 +1015,20 @@ class AccountController extends BaseController
         $lastPage = ceil($pagination->totalCount/$perPage);
         $from = ($page-1)*$perPage;
         $to = $page*$perPage;
+
+
+        $summery['amount'] = $userQuery->sum('amount');
+        $summery['all_status_list'] = [
+            [
+                'status'=>"_all_",
+                'status_str'=>'总计',
+                'amount'=>$summery['amount']?$summery['amount']:0,
+            ]
+        ];
+
         $data = [
             'data'=>$records,
+            'summery'=>$summery,
             "pagination"=>[
                 "total" =>  $total,
                 "per_page" =>  $perPage,
