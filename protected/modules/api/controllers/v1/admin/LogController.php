@@ -166,12 +166,12 @@ class LogController extends BaseController
             $query->andWhere(['like','title',$title]);
         }
         if ($dateStart) {
-            $query->andFilterCompare('u.created_at', '>=' . strtotime($dateStart));
-            $updateFilter[] = "u.created_at>=" . strtotime($dateStart);
+            $query->andFilterCompare('created_at', '>=' . strtotime($dateStart));
+            $updateFilter[] = "created_at>=" . strtotime($dateStart);
         }
         if ($dateEnd) {
-            $query->andFilterCompare('u.created_at', '<' . strtotime($dateEnd));
-            $updateFilter[] = "u.created_at<" . strtotime($dateEnd);
+            $query->andFilterCompare('created_at', '<' . strtotime($dateEnd));
+            $updateFilter[] = "created_at<" . strtotime($dateEnd);
         }
         if($username){
             $query->andWhere(['like','username',$username]);
