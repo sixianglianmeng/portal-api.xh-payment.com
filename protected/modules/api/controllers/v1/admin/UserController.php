@@ -1199,11 +1199,9 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $channelId = ControllerParameterValidator::getRequestParam($this->allParams, 'channelId','',Macro::CONST_PARAM_TYPE_STRING,'渠道编号错误');
         $app_server_ips = ControllerParameterValidator::getRequestParam($this->allParams, 'app_server_ips',null,Macro::CONST_PARAM_TYPE_ARRAY,'API接口IP地址错误');
         $app_server_domains = ControllerParameterValidator::getRequestParam($this->allParams, 'app_server_domains',null,Macro::CONST_PARAM_TYPE_ARRAY,'域名错误');
-//        $userPaymentInfo = UserPaymentInfo::findOne(['user_id'=>$userId,'channel_account_id'=>$channelId]);
-        $userPaymentInfo = UserPaymentInfo::find()->where(['user_id'=>$userId,'channel_account_id'=>$channelId])->limit(1)->one();
-        if($app_server_ips)
+        $userPaymentInfo = UserPaymentInfo::findOne(['user_id'=>$userId,'channel_account_id'=>$channelId]);
+
         $userPaymentInfo->app_server_ips = json_encode($app_server_ips);
-        if($app_server_domains)
         $userPaymentInfo->app_server_domains = json_encode($app_server_domains);
         $userPaymentInfo->save();
         return ResponseHelper::formatOutput(Macro::SUCCESS);
