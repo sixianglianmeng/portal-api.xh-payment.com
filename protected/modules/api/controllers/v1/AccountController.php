@@ -909,7 +909,7 @@ class AccountController extends BaseController
         if($type == 3){
             $merchantName = SiteConfig::cacheGetContent('account_open_fee_in_account');
             $mainAccount = User::findOne(['username'=>$merchantName]);
-            if(empty($merchant)){
+            if(empty($mainAccount)){
                 Yii::error("系统商户开户费转入账户设置错误");
                 Util::throwException(Macro::ERR_USER_NOT_FOUND,"商户开户费账户设置错误，请联系客服！");
             }
