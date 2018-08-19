@@ -135,7 +135,7 @@
             } catch (UnauthorizedHttpException $e) {
                 return ResponseHelper::formatOutput(Macro::ERR_PERMISSION, $e->getMessage());
             } catch (OperationFailureException $e) {
-                return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, $e->getMessage());
+                return $this->handleException($e, true);
             } catch (\Exception $e) {
                 LogHelper::error(
                     sprintf(
@@ -150,7 +150,12 @@
             }
         }
 
-        protected function handleException($e)
+        /**
+         * @param $e 异常对象
+         * @param bool $showRawExceptionMessage 是否显示原始的异常信息,建议未捕捉的异常不显示
+         * @return array
+         */
+        protected function handleException($e, $showRawExceptionMessage = false)
         {
             $errCode = $e->getCode();
             $msg     = $e->getMessage();
@@ -168,6 +173,7 @@
                     $code                           = $e->statusCode;
                     Yii::$app->response->statusCode = $code;
                 }
+                if(!$showRawExceptionMessage) $msg = "服务器繁忙,请稍候重试(500)";
                 return ResponseHelper::formatOutput($errCode, "服务器内部错误");
             }
         }
