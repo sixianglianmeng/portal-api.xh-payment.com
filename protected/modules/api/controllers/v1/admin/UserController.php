@@ -295,7 +295,7 @@ class UserController extends BaseController
 
         $sort = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 15,
             Macro::CONST_PARAM_TYPE_SORT, '分页参数错误',[1,100]);
-        $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'perPage', Macro::PAGINATION_DEFAULT_PAGE_SIZE,
+        $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE,
             Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
         $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1,
             Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,1000]);
@@ -975,6 +975,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $userInfo['allow_api_remit']             = $paymentInfo->allow_api_remit;
         $userInfo['allow_manual_recharge']       = $paymentInfo->allow_manual_recharge;
         $userInfo['allow_manual_remit']          = $paymentInfo->allow_manual_remit;
+        $userInfo['can_check_remit_status']      = $paymentInfo->can_check_remit_status;
 
         //处理代理
         if($user->all_parent_agent_id){
@@ -1079,32 +1080,12 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         if($paymentInfo->channel_account_id != $channel_account_id){
             return ResponseHelper::formatOutput(Macro::ERR_USER_PAYMENT_INFO_CHANNLE_ACCOUNT_ID,'渠道号有误');
         }
-        //渠道为动态切换的,此处无需验证
-//        $channleAccount = ChannelAccount::findOne(['id'=>$channel_account_id]);
-//        if($remit_quota_perday > $channleAccount->remit_quota_perday){
-//            return ResponseHelper::formatOutput(Macro::ERR_USER_PAYMENT_INFO_REMIT_QUOTA_PEDAY,'商户单日提款额度大于渠道单日提款额度');
-//        }
-//        if($recharge_quota_perday > $channleAccount->recharge_quota_perday){
-//            return ResponseHelper::formatOutput(Macro::ERR_USER_PAYMENT_INFO_RECHARGE_QUOTA_PEDAY,'商户单日充值额度大于渠道单日充值额度');
-//        }
-//        if($remit_quota_pertime > $channleAccount->remit_quota_pertime){
-//            return ResponseHelper::formatOutput(Macro::ERR_USER_PAYMENT_INFO_REMIT_QUOTA_PETIME,'商户单次提款额度大于渠道单次提款额度');
-//        }
-//        if($recharge_quota_pertime > $channleAccount->recharge_quota_pertime){
-//            return ResponseHelper::formatOutput(Macro::ERR_USER_PAYMENT_INFO_RECHARGE_QUOTA_PETIME,'商户单次充值额度大于渠道单次充值额度');
-//        }
-        if($remit_quota_perday > 0){
-            $paymentInfo->remit_quota_perday = $remit_quota_perday;
-        }
-        if($recharge_quota_perday > 0){
-            $paymentInfo->recharge_quota_perday = $recharge_quota_perday;
-        }
-        if($remit_quota_pertime > 0){
-            $paymentInfo->remit_quota_pertime = $remit_quota_pertime;
-        }
-        if($recharge_quota_pertime > 0){
-            $paymentInfo->recharge_quota_pertime = $recharge_quota_pertime;
-        }
+
+        $paymentInfo->remit_quota_perday = $remit_quota_perday;
+        $paymentInfo->recharge_quota_perday = $recharge_quota_perday;
+        $paymentInfo->remit_quota_pertime = $remit_quota_pertime;
+        $paymentInfo->recharge_quota_pertime = $recharge_quota_pertime;
+
         $paymentInfo->save();
         return ResponseHelper::formatOutput(Macro::SUCCESS);
     }
@@ -1416,6 +1397,34 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $user->bind_login_ip = $ip;
 
         $user->save();
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS);
+    }
+
+    /**
+     * 设置是否支持商户审核出款
+     *
+     * @role admin
+     */
+    public function actionSetMerchantRemitCheck()
+    {
+        $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId',0,Macro::CONST_PARAM_TYPE_INT,'商户ID错误');
+        $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status',null,Macro::CONST_PARAM_TYPE_ENUM,'商户审核出款状态错误',[0,1]);
+        $user = User::findOne(['id'=>$userId]);
+        if(!$user){
+            ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
+        }
+
+        $user->paymentInfo->can_check_remit_status = $status;
+        $user->paymentInfo->save();
+
+        $auth       = Yii::$app->authManager;
+        $role = $auth->getRole('merchant_check_remit');
+        if($status == 1){
+            $auth->assign($role, $user->id);
+        }else{
+            $auth->revoke($role, $this->id);
+        }
 
         return ResponseHelper::formatOutput(Macro::SUCCESS);
     }
