@@ -1420,10 +1420,9 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
 
         $auth       = Yii::$app->authManager;
         $role = $auth->getRole('merchant_check_remit');
+        $auth->revoke($role, $this->id);
         if($status == 1){
             $auth->assign($role, $user->id);
-        }else{
-            $auth->revoke($role, $this->id);
         }
         $user->delPermissionCache();
 
