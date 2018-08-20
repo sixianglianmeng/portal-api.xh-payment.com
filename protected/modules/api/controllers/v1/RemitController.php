@@ -212,7 +212,10 @@ class RemitController extends BaseController
             $records[$i]['amount'] = $d->amount;
             $records[$i]['remited_amount'] = $d->remited_amount;
             $records[$i]['merchant_check_status'] = $d->merchant_check_status;
-            $records[$i]['merchant_check_status_str'] = Remit::ARR_MERCHANT_CHECK_STATUS[$d->merchant_check_status]??'-';
+            $records[$i]['merchant_check_status_str'] = '-';
+            if($d->need_merchant_check){
+                $records[$i]['merchant_check_status_str'] = Remit::ARR_MERCHANT_CHECK_STATUS[$d->merchant_check_status]??'-';
+            }
             $records[$i]['status'] = $d->status;
             $records[$i]['bank_ret'] = str_replace("\n",'<br />', $d->bank_ret);
             $records[$i]['status_str'] = $d->showStatusStr();
