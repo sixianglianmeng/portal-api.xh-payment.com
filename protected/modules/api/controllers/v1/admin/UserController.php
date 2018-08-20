@@ -1425,6 +1425,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         }else{
             $auth->revoke($role, $this->id);
         }
+        $user->delPermissionCache();
 
         return ResponseHelper::formatOutput(Macro::SUCCESS);
     }

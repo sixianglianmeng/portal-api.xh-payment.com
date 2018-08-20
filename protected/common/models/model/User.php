@@ -246,6 +246,8 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         $baseRole = $auth->getRole(AuthItem::ROLE_USER_BASE);
         $auth->revoke($baseRole, $this->id);
         $auth->assign($baseRole, $this->id);
+
+        $this->delPermissionCache();
     }
 
     /**

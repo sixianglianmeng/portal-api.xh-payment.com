@@ -80,6 +80,18 @@ class Remit extends BaseModel
         self::NOTICE_STATUS_FAIL=>'通知失败',
     ];
 
+    const STATUS_LIST_PROCESSING = [self::STATUS_CHECKED,self::STATUS_DEDUCT,self::STATUS_BANK_PROCESSING];
+    const STATUS_LIST_FAIL = [self::STATUS_NOT_REFUND,self::STATUS_BANK_NET_FAIL,self::STATUS_BANK_PROCESS_FAIL];
+
+    const MERCHANT_CHECK_STATUS_NONE = 0;
+    const MERCHANT_CHECK_STATUS_CHECKED = 1;
+    const MERCHANT_CHECK_STATUS_DENIED = 2;
+    const ARR_MERCHANT_CHECK_STATUS = [
+        self::MERCHANT_CHECK_STATUS_NONE => '未审核',
+        self::MERCHANT_CHECK_STATUS_CHECKED => '通过',
+        self::MERCHANT_CHECK_STATUS_DENIED => '拒绝',
+    ];
+
     /**
      * @inheritdoc
      */
@@ -156,11 +168,11 @@ class Remit extends BaseModel
      */
     public function showStatusStr()
     {
-        if(in_array($this->status,array(self::STATUS_CHECKED,self::STATUS_DEDUCT,self::STATUS_BANK_PROCESSING))){
+        if(in_array($this->status,self::STATUS_LIST_PROCESSING)){
             return '处理中';
-        }elseif (in_array($this->status,array(self::STATUS_NOT_REFUND,self::STATUS_BANK_NET_FAIL,self::STATUS_BANK_PROCESS_FAIL))){
+        }elseif (in_array($this->status,self::STATUS_LIST_FAIL)){
             return '出款失败';
-        }elseif (in_array($this->status,array(self::STATUS_REFUND))){
+        }elseif (in_array($this->status,[self::STATUS_REFUND])){
             return '失败已退款';
         }else{
             return self::ARR_STATUS[$this->status]??'-';

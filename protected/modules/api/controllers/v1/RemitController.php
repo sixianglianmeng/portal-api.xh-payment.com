@@ -722,6 +722,22 @@ class RemitController extends BaseController
     {
         $remitIdList = ControllerParameterValidator::getRequestParam($this->allParams, 'remitIdList', null,Macro::CONST_PARAM_TYPE_ARRAY,'订单ID错误');
         $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status', null,Macro::CONST_PARAM_TYPE_ENUM,'状态错误',[1,2]);
+        $pwd = ControllerParameterValidator::getRequestParam($this->allParams, 'pwd','',Macro::CONST_PARAM_TYPE_STRING,'资金密码必须在8位以上');
+        $key2fa = ControllerParameterValidator::getRequestParam($this->allParams,'t2fa','',Macro::CONST_PARAM_TYPE_INT,'验证码错误',[6]);
+
+        $user = Yii::$app->user->identity;//->getMainAccount();
+        //令牌校验操作人员的
+        $googleObj = new \PHPGangsta_GoogleAuthenticator();
+        if(!$googleObj->verifyCode($user->key_2fa,$key2fa,1)){
+            return ResponseHelper::formatOutput(Macro::ERR_USER_KEY_FA, '安全令牌不正确');
+        }
+
+        $mainUser = $user->getMainAccount();
+
+        //资金密码校验主账号的
+        if(!$mainUser->validateFinancialPassword($pwd)) {
+            return ResponseHelper::formatOutput(Macro::ERR_USER_FINANCIAL_PASSWORD, '资金密码不正确');
+        }
 
 
         $ret = RpcPaymentGateway::call('/remit/merchant-check', ['remitIdList'=>$remitIdList,'status'=>$status]);
