@@ -131,6 +131,19 @@ class RemitController extends BaseController
             $query->andwhere(['status' => $status]);
         }
 
+        //只查询不需要商户审核,或者通过了商户审核的
+        $merchantCheckStatusCanBeShow = [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED,Remit::MERCHANT_CHECK_STATUS_NONE];
+        $query->andFilterWhere([
+            'or',
+            ['need_merchant_check'=> 0],
+            [
+                'and',
+                'need_merchant_check=1',
+                'merchant_check_status IN('.implode(',',$merchantCheckStatusCanBeShow).')'
+            ]
+        ]
+        );
+
         if($export==1 && $exportType){
             $fieldLabel = ["订单号","商户订单号","商户号","商户账户","金额","银行","姓名","卡号","状态","时间","备注"];
             foreach ($fieldLabel as $fi=>&$fk){
@@ -198,6 +211,8 @@ class RemitController extends BaseController
             $records[$i]['channel_account_name'] = $channelAccountOptions[$d->channel_account_id] ;
             $records[$i]['amount'] = $d->amount;
             $records[$i]['remited_amount'] = $d->remited_amount;
+            $records[$i]['merchant_check_status'] = $d->merchant_check_status;
+            $records[$i]['merchant_check_status_str'] = Remit::ARR_MERCHANT_CHECK_STATUS[$d->merchant_check_status]??'-';
             $records[$i]['status'] = $d->status;
             $records[$i]['bank_ret'] = str_replace("\n",'<br />', $d->bank_ret);
             $records[$i]['status_str'] = $d->showStatusStr();
@@ -278,7 +293,7 @@ class RemitController extends BaseController
         $filename = Yii::getAlias('@webroot').$uploadInfo->filename;
         $data = [];
         $fileInfo = [];
-        $user = Yii::$app->user->identity;
+        $user = Yii::$app->user->identity->getMainAccount();
         $paymentInfo = UserPaymentInfo::find()->where(['user_id'=>$user->id])->select('remit_channel_id')->asArray()->all();
         if(!$paymentInfo){
             return ResponseHelper::formatOutput(Macro::ERR_REMIT_BANK_CONFIG, '没有配置提款银行');
@@ -389,7 +404,7 @@ class RemitController extends BaseController
      */
     public function actionGetBankList()
     {
-        $user = Yii::$app->user->identity;
+        $user = Yii::$app->user->identity->getMainAccount();
         $paymentInfo = UserPaymentInfo::find()->where(['user_id'=>$user->id])->select('remit_channel_id')->asArray()->all();
         if(!$paymentInfo){
             return ResponseHelper::formatOutput(Macro::ERR_REMIT_BANK_CONFIG, '没有配置提款银行');
@@ -415,7 +430,12 @@ class RemitController extends BaseController
      */
     public function actionSingleBatchRemit()
     {
-        $user = Yii::$app->user->identity;
+        $user = Yii::$app->user->identity->getMainAccount();
+
+        if($user->paymentInfo->allow_manual_remit != 1){
+            return ResponseHelper::formatOutput(Macro::ERR_ALLOW_MANUAL_REMIT, "账户未开通手工提款功能!");
+        }
+
         $financial_password_hash = ControllerParameterValidator::getRequestParam($this->allParams, 'financial_password_hash','',Macro::CONST_PARAM_TYPE_STRING,'资金密码必须在8位以上');
         $key_2fa = ControllerParameterValidator::getRequestParam($this->allParams,'key_2fa','',Macro::CONST_PARAM_TYPE_INT,'验证码错误',[6]);
         $remitData = ControllerParameterValidator::getRequestParam($this->allParams, 'remitData',null,Macro::CONST_PARAM_TYPE_ARRAY,'提款数据错误');
@@ -520,9 +540,6 @@ class RemitController extends BaseController
         $userObj = Yii::$app->user->identity;
         $user = $userObj->getMainAccount();
 
-        if($user->paymentInfo->allow_manual_remit != 1){
-            return ResponseHelper::formatOutput(Macro::ERR_ALLOW_MANUAL_REMIT, "不支持手工提款");
-        }
         //允许的排序
         $sorts = [
             'created_at-'=>['created_at',SORT_DESC],
@@ -543,8 +560,9 @@ class RemitController extends BaseController
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
         $minMoney = ControllerParameterValidator::getRequestParam($this->allParams, 'minMoney', '',Macro::CONST_PARAM_TYPE_DECIMAL,'最小金额输入错误');
-
         $maxMoney = ControllerParameterValidator::getRequestParam($this->allParams, 'maxMoney', '',Macro::CONST_PARAM_TYPE_DECIMAL,'最大金额输入错误');
+        $selfCheck = ControllerParameterValidator::getRequestParam($this->allParams, 'selfCheck', 0,Macro::CONST_PARAM_TYPE_INT,'审核参数错误');
+        $checkStatus = ControllerParameterValidator::getRequestParam($this->allParams, 'checkStatus', 0,Macro::CONST_PARAM_TYPE_INT,'审核状态错误');
 
         if(!empty($sorts[$sort])){
             $sort = $sorts[$sort];
@@ -590,7 +608,13 @@ class RemitController extends BaseController
             $query->andwhere(['bank_no' => $bankNo]);
         }
         $summeryQuery = $query;
-        if($status!==''){
+
+        if($selfCheck){
+            $query->andwhere(['need_merchant_check' => $selfCheck]);
+            $query->andwhere(['merchant_check_status' => $checkStatus]);
+            $query->andwhere(['status' => Remit::STATUS_DEDUCT]);
+        }
+        elseif($status!==''){
             $query->andwhere(['status' => $status]);
         }
 
@@ -625,6 +649,8 @@ class RemitController extends BaseController
             $records[$i]['amount'] = $d->amount;
             $records[$i]['remited_amount'] = $d->remited_amount;
             $records[$i]['status'] = $d->status;
+            $records[$i]['check_status'] = $d->merchant_check_status;
+            $records[$i]['check_status_str'] = $d->merchant_check_bak;
             $records[$i]['status_str'] = $d->showStatusStr();
             $records[$i]['bank_no'] = $d->bank_no;
             $records[$i]['bank_account'] = $d->bank_account;
@@ -677,5 +703,29 @@ class RemitController extends BaseController
         ];
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
+    }
+
+    /**
+     * 商户待审核出款列表
+     * @roles merchant
+     */
+    public function actionCheckList()
+    {
+
+    }
+
+    /**
+     * 商户审核出款
+     * @roles merchant
+     */
+    public function actionCheck()
+    {
+        $remitIdList = ControllerParameterValidator::getRequestParam($this->allParams, 'remitIdList', null,Macro::CONST_PARAM_TYPE_ARRAY,'订单ID错误');
+        $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status', null,Macro::CONST_PARAM_TYPE_ENUM,'状态错误',[1,2]);
+
+
+        $ret = RpcPaymentGateway::call('/remit/merchant-check', ['remitIdList'=>$remitIdList,'status'=>$status]);
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS, '审核处理成功');
     }
 }
