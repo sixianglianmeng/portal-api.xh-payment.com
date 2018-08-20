@@ -81,7 +81,7 @@ class OrderController extends BaseController
                 Util::throwException(Macro::ERR_USER_NOT_FOUND);
             }
         }else{
-            $merchant = Yii::$app->user->identity;
+            $merchant = Yii::$app->user->identity->getMainAccount();
         }
         $ret = RpcPaymentGateway::recharge($amount,$payType,$bankCode,$merchant->username,$type,$bak);
         if($type == 3){
