@@ -20,7 +20,7 @@ class UserController extends BaseController
     {
         $parentBehaviors = parent::behaviors();
         //验证码不需要token验证
-        $behaviors['authenticator']['optional'] = ['signup-test','reset-password','logout','login','user-check','verify-key'];
+        $behaviors['authenticator']['optional'] = ['signup-test','reset-password','logout','login','verify-key'];
         $behaviors = \yii\helpers\ArrayHelper::merge($parentBehaviors, $behaviors);
 
         return $behaviors;
@@ -154,10 +154,13 @@ class UserController extends BaseController
         $user = Yii::$app->user->identity;
 
         $payConfigs = [];
-//        var_dump($user->getMainAccount());die;
         $rawPayConfigs = $user->getMainAccount()->paymentInfo->getPayMethodsArrByAppId($user->getMainAccount()->id);
         foreach ($rawPayConfigs as $p){
-            $payConfigs[$p['id']] = $p;
+            $payConfigs[$p['id']] = [
+                'id'=>$p['id'],
+                'rate'=>$p['rate'],
+                'name'=>$p['name'],
+            ];
         }
         $data = [
             'id' => $user->id,
@@ -422,17 +425,19 @@ class UserController extends BaseController
      */
     public function actionUserCheck()
     {
-        $user = Yii::$app->user->identity;
+        $userObj = Yii::$app->user->identity;
+        $is_financial = 0;
+        if($userObj->financial_password_hash){
+            $is_financial = 1;
+        }
+        $user = $userObj->getMainAccount();
         $data = [
-            'is_financial' =>0,
+            'is_financial' =>$is_financial,
             'group_id' =>$user->group_id,
             'asset' =>$user->balance+$user->frozen_balance,
             'frozen_balance' =>$user->frozen_balance,
             'balance' =>$user->balance,
         ];
-        if($user->financial_password_hash){
-            $data['is_financial'] = 1;
-        }
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
     }
 
@@ -445,11 +450,12 @@ class UserController extends BaseController
         $newPass = ControllerParameterValidator::getRequestParam($this->allParams,'newPass','',Macro::CONST_PARAM_TYPE_PASSWORD,'新密码错误',[6,16]);
         $confirmPass = ControllerParameterValidator::getRequestParam($this->allParams,'confirmPass','',Macro::CONST_PARAM_TYPE_PASSWORD,'确认密码错误',[6,16]);
         $user = Yii::$app->user->identity;
-
         if($user->needPayAccountOpenFee()){
             throw new OperationFailureException('请先缴纳开户费用',Macro::FAIL);
         }
-
+        if(!$user->isMainAccount()){
+            throw new OperationFailureException('只有主账号有此操作权限',Macro::FAIL);
+        }
         if($oldPass && !$user->validateFinancialPassword($oldPass)){
             return ResponseHelper::formatOutput(Macro::ERR_USER_PASSWORD, '旧密码不正确');
         }
@@ -516,7 +522,7 @@ class UserController extends BaseController
         $user = Yii::$app->user->identity;
 
         if($ip){
-            $user->bind_login_ip = json_encode($ip);
+            $user->bind_login_ip = json_encode(array_unique($ip));
             $user->save();
         }
 

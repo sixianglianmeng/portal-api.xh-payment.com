@@ -30,15 +30,4 @@ $config = \yii\helpers\ArrayHelper::merge(
     ]
 );
 
-$config['components']['log']['targets'][] = [
-    'class' => 'yii\log\EmailTarget',
-    'mailer' => 'mailer',
-    'levels' => ['error', 'warning'],
-    'message' => [
-        'from' => ['webmaster@payment.com'],
-        'to' => ['master@payment.com'],
-        'subject' => '系统异常',
-    ],
-];
-
 return $config;

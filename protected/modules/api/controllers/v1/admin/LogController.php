@@ -87,7 +87,7 @@ class LogController extends BaseController
             $query->andWhere(['like','merchant_name',$merchantName]);
         }
         if($merchantId){
-            $query->andWhere(['merchant_id',$merchantId]);
+            $query->andWhere(['merchant_id'=>$merchantId]);
         }
 
         $sorts = [

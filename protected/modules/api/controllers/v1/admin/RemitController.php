@@ -183,7 +183,19 @@ class RemitController extends BaseController
     {
         $user = Yii::$app->user->identity;
         if($user->isSuperAdmin()){
-            $remit = Remit::find()->where(['status'=>[Remit::STATUS_NONE,Remit::STATUS_DEDUCT]])->count();
+            $query = Remit::find()->where(['status'=>[Remit::STATUS_DEDUCT]]);
+            $merchantCheckStatusCanBeShow = [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED];
+            $query->andFilterWhere([
+                    'or',
+                    ['need_merchant_check'=> 0],
+                    [
+                        'and',
+                        'need_merchant_check=1',
+                        'merchant_check_status IN('.implode(',',$merchantCheckStatusCanBeShow).')'
+                    ]
+                ]
+            );
+            $remit = $query->count();
             if($remit > 0){
                 return ResponseHelper::formatOutput(Macro::SUCCESS,'',[$remit]);
             }

@@ -246,6 +246,8 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         $baseRole = $auth->getRole(AuthItem::ROLE_USER_BASE);
         $auth->revoke($baseRole, $this->id);
         $auth->assign($baseRole, $this->id);
+
+        $this->delPermissionCache();
     }
 
     /**
@@ -502,6 +504,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
                 if(isset($limitData['times']) && $limitData['times']>=$maxTime){
                     throw new OperationFailureException('资金密码失败次数过多，请稍候重试或联系客服。',Macro::FAIL);
                 }
+
             }
         }else{
             $limitData = [
@@ -509,10 +512,10 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
                 'ts'=>time(),
             ];
         }
-
         $password = md5($password.$this->username);
         $ret = false;
         if(!Yii::$app->security->validatePassword($password,$this->financial_password_hash)){
+            if(empty($limitData['times'])) $limitData['times'] = 0;
             $limitData['times'] += 1;
             $limitData['ts'] = time();
             Yii::info('validate err: '.$cacheKey.\GuzzleHttp\json_encode($limitData));

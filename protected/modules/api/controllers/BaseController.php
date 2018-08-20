@@ -64,7 +64,7 @@ class BaseController extends \app\components\WebAppController
                 }
             }
 
-            $permissions = Yii::$app->user->identity->getPermissions(false);
+            $permissions = Yii::$app->user->identity->getPermissions(true);
             $permissionName = "{$controllerID}_{$actionID}";
             $permissionRet = in_array($permissionName,$baseActions) || in_array($permissionName,$permissions);
 //            Yii::info('has permission: '.json_encode($permissions));

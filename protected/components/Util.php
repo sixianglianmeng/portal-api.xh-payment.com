@@ -3,7 +3,9 @@ namespace app\components;
 
 use app\common\exceptions\OperationFailureException;
 use app\common\models\model\Channel;
+use app\common\models\model\SiteConfig;
 use yii\base\Security;
+use Yii;
 
 class Util
 {
@@ -379,7 +381,7 @@ class Util
                 foreach (explode(',', $_SERVER[$key]) as $ip) {
                     $ip = trim($ip);
 
-                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false) {// |FILTER_FLAG_NO_RES_RANGE
                         $ip = '';
                     }
                 }
@@ -963,6 +965,42 @@ class Util
             return true;
         }else{
             return false;
+        }
+    }
+
+    /**
+     * 发送telegram消息
+     *
+     * @param string|array $message 消息内容
+     * @param string $chatId 会话id,默认为系统普通通知会话id
+     * @return bool
+     */
+    public static function sendTelegramMessage($message, $chatId=''){
+        $telgramKey = SiteConfig::cacheGetContent('sys_notice_tegram_key');
+        $telgramUrl = SiteConfig::cacheGetContent('sys_notice_tegram_url');
+        if(!$chatId){
+            $chatId = SiteConfig::cacheGetContent('sys_notice_tegram_business_chatid');
+        }
+        if(!is_string($message)) $message = json_encode($message,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+        $title = gethostname();
+        if(Yii::$app->request->getIsConsoleRequest()){
+            $title.=" ".pathinfo(WWW_DIR)['basename'];
+        }else{
+            $title.=" ".Yii::$app->request->hostName;
+        }
+        $message = "{$message}\n{$title}";
+        if($telgramKey && $telgramUrl && $chatId){
+            $data = [
+                'msg'=> $message,
+                'key'=> $telgramKey,
+                'chatId'=> $chatId,
+            ];
+            $ret = Util::curlPost($telgramUrl,$data);
+            if($ret!='ok'){
+                Yii::info("error to send telegram message:{$chatId},{$message}");
+            }
+        }else{
+            Yii::info("telegram message config error,{$telgramKey},{$chatId},{$telgramUrl}");
         }
     }
 }

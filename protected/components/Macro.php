@@ -100,6 +100,7 @@ class Macro
     const ERR_REMIT_API_NOT_ALLOWED = 10205;
     const ERR_REMIT_MANUAL_NOT_ALLOWED = 10206;
     const ERR_REMIT_NOT_FOUND = 10207;
+    const ERR_THIRD_CHANNEL_BALANCE_NOT_ENOUGH = 10208;
 
     //下级管理
     const ERR_ACCOUNT_ORDER = 10301;
@@ -249,6 +250,7 @@ class Macro
         self::ERR_REMIT_API_NOT_ALLOWED => '商户帐号不支持API出款',
         self::ERR_REMIT_MANUAL_NOT_ALLOWED => '商户帐号不支持手工出款',
         self::ERR_REMIT_NOT_FOUND => '提款记录不存在',
+        self::ERR_THIRD_CHANNEL_BALANCE_NOT_ENOUGH => '上游渠道余额不足',
     ];
 
     const BANK_LIST = [
