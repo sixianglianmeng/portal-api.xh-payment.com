@@ -20,7 +20,7 @@ class UserController extends BaseController
     {
         $parentBehaviors = parent::behaviors();
         //验证码不需要token验证
-        $behaviors['authenticator']['optional'] = ['signup-test','reset-password','logout','login','user-check','verify-key'];
+        $behaviors['authenticator']['optional'] = ['signup-test','reset-password','logout','login','verify-key'];
         $behaviors = \yii\helpers\ArrayHelper::merge($parentBehaviors, $behaviors);
 
         return $behaviors;
