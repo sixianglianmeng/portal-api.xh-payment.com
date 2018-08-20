@@ -621,11 +621,11 @@ class RemitController extends BaseController
         //普通订单列表
         elseif($status!==''){
             $query->andwhere(['status' => $status]);
+        }
 
-            //支持审核的商户,只显示已经审核过的订单
-            if($user->paymentInfo->can_check_remit_status){
-                $query->andwhere(['merchant_check_status' => [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED]]);
-            }
+        //支持审核的商户普通订单列表,只显示已经审核过的订单
+        if($user->paymentInfo->can_check_remit_status && !$selfCheck){
+            $query->andwhere(['merchant_check_status' => [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED]]);
         }
 
         //生成分页数据
