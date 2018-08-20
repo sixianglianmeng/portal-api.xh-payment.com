@@ -692,6 +692,7 @@ class RemitController extends BaseController
                 'channelAccountOptions'=>$channelAccountOptions,
             ),
             'summery'=>$summery,
+            'canCheckRemitStatus'=>$user->paymentInfo->can_check_remit_status,
             "pagination"=>[
                 "total" =>  $total,
                 "per_page" =>  $perPage,

@@ -154,10 +154,13 @@ class UserController extends BaseController
         $user = Yii::$app->user->identity;
 
         $payConfigs = [];
-//        var_dump($user->getMainAccount());die;
         $rawPayConfigs = $user->getMainAccount()->paymentInfo->getPayMethodsArrByAppId($user->getMainAccount()->id);
         foreach ($rawPayConfigs as $p){
-            $payConfigs[$p['id']] = $p;
+            $payConfigs[$p['id']] = [
+                'id'=>$p['id'],
+                'rate'=>$p['rate'],
+                'name'=>$p['name'],
+            ];
         }
         $data = [
             'id' => $user->id,
