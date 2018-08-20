@@ -116,7 +116,6 @@ class RequestSignController extends \power\yii2\web\Controller
 
         if ($errCode === Macro::SUCCESS) $errCode = Macro::FAIL;
         if (YII_DEBUG) {
-            throw $e;
             return ResponseHelper::formatOutput($errCode, $msg);
         } else {
             $code = Macro::INTERNAL_SERVER_ERROR;
@@ -125,7 +124,7 @@ class RequestSignController extends \power\yii2\web\Controller
                 Yii::$app->response->statusCode = $code;
             }
             if (!$showRawExceptionMessage) $msg = "服务器繁忙,请稍候重试(500)";
-            return ResponseHelper::formatOutput($errCode, "服务器内部错误");
+                return ResponseHelper::formatOutput($errCode, $msg);
         }
     }
 

@@ -103,9 +103,46 @@ $config = [
                     'class' => '\power\yii2\log\FileTarget',
                     'levels' => ['notice', 'trace','info','warning','error'],//'profile',
                     'logFile' => '@runtime/log/common'.date('md').'.log',
+//                    'categories' => ['yii\db\Command::query', 'yii\db\Command::execute'],
                     'enableRotation' => true,
                     'maxFileSize' => 1024 * 100,
                     'logVars' => [],
+                    'prefix' => function ($message) {
+                        $request = Yii::$app->getRequest();
+                        $ip = method_exists($request,'getUserIP')?$request->getUserIP() : '-';
+
+                        $user = Yii::$app->has('user', true) ? Yii::$app->get('user') : null;
+                        if ($user && ($identity = $user->getIdentity(false))) {
+                            $userID = $identity->getId();
+                        } else {
+                            $userID = '-';
+                        }
+
+                        if (empty($_SERVER['LOG_ID']) || !is_string($_SERVER['LOG_ID'])) {
+                            $_SERVER['LOG_ID'] = strval(uniqid());
+                        }
+
+                        return "[$ip] [$userID] [{$_SERVER['LOG_ID']}]";
+                    }
+                ],
+                'db_log' => [
+                    'levels' => ['warning','error'],
+                    'class' => '\yii\log\DbTarget',
+                    'exportInterval' => 1,
+                    'logVars' => [],
+                    'logTable' => '{{%system_log}}',
+                ],
+
+                'sys_notice'=>[
+                    'class' => 'app\components\SystemNoticeLogger',
+                    'levels' => ['error', 'warning'],
+                    'logVars' => [],
+                    //电报报警，会传入msg=xx&key=xx&chatId=xx到api_uri对应接口
+                    //配置已移到系统配置表
+                    'telegram'=>[],
+                    //邮件报警
+		    //配置已移到系统配置表
+                    'email' => [],
                 ],
             ],
         ],
@@ -116,9 +153,8 @@ $config = [
             'transport' => [
                 'class' => 'Swift_SmtpTransport',
                 'encryption' => 'tls',
-                'host' => 'ssl://smtp.gmail.com:465',//ssl://smtp.gmail.com:465
-                //阿里云连接必须使用80端口
-                'port' => '465',
+                'host' => 'smtp.gmail.com',
+                'port' => '587',
                 'username' => 'mail.booter.ui@gmail.com',
                 'password' => 'htXb7wyFhDDEu74Y',
             ],
@@ -157,7 +193,6 @@ $config = [
         'user.apiTokenExpire' => 3600*10,
         'user.passwordResetTokenExpire' => 600,
         'user.rateLimit' => [60, 60],
-        'user.defaultPassword' => 'Pass123',
     ],
 ];
 
