@@ -132,7 +132,7 @@ class RemitController extends BaseController
         }
 
         //只查询不需要商户审核,或者通过了商户审核的
-        $merchantCheckStatusCanBeShow = [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED,Remit::MERCHANT_CHECK_STATUS_NONE];
+        $merchantCheckStatusCanBeShow = [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED];
         $query->andFilterWhere([
             'or',
             ['need_merchant_check'=> 0],
