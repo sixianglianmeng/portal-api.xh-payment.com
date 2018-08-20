@@ -27,10 +27,11 @@ class ResponseHelper extends \power\yii2\helpers\ResponseHelper
 
         $response = Yii::$app->getResponse();
         $result = [
-            'data'          => $data,
-            'code'        => $code,
-            'message'       => $message,
-            'serverTime'    => microtime(true),
+            'data' => $data,
+            'code' => $code,
+            'message' => $message,
+            'serverTime' => microtime(true),
+            'requestId' => $_SERVER['LOG_ID'] ?? '',
         ];
 
         Yii::pushLog('status', $code);
