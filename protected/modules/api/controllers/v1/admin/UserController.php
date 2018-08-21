@@ -976,6 +976,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $userInfo['allow_manual_recharge']       = $paymentInfo->allow_manual_recharge;
         $userInfo['allow_manual_remit']          = $paymentInfo->allow_manual_remit;
         $userInfo['can_check_remit_status']      = $paymentInfo->can_check_remit_status;
+        $userInfo['api_response_rule']           = $paymentInfo->api_response_rule;
 
         //处理代理
         if($user->all_parent_agent_id){
@@ -1326,7 +1327,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
 
         $user = User::findOne(['id'=>$userId]);
         if(!$user){
-            ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
+            return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
         }
         //接口日志埋点
         Yii::$app->params['operationLogFields'] = [
@@ -1358,7 +1359,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
 
         $user = User::findOne(['id'=>$userId]);
         if(!$user){
-            ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
+            return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
         }
 
         $user->status = User::STATUS_ACTIVE;
@@ -1390,7 +1391,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $ip = ControllerParameterValidator::getRequestParam($this->allParams, 'ip','',Macro::CONST_PARAM_TYPE_ARRAY,'API接口IP地址错误');
         $user = User::findOne(['id'=>$userId]);
         if(!$user){
-            ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
+            return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
         }
 
         if($ip) $ip = json_encode($ip);
@@ -1412,7 +1413,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status',null,Macro::CONST_PARAM_TYPE_ENUM,'商户审核出款状态错误',[0,1]);
         $user = User::findOne(['id'=>$userId]);
         if(!$user){
-            ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
+            return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
         }
 
         $user->paymentInfo->can_check_remit_status = $status;
@@ -1430,6 +1431,32 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
             $auth->revoke($role, $this->id);
         }
         User::delPermissionCache($user->id);
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS);
+    }
+
+    /**
+     * 设置商户API响应格式
+     *
+     * @role admin
+     */
+    public function actionSetApiResponseFormat()
+    {
+        $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId',0,Macro::CONST_PARAM_TYPE_INT,'商户ID错误');
+        $rule = ControllerParameterValidator::getRequestParam($this->allParams, 'rule',null,Macro::CONST_PARAM_TYPE_STRING,'响应格式错误',[10]);
+        $user = User::findOne(['id'=>$userId]);
+        if(!$user){
+            return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
+        }
+        $ruleArr = json_decode($rule,true);
+        if(empty($ruleArr['method']) || empty($ruleArr['format'])){
+            return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'响应格式数据配置错误');
+        }
+
+        $user->paymentInfo->api_response_rule = $rule;
+        $user->paymentInfo->save();
+
+        Yii::$app->cache->set('api_response_rule:'.$user->id,$rule);
 
         return ResponseHelper::formatOutput(Macro::SUCCESS);
     }

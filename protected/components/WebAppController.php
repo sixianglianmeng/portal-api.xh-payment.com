@@ -166,7 +166,7 @@
 
             if ($errCode === Macro::SUCCESS) $errCode = Macro::FAIL;
             if (YII_DEBUG) {
-                throw $e;
+                //throw $e;
                 return ResponseHelper::formatOutput($errCode, $msg);
             } else {
                 $code = Macro::INTERNAL_SERVER_ERROR;

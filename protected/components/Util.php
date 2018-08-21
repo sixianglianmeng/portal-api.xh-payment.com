@@ -871,7 +871,7 @@ class Util
             $msg = Macro::MSG_LIST[$code];
         }
 
-        throw new \app\common\exceptions\OperationFailureException($msg, $code);
+        throw new OperationFailureException($msg, $code);
     }
 
     /**

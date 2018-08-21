@@ -106,6 +106,7 @@ class ChannelController extends BaseController
             $records[$i]['statusName'] = $channelAccountStatusArr[$a->status];
             $records[$i]['visible'] = $a->visible;
             $records[$i]['visible_str'] = ChannelAccount::ARR_VISIBLE[$a->visible]??'-';
+            $records[$i]['balance_alert_threshold'] = $a->balance_alert_threshold;
         }
         $data['list'] = $records;
         $data['channelAccountStatusOptions'] = ChannelAccount::ARR_STATUS;
@@ -218,6 +219,7 @@ class ChannelController extends BaseController
         $minRechargePertime = ControllerParameterValidator::getRequestParam($this->allParams, 'minRechargePertime',0,Macro::CONST_PARAM_TYPE_DECIMAL,'单次最低充值错误');
         $minRemitPertime = ControllerParameterValidator::getRequestParam($this->allParams, 'minRemitPertime',0,Macro::CONST_PARAM_TYPE_DECIMAL,'单次最低出款错误');
         $visible = ControllerParameterValidator::getRequestParam($this->allParams, 'visible',1,Macro::CONST_PARAM_TYPE_INT,'显示状态错误');
+        $balanceAlertThreshold = ControllerParameterValidator::getRequestParam($this->allParams, 'balanceAlertThreshold',0,Macro::CONST_PARAM_TYPE_INT,'余额报警阀值错误');
 
         $channel = null;
         if($id){
@@ -283,6 +285,7 @@ class ChannelController extends BaseController
         }
         $channelAccount->min_recharge_pertime = $minRechargePertime;
         $channelAccount->min_remit_pertime = $minRemitPertime;
+        $channelAccount->balance_alert_threshold = $balanceAlertThreshold;
         $channelAccount->visible = $visible;
 
         $channelAccount->save();
