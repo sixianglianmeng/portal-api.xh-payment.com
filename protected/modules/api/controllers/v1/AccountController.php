@@ -266,7 +266,12 @@ class AccountController extends BaseController
 
         //父级账户所有权限
         $parentGroupName = User::getGroupEnStr($parent->group_id);
-        $rawAllRoles = Yii::$app->db->createCommand("select name from p_auth_item where type=1 and name like '{$parentGroupName}_%'")
+        $filter = " and name like 'r_{$parentGroupName}_%'";
+        //代理组还拥有商户组基本权限
+        if($merchant->isAgent()){
+            $filter = " and (name like 'r_{$parentGroupName}_%' or name like 'r_merchant_%')";
+        }
+        $rawAllRoles = Yii::$app->db->createCommand("select name from p_auth_item where type=1 {$filter}")
             ->queryAll();
         $allRoles = [];
         foreach ($rawAllRoles as $rar){
@@ -303,8 +308,9 @@ class AccountController extends BaseController
         }
         $auth = \Yii::$app->authManager;
 
+        $filter = " and item_name like 'r_{$parentGroupName}_%'";
         //子账户目前权限
-        $userAllPermssions = Yii::$app->db->createCommand("select item_name from p_auth_assignment where user_id={$uid} and item_name like '{$parentGroupName}_%'")
+        $userAllPermssions = Yii::$app->db->createCommand("select item_name from p_auth_assignment where user_id={$uid} {$filter}")
             ->queryAll();
         $data['userRoles'] = [];
         foreach($userAllPermssions as $up){
@@ -312,7 +318,12 @@ class AccountController extends BaseController
         }
 
         //账户所在用户组拥有的所有权限
-        $data['allRoles'] = Yii::$app->db->createCommand("select name,description from p_auth_item where type=1 and name like '{$parentGroupName}_%'")
+        $filter = " and name like 'r_{$parentGroupName}_%'";
+        //代理组还拥有商户组基本权限
+        if($merchant->isAgent()){
+            $filter = " and (name like 'r_{$parentGroupName}_%' or name like 'r_merchant_%')";
+        }
+        $data['allRoles'] = Yii::$app->db->createCommand("select name,description from p_auth_item where type=1 {$filter}")
             ->queryAll();
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);

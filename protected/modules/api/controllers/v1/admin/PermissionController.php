@@ -331,6 +331,15 @@ class PermissionController extends BaseController
                     $auth->add($resouce);
                 }
 
+                //创建与resource同名角色并绑定resource,达到用户可以直接绑定resource的目的
+//                $roleObj = $auth->getRole("r_".$resouce->name);
+//                if(!$roleObj){
+//                    $resouceRole = $auth->createRole("r_".$resouce->name);
+//                    $resouceRole->description = $label;
+//                    $auth->add($resouceRole);
+//                    $auth->addChild($resouceRole, $resouce);
+//                }
+
                 if($rolesInAnnotation){
                     foreach ($rolesInAnnotation as $roleName){
                         if(empty($sysRoles[$roleName])){
