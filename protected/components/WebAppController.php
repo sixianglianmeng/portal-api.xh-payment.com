@@ -58,6 +58,7 @@
                 header('Access-Control-Allow-Origin:*');
                 header('Access-Control-Allow-Methods:POST');
                 header('Access-Control-Allow-Headers:x-requested-with,authorization,content-type,x-client-id');
+                header('Access-Control-Expose-Headers:authorization');
                 exit;
             }
 
