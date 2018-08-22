@@ -343,11 +343,12 @@ class RemitController extends BaseController
                     $data[$j]['amount'] = $tmp[3];
                     if(
                         bccomp($tmp[3], $user->balance, 6)===1
-                        || $remit_quota_pertime && (bccomp($tmp[3], $remit_quota_pertime, 6)===1)
-                        || $channel_account_remit_quota_pertime && (bccomp($tmp[3], $channel_account_remit_quota_pertime, 6)===1)
+//                        || $remit_quota_pertime && (bccomp($tmp[3], $remit_quota_pertime, 6)===1)
+//                        || $channel_account_remit_quota_pertime && (bccomp($tmp[3], $channel_account_remit_quota_pertime, 6)===1)
                     ){
                         $data[$j]['status'] = 1;
-                        $data[$j]['amount'] .= "---单条提款金额（{$tmp[3]}）大于当前余额($user->balance), 或者大于单次提款限额({$remit_quota_pertime})，或者大于渠道单次提款限额({$channel_account_remit_quota_pertime})";
+//                        $data[$j]['amount'] .= "---单条提款金额（{$tmp[3]}）大于当前余额($user->balance), 或者大于单次提款限额({$remit_quota_pertime})，或者大于渠道单次提款限额({$channel_account_remit_quota_pertime})";
+                        $data[$j]['amount'] .= "--单条提款金额（{$tmp[3]}）大于当前余额($user->balance)";
                     }
                     $j++;
                 }
@@ -384,11 +385,12 @@ class RemitController extends BaseController
                     $data[$i]['amount'] = $val[3];
                     if(
                         bccomp($val[3], $user->balance, 6)===1
-                        || $remit_quota_pertime && (bccomp($val[3], $remit_quota_pertime, 6)===1)
-                        || $channel_account_remit_quota_pertime && (bccomp($val[3], $channel_account_remit_quota_pertime, 6)===1)
+//                        || $remit_quota_pertime && (bccomp($val[3], $remit_quota_pertime, 6)===1)
+//                        || $channel_account_remit_quota_pertime && (bccomp($val[3], $channel_account_remit_quota_pertime, 6)===1)
                         ){
                         $data[$i]['status'] = 1;
-                        $data[$i]['amount'] .= "---单条提款金额（{$val[3]}）大于当前余额($user->balance), 或者大于单次提款限额({$remit_quota_pertime})，或者大于渠道单次提款限额({$channel_account_remit_quota_pertime})";
+                        $data[$i]['amount'] .= "--单条提款金额（{$val[3]}）大于当前余额($user->balance)";
+//                        $data[$i]['amount'] .= "---单条提款金额（{$val[3]}）大于当前余额($user->balance), 或者大于单次提款限额({$remit_quota_pertime})，或者大于渠道单次提款限额({$channel_account_remit_quota_pertime})";
                     }
                     $i++;
                 }
