@@ -199,9 +199,9 @@ class AccountController extends BaseController
             $userPayment->remit_channel_id = $remitChannel->channel_id;
             $userPayment->remit_channel_account_id = $remitChannel->id;
             $userPayment->remit_channel_account_name = $remitChannel->channel_name;
-            $userPayment->remit_fee_rebate = $data['remit_fee_rebate'];
         }
 
+        $userPayment->remit_fee_rebate = $data['remit_fee_rebate'];
         $userPayment->remit_fee = $data['remit_fee'];
         $userPayment->recharge_quota_pertime = $data['recharge_quota_pertime'];
         $userPayment->remit_quota_pertime = $data['remit_quota_pertime'];
@@ -230,7 +230,7 @@ class AccountController extends BaseController
             $methodConfig->parent_recharge_rebate_rate = $pm['parent_recharge_rebate_rate'];
             $methodConfig->all_parent_method_config_id = $pm['all_parent_method_config_id'];
             $methodConfig->status = ($pm['status']==MerchantRechargeMethod::STATUS_ACTIVE)?MerchantRechargeMethod::STATUS_ACTIVE:MerchantRechargeMethod::STATUS_INACTIVE;
-            $methodConfig->settlement_type = $pm['settlement_type']?$pm['settlement_type']:SiteConfig::cacheGetContent('default_settlement_type');
+            $methodConfig->settlement_type = !empty($pm['settlement_type'])?$pm['settlement_type']:SiteConfig::cacheGetContent('default_settlement_type');
 
             if($channelAccountId){
                 $methodConfig->channel_account_id = $channel->id;
