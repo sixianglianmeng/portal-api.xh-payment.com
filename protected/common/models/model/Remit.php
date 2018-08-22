@@ -58,9 +58,9 @@ class Remit extends BaseModel
     const FINANCIAL_STATUS_SUCCESS = 10;
 
     const ARR_STATUS = [
-        self::STATUS_NONE              => '待审核',
+        self::STATUS_NONE              => '未扣款',
+        self::STATUS_DEDUCT            => '已扣款未审核',
         self::STATUS_CHECKED           => '已审核',
-        self::STATUS_DEDUCT            => '账户已扣款',
         self::STATUS_BANK_PROCESSING   => '银行处理中',
         self::STATUS_SUCCESS           => '成功已出款',
         self::STATUS_REFUND            => '失败已退款',

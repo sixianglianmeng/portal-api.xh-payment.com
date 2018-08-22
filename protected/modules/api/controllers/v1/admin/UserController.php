@@ -1167,7 +1167,11 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
 //            $children = User::getAllAgentChildren($user->id);
             $children = User::findAll(['parent_agent_id'=>$user->id]);
             foreach ($children as $child) {
-                $child->paymentInfo->updatePayMethods($user);
+                if(empty($child->paymentInfo)){
+                    Yii::error("error child paymentInfo:{$child->username}");
+                }else{
+                    $child->paymentInfo->updatePayMethods($user);
+                }
             }
         }
         return ResponseHelper::formatOutput(Macro::SUCCESS);

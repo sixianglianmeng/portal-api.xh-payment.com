@@ -268,7 +268,7 @@ class RemitController extends BaseController
         $data = [
             'data'=>$records,
             'condition'=>array(
-                'statusOptions'=> Remit::ARR_STATUS,
+                'statusOptions'=> ArrayHelper::merge([Macro::SELECT_OPTION_ALL=>'全部'],Remit::ARR_STATUS),
                 'channelAccountOptions'=>$channelAccountOptions,
             ),
             'summery'=>$summery,
