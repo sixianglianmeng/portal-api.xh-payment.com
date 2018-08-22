@@ -87,7 +87,7 @@ class UserController extends BaseController
 
         $googleObj = new \PHPGangsta_GoogleAuthenticator();
         if(!$googleObj->verifyCode($user->key_2fa,$key_2fa,1)){
-            return ResponseHelper::formatOutput(Macro::ERR_USER_GOOGLE_CODE, '验证码不匹配');
+            return ResponseHelper::formatOutput(Macro::ERR_USER_GOOGLE_CODE, '安全令牌码不匹配');
         }
         $user->key_2fa_token = $user->access_token;
         $user->save();
