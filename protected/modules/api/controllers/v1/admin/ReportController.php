@@ -352,10 +352,20 @@ class ReportController extends BaseController
         ]);
 
         $records = [];
+        $sumFields = ['recharge_count','remit_count','recharge_total','recharge_plat_fee_profit','remit_total','remit_plat_fee_profit','total_profit'];
+        $summary = [];
+        $summary['date'] = '/';
+        $summary['channel_account_name'] = '当页总计';
         foreach ($p->getModels() as $i => $d) {
             $records[$i]               = $d->toArray();
             $records[$i]['created_at'] = date('Ymd H:i:s', $d->created_at);
+            $records[$i]['total_profit'] = bcadd($d->recharge_plat_fee_profit,$d->remit_plat_fee_profit,3);
+            foreach ($sumFields as $f){
+                if(empty($summary[$f])) $summary[$f] = '';
+                $summary[$f] = bcadd($summary[$f],$records[$i][$f],3);
+            }
         }
+        $records[] = $summary;
         //分页数据
         $pagination = $p->getPagination();
         $total      = $pagination->totalCount;
@@ -364,6 +374,7 @@ class ReportController extends BaseController
         $to         = $page * $perPage;
         $data       = [
             'data' => $records,
+            'summary' => $summary,
             "pagination" => [
                 "total" => $total,
                 "per_page" => $perPage,

@@ -134,6 +134,7 @@
             } catch (SignatureNotMatchException $e) {
                 return ResponseHelper::formatOutput(Macro::ERR_PARAM_SIGN, $e->getMessage());
             } catch (UnauthorizedHttpException $e) {
+                Yii::$app->response->statusCode = 401;
                 return ResponseHelper::formatOutput(Macro::ERR_PERMISSION, "登录状态已过期,请重新登录");
             } catch (OperationFailureException $e) {
                 return $this->handleException($e, true);
