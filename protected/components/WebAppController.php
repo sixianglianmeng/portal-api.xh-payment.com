@@ -134,7 +134,7 @@
             } catch (SignatureNotMatchException $e) {
                 return ResponseHelper::formatOutput(Macro::ERR_PARAM_SIGN, $e->getMessage());
             } catch (UnauthorizedHttpException $e) {
-                return ResponseHelper::formatOutput(Macro::ERR_PERMISSION, $e->getMessage());
+                return ResponseHelper::formatOutput(Macro::ERR_PERMISSION, "登录状态已过期,请重新登录");
             } catch (OperationFailureException $e) {
                 return $this->handleException($e, true);
             } catch (\Exception $e) {
