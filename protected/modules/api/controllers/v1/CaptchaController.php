@@ -36,13 +36,14 @@ class CaptchaController extends BaseController
             'minLength' => 4,//最少显示个数
             'padding' => 5,//间距
             'height'=>36,//高度
-            'width' => 80,  //宽度
+            'width' => 84,  //宽度
 //            'foreColor'=>0xffffff,     //字体颜色
-            'offset'=>4,        //设置字符偏移量,
+            'offset'=>5,        //设置字符偏移量,
             //背景字符个数
-            'disturbCharCount'=>0,
+            'disturbCharCount'=>2,
             //干扰线数量
-            'curveCount'=>0
+//            'curveCount'=>1,
+            'fontFile'=>Yii::getAlias('@webroot/assets/fonts/1.ttf'),
         ]);
 
         $base64 = $captcha->base64();
