@@ -327,6 +327,11 @@ class UserController extends BaseController
         $status = ControllerParameterValidator::getRequestParam($this->allParams,'status',0,Macro::CONST_PARAM_TYPE_INT,'状态码错误');
 
         $user = Yii::$app->user->identity;
+
+        $userChild = User::findOne(['username'=>$username]);
+        if($userChild){
+            return ResponseHelper::formatOutput(Macro::ERR_USER_CHILD_NON, '账号已存在,请选择其它账户名');
+        }
         $userChild = new User();
         if($username){
             $userChild->username = $username;
@@ -358,8 +363,7 @@ class UserController extends BaseController
         $childId = ControllerParameterValidator::getRequestParam($this->allParams, 'childId', 0,
             Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'商户子账户ID错误');
         $status = ControllerParameterValidator::getRequestParam($this->allParams,'status',0,Macro::CONST_PARAM_TYPE_INT,'状态码错误');
-//        $child = User::findOne(['id'=>$childId,'parent_merchant_id' => $user->id]);
-        $child = User::find()->where(['id'=>$childId,'parent_merchant_id' => $user->id])->limit(1)->one();
+        $child = User::findOne(['id'=>$childId,'parent_merchant_id' => $user->id]);
         if(!$child){
             return ResponseHelper::formatOutput(Macro::ERR_USER_CHILD_NON, '子账号不存在');
         }
