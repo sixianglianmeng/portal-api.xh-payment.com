@@ -622,7 +622,7 @@ class RemitController extends BaseController
         }
         //普通订单列表
         elseif($status!==''){
-            $query->andwhere(['status' => $status]);
+            $query->andwhere(['bank_status' => $status]);
         }
 
         //支持审核的商户普通订单列表,只显示已经审核过的订单
@@ -643,9 +643,7 @@ class RemitController extends BaseController
                 ]
             ],
         ]);
-//        获取渠道号 为筛选和订单详情准备数据
-        $channelAccountOptions = ArrayHelper::map(ChannelAccount::getALLChannelAccount(), 'id', 'channel_name');
-        $channelAccountOptions[0] = '全部';
+
         //格式化返回记录数据
         $records=[];
         $parentIds = [];
@@ -656,8 +654,6 @@ class RemitController extends BaseController
             $records[$i]['merchant_id'] = $d->merchant_id;
             $records[$i]['merchant_account'] = $d->merchant_account;
             $records[$i]['merchant_order_no'] = $d->merchant_order_no;
-            $records[$i]['channel_order_no'] = $d->channel_order_no;
-            $records[$i]['channel_account_name'] = $channelAccountOptions[$d->channel_account_id] ;
             $records[$i]['amount'] = $d->amount;
             $records[$i]['remited_amount'] = $d->remited_amount;
             $records[$i]['status'] = $d->status;
@@ -697,11 +693,11 @@ class RemitController extends BaseController
             }
         }
         //格式化返回json结构
+        $statusOptions = ArrayHelper::merge([Macro::SELECT_OPTION_ALL=>'全部'],Remit::ARR_BANK_STATUS);
         $data = [
             'data'=>$records,
             'condition'=>array(
-                'statusOptions'=> Remit::ARR_STATUS,
-                'channelAccountOptions'=>$channelAccountOptions,
+                'statusOptions'=> $statusOptions,
             ),
             'summery'=>$summery,
             'canCheckRemitStatus'=>$user->paymentInfo->can_check_remit_status,

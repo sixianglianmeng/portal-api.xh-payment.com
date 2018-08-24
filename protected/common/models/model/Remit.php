@@ -69,6 +69,13 @@ class Remit extends BaseModel
         self::STATUS_BANK_PROCESS_FAIL => '银行处理失败',
     ];
 
+    const ARR_BANK_STATUS = [
+        self::BANK_STATUS_NONE => '处理中',
+        self::BANK_STATUS_NONE => '处理中',
+        self::BANK_STATUS_SUCCESS => '出款成功',
+        self::BANK_STATUS_FAIL => '出款失败',
+    ];
+
     //订单通知状态
     const NOTICE_STATUS_NONE = 10;
     const NOTICE_STATUS_SUCCESS = 20;

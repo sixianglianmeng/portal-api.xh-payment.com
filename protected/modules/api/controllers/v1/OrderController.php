@@ -529,7 +529,6 @@ class OrderController extends BaseController
             $records[$i]['status'] = $d->status;
             $records[$i]['bank_code'] = $d->bank_code;
             $records[$i]['bank_name'] = BankCodes::getBankNameByCode($d->bank_code);
-            $records[$i]['channel_account_name'] = $channelAccountOptions[$d->channel_account_id] ;
             $records[$i]['pay_method_code_str'] = Channel::getPayMethodsStr($d->pay_method_code);
             $records[$i]['status_str'] = $d->getStatusStr();
             $records[$i]['notify_status'] = $d->notify_status;
@@ -571,7 +570,6 @@ class OrderController extends BaseController
             'condition'=>array(
                 'statusOptions'=> Order::ARR_STATUS,
                 'notifyStatusOptions'=>Order::ARR_NOTICE_STATUS,
-                'channelAccountOptions'=>$channelAccountOptions,
                 'methodOptions'=> Channel::ARR_METHOD,
                 'amount'=> $minMoney,
             ),

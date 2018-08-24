@@ -1,0 +1,21 @@
+#!/bin/bash
+
+touch /var/lock/subsys/local
+gearmand -d -l /var/log/gearmand/gearmand.log
+
+/www/server/redis/bin/redis-server /www/server/redis/conf/63780.conf
+/www/server/redis/bin/redis-server /www/server/redis/conf/63781.conf
+/www/server/redis/bin/redis-server /www/server/redis/conf/63782.conf
+/www/server/redis/bin/redis-server /www/server/redis/conf/63783.conf
+/www/server/redis/bin/redis-server /www/server/redis/conf/63784.conf
+/www/server/redis/bin/redis-server /www/server/redis/conf/63785.conf
+/www/server/redis/bin/redis-server /www/server/redis/conf/63786.conf
+/www/server/redis/bin/redis-server /www/server/redis/conf/63787.conf
+/www/server/redis/bin/redis-server /www/server/redis/conf/63788.conf
+/www/server/redis/bin/redis-server /www/server/redis/conf/63789.conf
+/www/server/redis/bin/redis-server /www/server/redis/conf/63790.conf
+
+/usr/sbin/cloud_sql_proxy -instances=payment-201308:asia-east1:prod-pub-payment=tcp:3306 -credential_file=/root/.config/gcloud/payment-7f86a25735d2
+.json
+
+cd /www/wwwroot/gateway.huaruipay.com/ && pm2 start -u www /www/wwwroot/gateway.huaruipay.com/pm2.json
