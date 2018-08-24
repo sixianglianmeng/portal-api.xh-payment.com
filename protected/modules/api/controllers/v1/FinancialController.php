@@ -32,7 +32,7 @@ class FinancialController extends BaseController
 
         //生成查询参数
         if(Yii::$app->user->identity && !Yii::$app->user->identity->isAdmin()){
-            $this->baseFilter['uid'] = Yii::$app->user->identity->id;
+            $this->baseFilter['uid'] = Yii::$app->user->identity->getMainAccount()->id;
         }
 
         return $parentBeforeAction;
