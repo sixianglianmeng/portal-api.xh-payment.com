@@ -58,7 +58,7 @@ class UserController extends BaseController
             }
 
             $ret = Macro::SUCCESS_MESSAGE;
-            $ret['data']['key_2fa'] = md5($user->key_2fa);
+            $ret['data']['key_2fa'] = !empty($user->key_2fa) ? 'true' : '';
             $ret['data']['from_profile'] = 0;
             $ret['data']['access_token'] = $user->access_token;
             $ret['data']['id'] = $user->id;
