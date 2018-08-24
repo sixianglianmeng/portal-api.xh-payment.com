@@ -278,6 +278,10 @@ class FinancialController extends BaseController
             header('Content-Disposition: attachment; filename='.$outFilename);
             $fp = fopen('php://output', 'w');
             foreach ($records as $record){
+                if(!is_array($record)){
+                    Yii::error("收支明细下载csv生成失败:".json_encode($record));
+                    continue;
+                }
                 fputcsv($fp, $record);
             }
             fclose($fp);

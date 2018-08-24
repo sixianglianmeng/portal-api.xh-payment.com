@@ -58,7 +58,8 @@ class UserController extends BaseController
             }
 
             $ret = Macro::SUCCESS_MESSAGE;
-            $ret['data']['key_2fa'] = $user->key_2fa;
+            $ret['data']['key_2fa'] = md5($user->key_2fa);
+            $ret['data']['from_profile'] = 0;
             $ret['data']['access_token'] = $user->access_token;
             $ret['data']['id'] = $user->id;
             $ret['data']['username'] = $user->username;
@@ -174,6 +175,7 @@ class UserController extends BaseController
             'main_merchant_id' => $user->getMainAccount()->id,
             'pay_config' => $payConfigs,
             'bind_login_ip' => $user->bind_login_ip,
+            'from_profile' => 1,
         ];
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
