@@ -142,9 +142,9 @@ class ChannelAccount extends BaseModel
         return $this->hasMany(MerchantRechargeMethod::className(), ['channel_account_id' => 'id']);
     }
 
-    public static function getALLChannelAccount()
+    public static function getALLChannelAccount($visiable=1)
     {
-        return self::find()->select('id,channel_name')->asArray()->all();
+        return self::find()->select('id,channel_name')->where(['visible'=>intval($visiable)])->asArray()->all();
     }
 
     /**
