@@ -44,7 +44,7 @@ class OrderController extends BaseController
 
         //生成查询参数
         if(Yii::$app->user->identity && !Yii::$app->user->identity->isAdmin()){
-            $this->baseFilter['merchant_id'] = Yii::$app->user->identity->id;
+            $this->baseFilter['merchant_id'] = Yii::$app->user->identity->getMainAccount()->id;
         }
 
         return $parentBeforeAction;
@@ -496,7 +496,7 @@ class OrderController extends BaseController
         if(!empty($notifyStatus)){
             $query->andwhere(['notify_status' => $notifyStatus]);
         }
-//        var_dump($query->createCommand()->getRawSql());
+
         //生成分页数据
         $p = new ActiveDataProvider([
             'query' => $query,
@@ -511,9 +511,9 @@ class OrderController extends BaseController
             ],
         ]);
 
-//        获取渠道号 为筛选和订单详情准备数据
-        $channelAccountOptions = ArrayHelper::map(ChannelAccount::getALLChannelAccount(), 'id', 'channel_name');
-        $channelAccountOptions[0] = '全部';
+        //获取渠道号 为筛选和订单详情准备数据,商户不根据此条件筛选
+        $channelAccountOptions = [];//ArrayHelper::map(ChannelAccount::getALLChannelAccount(), 'id', 'channel_name');
+
         //格式化返回记录数据
 
         $records=[];
