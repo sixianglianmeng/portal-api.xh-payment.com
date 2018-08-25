@@ -166,7 +166,7 @@ class Util
                 $exp = checkdate(date('m',$ts), date('d',$ts), date('Y',$ts));
                 break;
             case Macro::CONST_PARAM_TYPE_SORT:
-                $exp =  "/^(\+|-)?[0-9a-zA-Z_-]{1,32}$/i";
+                $exp =  "/^[0-9a-zA-Z_\-+]{1,32}$/i";
                 break;
             case Macro::CONST_PARAM_TYPE_CHINESE:
                 preg_match("/^[\x{4e00}-\x{9fa5}]+$/u",$val,$matched);

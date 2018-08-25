@@ -195,7 +195,7 @@ class RemitController extends BaseController
             ],
         ]);
 //        获取渠道号 为筛选和订单详情准备数据
-        $channelAccountOptions = [];//ArrayHelper::map(ChannelAccount::getALLChannelAccount(), 'id', 'channel_name');
+        $channelAccountOptions = ArrayHelper::map(ChannelAccount::getALLChannelAccount(), 'id', 'channel_name');
         $channelAccountOptions[0] = '全部';
         //格式化返回记录数据
         $records=[];

@@ -290,7 +290,9 @@ class UserController extends BaseController
         $user = Yii::$app->user->identity;
         //允许的排序
         $sorts = [
-            'created_at-'=>['created_at','DESC'],
+            'created_at-'=>['created_at'=>SORT_DESC],
+            'balance-'=>['u.balance'=>SORT_DESC],
+            'balance+'=>['u.balance'=>SORT_ASC],
         ];
 
         $sort = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 15,
@@ -303,7 +305,7 @@ class UserController extends BaseController
         if($sort && !empty($sorts[$sort])){
             $sort = $sorts[$sort];
         }else{
-            $sort =['u.created_at','DESC'];
+            $sort =['u.created_at'=>SORT_DESC];
         }
 
         //生成查询参数
@@ -312,7 +314,7 @@ class UserController extends BaseController
 
         $searchFilter = $this->getSearchFilter($field,$subField);
         $query = $searchFilter['query'];
-        $query->orderBy("{$sort[0]} {$sort[1]}");
+        $query->orderBy($sort);
 
         //生成分页数据
         $p = new ActiveDataProvider([

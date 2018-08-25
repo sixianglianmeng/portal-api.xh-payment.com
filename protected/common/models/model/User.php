@@ -702,6 +702,9 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         $expire = Yii::$app->params['user.apiTokenExpire'];
         $valid =  $timestamp + $expire >= time();
         $valid = $valid && Util::validate($token,Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,[40]);
+        if(!$valid){
+            Yii::error("accessTokenIsValid: {$token},".json_encode($valid));
+        }
         return $valid;
     }
 
