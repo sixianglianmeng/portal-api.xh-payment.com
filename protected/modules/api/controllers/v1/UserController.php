@@ -60,7 +60,7 @@ class UserController extends BaseController
             $ret = Macro::SUCCESS_MESSAGE;
             $ret['data']['key_2fa'] = !empty($user->key_2fa) ? 'true' : '';
             $ret['data']['from_profile'] = 0;
-            $ret['data']['access_token'] = $user->access_token;
+            $ret['data']['__token__'] = $user->access_token;
             $ret['data']['id'] = $user->id;
             $ret['data']['username'] = $user->username;
             $ret['data']['nickname'] = $user->nickname;
@@ -443,6 +443,8 @@ class UserController extends BaseController
             'asset' =>$user->balance+$user->frozen_balance,
             'frozen_balance' =>$user->frozen_balance,
             'balance' =>$user->balance,
+            //刷新登录token
+            '__token__' => Yii::$app->user->identity->refreshAccessToken()
         ];
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
     }

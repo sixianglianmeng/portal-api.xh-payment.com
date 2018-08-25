@@ -673,7 +673,24 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
      */
     public function generateAccessToken()
     {
-        $this->access_token = Yii::$app->security->generateRandomString() . '_' . time();
+        $this->access_token = md5(Yii::$app->security->generateRandomString()). '_' . time();
+        return $this->access_token;
+    }
+
+    /**
+     * 刷新access_token
+     */
+    public function refreshAccessToken()
+    {
+        $token = md5(Yii::$app->security->generateRandomString()). '_' . time();
+
+        //如果是校验过令牌的,同时刷新令牌
+        if($this->access_token == $this->key_2fa_token){
+            $this->key_2fa_token = $token;
+        }
+        $this->access_token = $token;
+        $this->save();
+        return $this->access_token;
     }
 
     /**
@@ -683,7 +700,9 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     {
         $timestamp = (int) substr($token, strrpos($token, '_') + 1);
         $expire = Yii::$app->params['user.apiTokenExpire'];
-        return $timestamp + $expire >= time();
+        $valid =  $timestamp + $expire >= time();
+        $valid = $valid && Util::validate($token,Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,[40]);
+        return $valid;
     }
 
     /**

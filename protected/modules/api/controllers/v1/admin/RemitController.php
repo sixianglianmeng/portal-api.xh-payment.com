@@ -182,6 +182,7 @@ class RemitController extends BaseController
     public function actionRemind()
     {
         $user = Yii::$app->user->identity;
+        $data = ['count'=>0];
         if($user->isSuperAdmin()){
             $query = Remit::find()->where(['status'=>[Remit::STATUS_DEDUCT]]);
             $merchantCheckStatusCanBeShow = [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED];
@@ -195,12 +196,11 @@ class RemitController extends BaseController
                     ]
                 ]
             );
-            $remit = $query->count();
-            if($remit > 0){
-                return ResponseHelper::formatOutput(Macro::SUCCESS,'',[$remit]);
-            }
+            $data['count'] = $query->count();
         }
-        return ResponseHelper::formatOutput(Macro::SUCCESS,'',[]);
+        //刷新登录token
+        $data['__token__'] = Yii::$app->user->identity->refreshAccessToken();
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
 
     /**
