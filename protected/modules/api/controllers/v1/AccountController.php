@@ -521,10 +521,6 @@ class AccountController extends BaseController
             ['like','all_parent_agent_id',','.$user->id.']']
         ];
         $userQuery->andWhere($where);
-//        $userQuery->andWhere(['like','all_parent_agent_id',','.$user->id.',']);
-//        $userQuery->orWhere(['like','all_parent_agent_id','['.$user->id.']']);
-//        $userQuery->orWhere(['like','all_parent_agent_id','['.$user->id.',']);
-//        $userQuery->orWhere(['like','all_parent_agent_id',','.$user->id.']']);
         $userInfo = $userQuery->asArray()->all();
         if(!$userInfo){
             return ResponseHelper::formatOutput(Macro::ERR_ACCOUNT_ORDER,'没有下级可查');
@@ -593,7 +589,6 @@ class AccountController extends BaseController
             $records[$i]['amount'] = $d->amount;
             $records[$i]['status'] = $d->status;
             $records[$i]['bank_code'] = $d->bank_code;
-            $records[$i]['channel_account_name'] = $channelAccountOptions[$d->channel_account_id] ;
             $records[$i]['pay_method_code_str'] = Channel::getPayMethodsStr($d->pay_method_code);
             $records[$i]['status_str'] = $d->getStatusStr();
             $records[$i]['notify_status'] = $d->notify_status;
@@ -671,10 +666,6 @@ class AccountController extends BaseController
             ['like','all_parent_agent_id',','.$user->id.']']
         ];
         $userQuery->andWhere($where);
-//        $userQuery->andWhere(['like','all_parent_agent_id',','.$user->id.',']);
-//        $userQuery->orWhere(['like','all_parent_agent_id','['.$user->id.']']);
-//        $userQuery->orWhere(['like','all_parent_agent_id','['.$user->id.',']);
-//        $userQuery->orWhere(['like','all_parent_agent_id',','.$user->id.']']);
         $userInfo = $userQuery->asArray()->all();
         if(!$userInfo){
             return ResponseHelper::formatOutput(Macro::ERR_ACCOUNT_ORDER,'没有下级可查');
@@ -708,7 +699,7 @@ class AccountController extends BaseController
         }
 
         if($status!==''){
-            $query->andwhere(['status' => $status]);
+            $query->andwhere(['bank_status' => $status]);
         }
 
         //生成分页数据
@@ -738,7 +729,6 @@ class AccountController extends BaseController
             $records[$i]['merchant_account'] = $d->merchant_account;
             $records[$i]['merchant_order_no'] = $d->merchant_order_no;
             $records[$i]['channel_order_no'] = $d->channel_order_no;
-            $records[$i]['channel_account_name'] = $channelAccountOptions[$d->channel_account_id] ;
             $records[$i]['amount'] = $d->amount;
             $records[$i]['remited_amount'] = $d->remited_amount;
             $records[$i]['status'] = $d->status;
@@ -760,7 +750,7 @@ class AccountController extends BaseController
         $data = [
             'data'=>$records,
             'condition'=>array(
-                'statusOptions'=> Remit::ARR_STATUS,
+                'statusOptions'=> ArrayHelper::merge([Macro::SELECT_OPTION_ALL=>'全部'],Remit::ARR_BANK_STATUS),
             ),
             "pagination"=>[
                 "total" =>  $total,

@@ -208,7 +208,7 @@ class RemitController extends BaseController
             $records[$i]['merchant_account'] = $d->merchant_account;
             $records[$i]['merchant_order_no'] = $d->merchant_order_no;
             $records[$i]['channel_order_no'] = $d->channel_order_no;
-            $records[$i]['channel_account_name'] = $channelAccountOptions[$d->channel_account_id] ;
+            $records[$i]['channel_account_name'] = $channelAccountOptions[$d->channel_account_id]??'' ;
             $records[$i]['amount'] = $d->amount;
             $records[$i]['remited_amount'] = $d->remited_amount;
             $records[$i]['merchant_check_status'] = $d->merchant_check_status;
@@ -218,12 +218,12 @@ class RemitController extends BaseController
             }
             $records[$i]['status'] = $d->status;
             $records[$i]['bank_ret'] = str_replace("\n",'<br />', $d->bank_ret);
-            $records[$i]['status_str'] = $d->showStatusStr();
+            $records[$i]['status_str'] = Remit::ARR_STATUS[$d->status]??'-';//$d->showStatusStr();
             $records[$i]['bank_no'] = $d->bank_no;
             $records[$i]['bank_account'] = $d->bank_account;
             $records[$i]['bank_code'] = $d->bank_code;
             $records[$i]['bank_name'] = !empty($d->bank_name)?$d->bank_name:BankCodes::getBankNameByCode($d->bank_code);
-            $records[$i]['bak'] = $d->bak;
+            $records[$i]['bak'] = str_replace("\n",'<br />', $d->bak);
             $records[$i]['created_at'] = date('Y-m-d H:i:s',$d->created_at);
         }
 

@@ -71,7 +71,7 @@ class Remit extends BaseModel
 
     const ARR_BANK_STATUS = [
         self::BANK_STATUS_NONE => '处理中',
-        self::BANK_STATUS_NONE => '处理中',
+        self::STATUS_BANK_PROCESSING => '处理中',
         self::BANK_STATUS_SUCCESS => '出款成功',
         self::BANK_STATUS_FAIL => '出款失败',
     ];
@@ -87,8 +87,8 @@ class Remit extends BaseModel
         self::NOTICE_STATUS_FAIL=>'通知失败',
     ];
 
-    const STATUS_LIST_PROCESSING = [self::STATUS_CHECKED,self::STATUS_DEDUCT,self::STATUS_BANK_PROCESSING];
-    const STATUS_LIST_FAIL = [self::STATUS_NOT_REFUND,self::STATUS_BANK_NET_FAIL,self::STATUS_BANK_PROCESS_FAIL];
+    const STATUS_LIST_PROCESSING = [self::STATUS_NOT_REFUND,self::STATUS_CHECKED,self::STATUS_DEDUCT,self::STATUS_BANK_PROCESSING];
+    const STATUS_LIST_FAIL = [self::STATUS_BANK_NET_FAIL,self::STATUS_BANK_PROCESS_FAIL];
 
     const MERCHANT_CHECK_STATUS_NONE = 0;
     const MERCHANT_CHECK_STATUS_CHECKED = 1;
