@@ -97,13 +97,15 @@ class ReportController extends BaseController
         }
 
         $sorts = [
-            'created_at-' => ['created_at', SORT_DESC],
+            'created_at-' => ['created_at'=>SORT_DESC],
         ];
         if (!empty($sorts[$sort])) {
             $sort = $sorts[$sort];
         } else {
-            $sort = ['', SORT_DESC];
+            $sort = ['created_at'=>SORT_DESC];
         }
+        $query->orderBy($sort);
+
         //生成分页数据
         $p = new ActiveDataProvider([
             'query' => $query,
@@ -112,7 +114,7 @@ class ReportController extends BaseController
                 'page' => $page - 1,
             ],
             'sort' => [
-                'defaultOrder' => $sort
+//                'defaultOrder' => $sort
             ],
         ]);
 
