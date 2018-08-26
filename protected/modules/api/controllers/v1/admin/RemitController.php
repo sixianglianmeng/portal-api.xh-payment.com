@@ -199,7 +199,7 @@ class RemitController extends BaseController
             $data['count'] = $query->count();
         }
         //刷新登录token
-        $data['__token__'] = Yii::$app->user->identity->refreshAccessToken();
+//        $data['__token__'] = Yii::$app->user->identity->refreshAccessToken();
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
 
