@@ -444,7 +444,7 @@ class UserController extends BaseController
             'frozen_balance' =>$user->frozen_balance,
             'balance' =>$user->balance,
             //刷新登录token
-            '__token__' => Yii::$app->user->identity->refreshAccessToken()
+//            '__token__' => Yii::$app->user->identity->refreshAccessToken()
         ];
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
     }
