@@ -240,6 +240,7 @@ class RemitController extends BaseController
         $id = ControllerParameterValidator::getRequestParam($this->allParams, 'id', null,Macro::CONST_PARAM_TYPE_ARRAY,'订单号格式错误');
         $channelAccountId = ControllerParameterValidator::getRequestParam($this->allParams, 'channelAccountId', null,Macro::CONST_PARAM_TYPE_INT,'通道号格式错误');
 
+        $user = Yii::$app->user->identity;
         $filter = $this->baseFilter;
         $filter['id'] = $id;
         $rawOrders = Remit::findAll($filter);
@@ -274,6 +275,7 @@ class RemitController extends BaseController
             $remit->channel_id = $channelAccount->channel_id;
             $remit->channel_account_id = $channelAccount->id;
             $remit->channel_merchant_id = $channelAccount->merchant_id;
+            $remit->bank_ret = $remit->bank_ret.date('Ymd H:i:s')." {$user->username}切换通道{$remit->channelAccount->channel_name}->{$channelAccount->channel_name}\n";
             $remit->save();
         }
         if($failed){
