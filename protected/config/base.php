@@ -103,7 +103,7 @@ $config = [
                     'class' => '\power\yii2\log\FileTarget',
                     'levels' => ['notice', 'trace','info','warning','error'],//'profile',
                     'logFile' => '@runtime/log/common'.date('md').'.log',
-                    'categories' => ['application'],//'yii\db\Command::query', 'yii\db\Command::execute'
+                    'categories' => ['application','yii\db\Command::query', 'yii\db\Command::execute'],//'yii\db\Command::query', 'yii\db\Command::execute'
                     'enableRotation' => true,
                     'maxFileSize' => 1024 * 100,
                     'logVars' => [],
@@ -141,7 +141,7 @@ $config = [
                     //配置已移到系统配置表
                     'telegram'=>[],
                     //邮件报警
-		    //配置已移到系统配置表
+		            //配置已移到系统配置表
                     'email' => [],
                 ],
             ],
@@ -190,7 +190,7 @@ $config = [
 
         'paymentGateWayApiDefaultSignType' => 'md5',//rsa
 
-        'user.apiTokenExpire' => 3600*10,
+        'user.apiTokenExpire' => 3600*24,
         'user.passwordResetTokenExpire' => 600,
         'user.rateLimit' => [60, 60],
     ],
