@@ -72,7 +72,7 @@ class LogController extends BaseController
             $query->andWhere(['like','merchant_name',$merchantName]);
         }
         if($eventId){
-            $query->andWhere(['event_id'=>$eventId]);
+            $query->andWhere(['or',"event_id='{$eventId}'","merchant_order_no='{$eventId}'"]);
         }
         if($eventType){
             $query->andWhere(['event_type'=>$eventType]);
