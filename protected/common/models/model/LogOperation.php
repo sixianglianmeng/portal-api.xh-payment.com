@@ -69,7 +69,7 @@
             $actionID     = Yii::$app->controller->action->id;
             $type         = "{$controllerID}_{$actionID}";
 
-            $actionsDoNotNeedLog = ['v1_admin_remit_remind','v1_user_user-check','v1_dashboard_index','v1_user_profile','v1_user_check-can-remit','v1_util_site-info'];
+            $actionsDoNotNeedLog = ['v1_admin_remit_remind','v1_admin_report_daily-financial','v1_user_user-check','v1_dashboard_index','v1_user_profile','v1_user_check-can-remit','v1_util_site-info'];
 
             $actionsNeedLog = ['v1_account_edit','v1_account_update-user-permission','v1_admin_channel_account-edit','v1_admin_channel_account-status','v1_admin_notice_add','v1_admin_order_frozen','v1_admin_order_set-success','v1_admin_order_un-frozen','v1_admin_permission_scan-menu-in-page','v1_admin_remit_set-checked','v1_admin_remit_set-fail','v1_admin_remit_switch-channel-account','v1_admin_remit_set-success','v1_admin_role_update-permissions','v1_admin_siteconfig_add','v1_admin_siteconfig_flush-cache','v1_admin_track_add','v1_admin_track_edit','v1_admin_user_add-tag','v1_admin_user_bind-ips','v1_admin_user_change-agent','v1_admin_user_clear-unbind-update','v1_admin_user_edit','v1_admin_user_switch-recharge-channel','v1_admin_user_switch-remit-channel','v1_admin_user_switch-tag','v1_admin_user_update-quota','v1_admin_user_update-rate','v1_agents_send-notify','v1_order_add','v1_order_send-notify','v1_remit_batch-remit','v1_remit_single-batch-remit','v1_remit_sync-status','v1_upload_base64-upload','v1_upload_upload','v1_upload_upload-result-excel-data','v1_user_add-child','v1_user_clear-child-pass-key','v1_user_edit-auth-key','v1_user_edit-child-status','v1_user_edit-financial-pass','v1_user_edit-pass','v1_user_get-auth-key','v1_user_get-google-code','v1_user_login','v1_user_logout','v1_user_reset-password','v1_user_set-google-code','v1_user_verify-key'];
             //跳过一些不必要的的action日志,例如列表
@@ -79,11 +79,14 @@
                 || strpos($actionID,'detail')!==false
                 || strpos($actionID,'index')!==false
                 || strpos($actionID,'show')!==false
+                || strpos($actionID,'report')!==false
+                || strpos($controllerID,'report')!==false
                 || in_array($type, $actionsDoNotNeedLog)
 //                || !in_array($type, $actionsNeedLog)
             ){
                 return true;
             }
+
             //获取原始action名称
             $separator = '-';
             $actionID  = $separator . str_replace($separator, " ", strtolower($actionID));

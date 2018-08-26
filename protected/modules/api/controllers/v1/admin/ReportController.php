@@ -66,6 +66,9 @@ class ReportController extends BaseController
         $page    = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 1000]);
 
         $query = ReportFinancialDaily::find();
+        $query =(new \yii\db\Query())
+            ->select(['id','date','user_id','username','recharge','ABS(remit) AS remit','bonus','total_income','ABS(total_cost) AS total_cost','ABS(recharge_fee) AS recharge_fee','ABS(remit_fee) AS remit_fee','ABS(transfer_fee) AS transfer_fee','remit_refund','remit_fee_refund','transfer_in','ABS(transfer_out) AS transfer_out','balance','account_balance','ABS(account_frozen_balance) AS account_frozen_balance','all_parent_agent_id','updated_at','created_at','plat_sum'])
+            ->from(ReportFinancialDaily::tableName());
         if ($user->isAdmin()) {
 
         } elseif ($user->isAgent()) {
@@ -96,14 +99,23 @@ class ReportController extends BaseController
             $query->andFilterCompare('date', '<' . date('Ymd', strtotime($dateEnd) + 86400));
         }
 
-        $sorts = [
-            'created_at-' => ['created_at'=>SORT_DESC],
-        ];
-        if (!empty($sorts[$sort])) {
-            $sort = $sorts[$sort];
-        } else {
-            $sort = ['created_at'=>SORT_DESC];
+        //允许的排序
+//        $sorts = [
+//            'created_at-'=>['created_at'=>SORT_DESC],
+//            'balance-'=>['u.balance'=>SORT_DESC],
+//            'balance+'=>['u.balance'=>SORT_ASC],
+//        ];
+//        if (!empty($sorts[$sort])) {
+//            $sort = $sorts[$sort];
+//        } else {
+//            $sort = ['created_at'=>SORT_DESC];
+//        }
+        if($sort){
+            $sortFiled = substr($sort,0,-1);
+            $sortAd = substr($sort,-1)=='-'?SORT_DESC:SORT_ASC;
+            $sort = [$sortFiled=>$sortAd];
         }
+
         $query->orderBy($sort);
 
         //生成分页数据
@@ -120,8 +132,8 @@ class ReportController extends BaseController
 
         $records = [];
         foreach ($p->getModels() as $i => $d) {
-            $records[$i]               = $d->toArray();
-            $records[$i]['created_at'] = date('Ymd H:i:s', $d->created_at);
+            $records[$i]               = $d;
+            $records[$i]['created_at'] = date('Ymd H:i:s', $d['created_at']);
         }
         //分页数据
         $pagination = $p->getPagination();
