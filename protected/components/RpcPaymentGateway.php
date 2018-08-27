@@ -63,6 +63,20 @@ class RpcPaymentGateway
     }
 
     /**
+     * 强制到第三方同步查询订单状态
+     *
+     * @param array $orderNo 要同步的订单号
+     * @throws \Exception
+     * @return array
+     */
+    public static function syncRechargeOrderStatusRealtime($orderNo)
+    {
+        $ret = self::call('/order/sync-status-realtime',['orderNo'=>$orderNo]);
+
+        return $ret;
+    }
+
+    /**
      * 发送订单通知结果到商户
      *
      * @param int $inSeconds 多少小时之内的

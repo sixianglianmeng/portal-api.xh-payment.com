@@ -386,9 +386,10 @@ class OrderController extends BaseController
             'order_no'=>$order->order_no,
         ];
 
-        RpcPaymentGateway::syncRechargeOrderStatus(0, [$order->order_no]);
+//        RpcPaymentGateway::syncRechargeOrderStatus(0, [$order->order_no]);
+        $ret = RpcPaymentGateway::syncRechargeOrderStatusRealtime($order->order_no);
 
-        return ResponseHelper::formatOutput(Macro::SUCCESS, '订单状态同步成功');
+        return ResponseHelper::formatOutput(Macro::SUCCESS, str_replace("\n","<br/>",$ret['message']));
     }
 
     /**
