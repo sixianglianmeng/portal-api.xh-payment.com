@@ -58,7 +58,7 @@ class OrderController extends BaseController
         $payeeName = ControllerParameterValidator::getRequestParam($this->allParams, 'merchant_username', '',Macro::CONST_PARAM_TYPE_USERNAME,'充值账户错误');
         $amount = ControllerParameterValidator::getRequestParam($this->allParams, 'amount', null,Macro::CONST_PARAM_TYPE_DECIMAL,'充值金额错误');
         $type = ControllerParameterValidator::getRequestParam($this->allParams, 'type', 1,Macro::CONST_PARAM_TYPE_INT,'订单类型错误');
-        $payType = ControllerParameterValidator::getRequestParam($this->allParams, 'pay_type', Channel::METHOD_WEBBANK,Macro::CONST_PARAM_TYPE_INT,'付款类型错误');
+        $payType = ControllerParameterValidator::getRequestParam($this->allParams, 'method', null,Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'付款类型错误');
         $bankCode = ControllerParameterValidator::getRequestParam($this->allParams, 'bank_code', '',Macro::CONST_PARAM_TYPE_INT,'银行代码错误');
 
         $bak = '';
