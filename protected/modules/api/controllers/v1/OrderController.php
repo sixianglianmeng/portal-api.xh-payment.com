@@ -449,7 +449,8 @@ class OrderController extends BaseController
         $minMoney = ControllerParameterValidator::getRequestParam($this->allParams, 'minMoney', '',Macro::CONST_PARAM_TYPE_DECIMAL,'最小金额输入错误');
 
         $maxMoney = ControllerParameterValidator::getRequestParam($this->allParams, 'maxMoney', '',Macro::CONST_PARAM_TYPE_DECIMAL,'最大金额输入错误');
-
+        $export = ControllerParameterValidator::getRequestParam($this->allParams, 'export',0,Macro::CONST_PARAM_TYPE_INT,'导出参数错误');
+        $exportType = ControllerParameterValidator::getRequestParam($this->allParams, 'exportType','',Macro::CONST_PARAM_TYPE_ENUM,'导出类型错误',['csv','txt']);
 
         if(!empty($sorts[$sort])){
             $sort = $sorts[$sort];
@@ -496,6 +497,41 @@ class OrderController extends BaseController
 
         if(!empty($notifyStatus)){
             $query->andwhere(['notify_status' => $notifyStatus]);
+        }
+
+        if($export==1 && $exportType){
+            $fieldLabel = ["订单号","商户订单号","商户号","金额","状态","下单时间","成功时间"];
+            foreach ($fieldLabel as $fi=>&$fk){
+                $fk = mb_convert_encoding($fk,'GBK');
+            }
+            $records = [];
+            $records[] = $fieldLabel;
+            $rows = $query->limit(5000)->all();
+            foreach ($rows as $i=>$d){
+                $record['order_no'] = "'".$d->order_no;
+                $record['merchant_order_no'] = $d->merchant_order_no;
+                $record['uid'] = $d->merchant_id;
+                $record['amount'] = $d->amount;
+                $record['status_str'] = mb_convert_encoding($d->getStatusStr($d->status),'GBK');
+                $record['created_at'] = date('Y-m-d H:i:s',$d->created_at);
+                $record['paid_at'] = $d->paid_at?date('Y-m-d H:i:s',$d->paid_at):'';
+                $records[] = $record;
+            }
+
+            $outFilename='我的收款订单-'.$user->username.'-'.date('YmdHi').'.'.$exportType;
+            header('Content-type: application/octet-stream; charset=GBK');
+            Header("Accept-Ranges: bytes");
+            header('Content-Disposition: attachment; filename='.$outFilename);
+            $fp = fopen('php://output', 'w');
+            foreach ($records as $record){
+                if(!is_array($record) || !$record){
+                    continue;
+                }
+                fputcsv($fp, $record);
+            }
+            fclose($fp);
+
+            exit;
         }
 
         //生成分页数据

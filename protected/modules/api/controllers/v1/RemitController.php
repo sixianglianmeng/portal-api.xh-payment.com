@@ -568,6 +568,8 @@ class RemitController extends BaseController
         $maxMoney = ControllerParameterValidator::getRequestParam($this->allParams, 'maxMoney', '',Macro::CONST_PARAM_TYPE_DECIMAL,'最大金额输入错误');
         $selfCheck = ControllerParameterValidator::getRequestParam($this->allParams, 'selfCheck', 0,Macro::CONST_PARAM_TYPE_INT,'审核参数错误');
         $checkStatus = ControllerParameterValidator::getRequestParam($this->allParams, 'checkStatus', 0,Macro::CONST_PARAM_TYPE_INT,'审核状态错误');
+        $export = ControllerParameterValidator::getRequestParam($this->allParams, 'export',0,Macro::CONST_PARAM_TYPE_INT,'导出参数错误');
+        $exportType = ControllerParameterValidator::getRequestParam($this->allParams, 'exportType','',Macro::CONST_PARAM_TYPE_ENUM,'导出类型错误',['csv','txt']);
 
         if(!empty($sorts[$sort])){
             $sort = $sorts[$sort];
@@ -628,6 +630,42 @@ class RemitController extends BaseController
         //支持审核的商户普通订单列表,只显示已经审核过的订单
         if($user->paymentInfo->can_check_remit_status && !$selfCheck){
             $query->andwhere(['merchant_check_status' => [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED]]);
+        }
+
+
+        if($export==1 && $exportType){
+            $fieldLabel = ["订单号","商户订单号","商户号","金额","状态","下单时间","成功时间"];
+            foreach ($fieldLabel as $fi=>&$fk){
+                $fk = mb_convert_encoding($fk,'GBK');
+            }
+            $records = [];
+            $records[] = $fieldLabel;
+            $rows = $query->limit(5000)->all();
+            foreach ($rows as $i=>$d){
+                $record['order_no'] = "'".$d->order_no;
+                $record['merchant_order_no'] = $d->merchant_order_no;
+                $record['uid'] = $d->merchant_id;
+                $record['amount'] = $d->amount;
+                $record['status_str'] = mb_convert_encoding($d->showStatusStr($d->status),'GBK');
+                $record['created_at'] = date('Y-m-d H:i:s',$d->created_at);
+                $record['remit_at'] = $d->paid_at?date('Y-m-d H:i:s',$d->remit_at):'';
+                $records[] = $record;
+            }
+
+            $outFilename='我的出款订单-'.$user->username.'-'.date('YmdHi').'.'.$exportType;
+            header('Content-type: application/octet-stream; charset=GBK');
+            Header("Accept-Ranges: bytes");
+            header('Content-Disposition: attachment; filename='.$outFilename);
+            $fp = fopen('php://output', 'w');
+            foreach ($records as $record){
+                if(!is_array($record) || !$record){
+                    continue;
+                }
+                fputcsv($fp, $record);
+            }
+            fclose($fp);
+
+            exit;
         }
 
         //生成分页数据
