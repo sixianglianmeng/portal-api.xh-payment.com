@@ -351,7 +351,7 @@ class UserController extends BaseController
         $userChild->all_parent_agent_id = $user->all_parent_agent_id;
         $userChild->parent_merchant_id = $user->id;
         $userChild->save();
-        return ResponseHelper::formatOutput(Macro::SUCCESS);
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',SiteConfig::cacheGetContent('user_default_password'));
     }
     /**
      * 修改子账号状态
@@ -386,15 +386,17 @@ class UserController extends BaseController
         if(!$childObj){
             return ResponseHelper::formatOutput(Macro::ERR_USER_CHILD_NON, '子账号不存在');
         }
+        $data = '';
         if($type == 1 ){
             $childObj->key_2fa = '';
         }else if($type == 2){
             $childObj->financial_password_hash = '';
         }else if($type ==3){
             $childObj->setDefaultPassword();
+            $data = SiteConfig::cacheGetContent('user_default_password');
         }
         $childObj->save();
-        return ResponseHelper::formatOutput(Macro::SUCCESS);
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
 
     /**
