@@ -85,7 +85,6 @@ class UserController extends BaseController
     {
         $user = Yii::$app->user->identity;
         $key_2fa = ControllerParameterValidator::getRequestParam($this->allParams, 'key_2fa',0,Macro::CONST_PARAM_TYPE_INT,'安全码错误',[6]);
-
         $googleObj = new \PHPGangsta_GoogleAuthenticator();
         if(!$googleObj->verifyCode($user->key_2fa,$key_2fa,1)){
             return ResponseHelper::formatOutput(Macro::ERR_USER_GOOGLE_CODE, '安全令牌码不匹配');

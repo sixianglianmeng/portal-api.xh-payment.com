@@ -351,6 +351,7 @@ class AccountController extends BaseController
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
         $account_open_fee_status = ControllerParameterValidator::getRequestParam($this->allParams, 'accountOpenFeeStatus','',Macro::CONST_PARAM_TYPE_INT,'开户缴费状态错误',[0,100]);
+        $type = ControllerParameterValidator::getRequestParam($this->allParams, 'type', '', Macro::CONST_PARAM_TYPE_INT, '账户类型错误', [0, 100]);
 
         if($sort && !empty($sorts[$sort])){
             $sort = $sorts[$sort];
@@ -391,6 +392,9 @@ class AccountController extends BaseController
         }
         if($userId){
             $query->andwhere(['u.id' => $userId]);
+        }
+        if ($type != '') {
+            $query->andwhere(['u.group_id' => $type]);
         }
 
         //生成分页数据
