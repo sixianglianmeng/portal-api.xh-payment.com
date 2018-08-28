@@ -103,7 +103,7 @@
                 ],
             ];
 
-            $rateLimit = true;
+            $rateLimit = false;
             if (!empty($rateLimit)) {
                 $behaviors['rateLimiter'] = [
                     'class'                  => RateLimiter::className(),

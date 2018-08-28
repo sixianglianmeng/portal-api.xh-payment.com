@@ -2,7 +2,7 @@
 $config = \yii\helpers\ArrayHelper::merge(
     require __DIR__ . '/main.php',
     [
-        'enableCoreCommands' => false,
+        'enableCoreCommands' => true,
         'controllerNamespace' => 'app\commands',
         'components' => [
             'log' => [

@@ -4,6 +4,8 @@
 namespace app\components;
 
 
+use yii\base\Behavior;
+
 class BehaviorOperationLog extends Behavior  #继承行为父类
 {
     //重写events方法，给行为添加事件
