@@ -648,7 +648,7 @@ class RemitController extends BaseController
                 $record['amount'] = $d->amount;
                 $record['status_str'] = mb_convert_encoding($d->showStatusStr($d->status),'GBK');
                 $record['created_at'] = date('Y-m-d H:i:s',$d->created_at);
-                $record['remit_at'] = $d->paid_at?date('Y-m-d H:i:s',$d->remit_at):'';
+                $record['remit_at'] = $d->remit_at?date('Y-m-d H:i:s',$d->remit_at):'';
                 $records[] = $record;
             }
 
