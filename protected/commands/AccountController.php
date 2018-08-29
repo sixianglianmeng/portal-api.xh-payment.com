@@ -62,4 +62,21 @@ class AccountController extends BaseConsoleCommand
         $user->setPassword($pwd);
         $user->save();
     }
+
+    /*
+     * 重置用户组
+     *
+     * ./protected/yii account/reset-group user 20
+     */
+    public function actionResetGroup($username,$group)
+    {
+        $user = User::findOne(['username'=>$username]);
+        if(!$user){
+            exit('user not find');
+        }
+        $user->group_id = $group;
+        $user->save();
+
+        $user->setGroupRole();
+    }
 }

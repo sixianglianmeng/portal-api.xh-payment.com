@@ -174,109 +174,121 @@ class UserController extends BaseController
             $data['remit_fee_rebate'] = bcsub($data['remit_fee'], $parentRemitFee, 9);
         }
 
-        if ($id) {
-            $user = User::findOne(['id' => Yii::$app->user->identity->getId()]);
-            if (!$user) {
-                return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '编辑的账户不存在');
+        $db = Yii::$app->db;
+        $transaction = $db->beginTransaction();
+        try {
+            if ($id) {
+                $user = User::findOne(['id' => Yii::$app->user->identity->getId()]);
+                if (!$user) {
+                    return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '编辑的账户不存在');
+                }
+
+                $userPayment = $user->paymentInfo;
+            }else{
+
+                $user = User::findOne(['username'=> $username]);
+                if($user){
+                    return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'账户已存在');
+                }
+                $user = new User();
+                $user->username = $username;
+                $user->nickname = $data['nickname'];
+                $user->email = $data['email'];
+                $user->setDefaultPassword();
+                $userPayment = new UserPaymentInfo();
             }
 
-            $userPayment = $user->paymentInfo;
-        }else{
+            if($parentAccount){
+                $user->parent_agent_id = $parentAccount->id;
 
-            $user = User::findOne(['username'=> $username]);
-            if($user){
-                return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'账户已存在');
+                $parentIds = json_decode($parentAccount->all_parent_agent_id);
+                $parentIds[] = $parentAccount->id;
+                $user->all_parent_agent_id = json_encode($parentIds);
             }
-            $user = new User();
-            $user->username = $username;
-            $user->nickname = $data['nickname'];
-            $user->email = $data['email'];
-            $user->setDefaultPassword();
-            $userPayment = new UserPaymentInfo();
-        }
 
-        if($parentAccount){
-            $user->parent_agent_id = $parentAccount->id;
+            $user->group_id = $data['group_id'];
+            $user->status = $data['status'];
+            $user->save();
 
-            $parentIds = json_decode($parentAccount->all_parent_agent_id);
-            $parentIds[] = $parentAccount->id;
-            $user->all_parent_agent_id = json_encode($parentIds);
-        }
-
-        $user->group_id = $data['group_id'];
-        $user->status = $data['status'];
-        $user->save();
-
-        if (!$id) {
-            $userPayment->user_id     = $user->id;
-            $userPayment->username = $user->username;
-            $userPayment->app_key_md5 = Util::uuid('uuid');
-        }
-        $userPayment->app_id = $user->id;
-        //开户时不指定收款及出款渠道
-        if($channelAccountId){
-            $userPayment->channel_account_id = $channel->id;
-            $userPayment->channel_id = $channel->channel_id;
-            $userPayment->channel_account_name = $channel->channel_name;
-        }
-        if($remitChannelAccountId){
-            $userPayment->remit_channel_id = $remitChannel->channel_id;
-            $userPayment->remit_channel_account_id = $remitChannel->id;
-            $userPayment->remit_channel_account_name = $remitChannel->channel_name;
-            $userPayment->remit_fee_rebate = $data['remit_fee_rebate'];
-        }
-
-        $userPayment->remit_fee = $data['remit_fee'];
-//        $userPayment->pay_methods = json_encode($data['pay_method']);
-        $userPayment->recharge_quota_pertime = $data['recharge_quota_pertime'];
-        $userPayment->remit_quota_pertime = $data['remit_quota_pertime'];
-        $userPayment->allow_api_recharge = $data['allow_api_recharge'];
-        $userPayment->allow_manual_recharge = $data['allow_manual_recharge'];
-        $userPayment->allow_api_remit = $data['allow_api_remit'];
-        $userPayment->allow_manual_remit = $data['allow_manual_remit'];
-        $userPayment->allow_api_fast_remit = $data['allow_api_fast_remit']==''?SiteConfig::cacheGetContent('api_fast_remit_quota'):$data['allow_api_fast_remit'];
-        $userPayment->allow_manual_fast_remit = $data['allow_manual_fast_remit']==''?SiteConfig::cacheGetContent('manual_fast_remit_quota'):$data['allow_manual_fast_remit'];
-        $userPayment->save();
-
-        //批量写入每种支付类型配置
-        foreach ($data['pay_method'] as $i=>$pm){
-            $methodConfig = new MerchantRechargeMethod();
-
-            $methodConfig->app_id = $user->id;
-            $methodConfig->merchant_id = $user->id;
-            $methodConfig->merchant_account = $user->username;
-
-            $methodConfig->payment_info_id = $userPayment->id;
-            $methodConfig->method_id = $pm['id'];
-            $methodConfig->method_name = Channel::getPayMethodsStr($pm['id']);
-            $methodConfig->fee_rate = $pm['rate']??0;
-            $methodConfig->parent_method_config_id = $pm['parent_method_config_id'];
-            $methodConfig->parent_recharge_rebate_rate = $pm['parent_recharge_rebate_rate'];
-            $methodConfig->all_parent_method_config_id = $pm['all_parent_method_config_id'];
-            $methodConfig->status = ($pm['status']==MerchantRechargeMethod::STATUS_ACTIVE)?MerchantRechargeMethod::STATUS_ACTIVE:MerchantRechargeMethod::STATUS_INACTIVE;
-            if(empty($methodConfig->fee_rate) && !$rechargeFeeCanBeZero){
-                $methodConfig->status = MerchantRechargeMethod::STATUS_INACTIVE;
+            if (!$id) {
+                $userPayment->user_id     = $user->id;
+                $userPayment->username = $user->username;
+                $userPayment->app_key_md5 = Util::uuid('uuid');
             }
-            $methodConfig->settlement_type = $pm['settlement_type']?$pm['settlement_type']:SiteConfig::cacheGetContent('default_settlement_type');
-
+            $userPayment->app_id = $user->id;
+            //开户时不指定收款及出款渠道
             if($channelAccountId){
-                $methodConfig->channel_account_id = $channel->id;
-                $methodConfig->channel_id = $channel->channel_id;
-                $methodConfig->channel_account_name = $channel->channel_name;
+                $userPayment->channel_account_id = $channel->id;
+                $userPayment->channel_id = $channel->channel_id;
+                $userPayment->channel_account_name = $channel->channel_name;
             }
-            $methodConfig->save();
-        }
+            if($remitChannelAccountId){
+                $userPayment->remit_channel_id = $remitChannel->channel_id;
+                $userPayment->remit_channel_account_id = $remitChannel->id;
+                $userPayment->remit_channel_account_name = $remitChannel->channel_name;
+                $userPayment->remit_fee_rebate = $data['remit_fee_rebate'];
+            }
 
-        if($accountOpenFee){
-            $accountOpenInfo = new AccountOpenFee();
-            $accountOpenInfo->user_id = $user->id;
-            $accountOpenInfo->username = $user->username;
-            $accountOpenInfo->fee = $accountOpenFee;
-            $accountOpenInfo->save();
-        }
+            $userPayment->remit_fee = $data['remit_fee'];
+    //        $userPayment->pay_methods = json_encode($data['pay_method']);
+            $userPayment->recharge_quota_pertime = $data['recharge_quota_pertime'];
+            $userPayment->remit_quota_pertime = $data['remit_quota_pertime'];
+            $userPayment->allow_api_recharge = $data['allow_api_recharge'];
+            $userPayment->allow_manual_recharge = $data['allow_manual_recharge'];
+            $userPayment->allow_api_remit = $data['allow_api_remit'];
+            $userPayment->allow_manual_remit = $data['allow_manual_remit'];
+            $userPayment->allow_api_fast_remit = $data['allow_api_fast_remit']==''?SiteConfig::cacheGetContent('api_fast_remit_quota'):$data['allow_api_fast_remit'];
+            $userPayment->allow_manual_fast_remit = $data['allow_manual_fast_remit']==''?SiteConfig::cacheGetContent('manual_fast_remit_quota'):$data['allow_manual_fast_remit'];
+            $userPayment->save();
 
-        //账户角色授权
-        $user->setGroupRole();
+            //批量写入每种支付类型配置
+            foreach ($data['pay_method'] as $i=>$pm){
+                $methodConfig = new MerchantRechargeMethod();
+
+                $methodConfig->app_id = $user->id;
+                $methodConfig->merchant_id = $user->id;
+                $methodConfig->merchant_account = $user->username;
+
+                $methodConfig->payment_info_id = $userPayment->id;
+                $methodConfig->method_id = $pm['id'];
+                $methodConfig->method_name = Channel::getPayMethodsStr($pm['id']);
+                $methodConfig->fee_rate = $pm['rate']??0;
+                $methodConfig->parent_method_config_id = $pm['parent_method_config_id'];
+                $methodConfig->parent_recharge_rebate_rate = $pm['parent_recharge_rebate_rate'];
+                $methodConfig->all_parent_method_config_id = $pm['all_parent_method_config_id'];
+                $methodConfig->status = ($pm['status']==MerchantRechargeMethod::STATUS_ACTIVE)?MerchantRechargeMethod::STATUS_ACTIVE:MerchantRechargeMethod::STATUS_INACTIVE;
+                if(empty($methodConfig->fee_rate) && !$rechargeFeeCanBeZero){
+                    $methodConfig->status = MerchantRechargeMethod::STATUS_INACTIVE;
+                }
+                $methodConfig->settlement_type = $pm['settlement_type']?$pm['settlement_type']:SiteConfig::cacheGetContent('default_settlement_type');
+
+                if($channelAccountId){
+                    $methodConfig->channel_account_id = $channel->id;
+                    $methodConfig->channel_id = $channel->channel_id;
+                    $methodConfig->channel_account_name = $channel->channel_name;
+                }
+                $methodConfig->save();
+            }
+
+            if($accountOpenFee){
+                $accountOpenInfo = new AccountOpenFee();
+                $accountOpenInfo->user_id = $user->id;
+                $accountOpenInfo->username = $user->username;
+                $accountOpenInfo->fee = $accountOpenFee;
+                $accountOpenInfo->save();
+            }
+
+            //账户角色授权
+            $user->setGroupRole();
+
+            $transaction->commit();
+        } catch(\Exception $e) {
+            $transaction->rollBack();
+            throw $e;
+        } catch(\Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
 
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',['id'=>$user->id,'username'=>$user->username]);
     }
