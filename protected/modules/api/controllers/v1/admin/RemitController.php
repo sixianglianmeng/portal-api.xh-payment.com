@@ -175,6 +175,51 @@ class RemitController extends BaseController
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '订单已更新为已审核');
     }
+
+    /**
+     * 重新提交订单到上游
+     */
+    public function actionReSubmitToBank()
+    {
+        $idList = ControllerParameterValidator::getRequestParam($this->allParams, 'idList', null, Macro::CONST_PARAM_TYPE_ARRAY, '订单ID错误');
+
+        $filter = $this->baseFilter;
+        $filter['id'] = $idList;
+        $maxNum = 100;
+        if(count($idList)>$maxNum){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, "单次最多设置{$maxNum}个订单");
+        }
+        $rawOrders = (new \yii\db\Query())
+            ->select(['id','order_no'])
+            ->from(Remit::tableName())
+            ->where($filter)
+            ->limit(100)
+            ->all();
+
+        if(!$rawOrders){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '订单不存在');
+        }
+
+        $orders = [];
+        foreach ($rawOrders as $o){
+            $orders[] = [
+                'order_no'=>$o['order_no']
+            ];
+
+            //接口日志埋点
+            Yii::$app->params['operationLogFields'] = [
+                'table'=>'p_remit',
+                'pk'=>$o['id'],
+                'order_no'=>$o['order_no'],
+            ];
+            LogOperation::inLog('ok');
+        }
+
+        $ret = RpcPaymentGateway::call('/remit/re-submit-to-bank',['orderNoList'=>$orders]);
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS, '订单已重新提交');
+    }
+
     /**
      * 出款待审核提醒
      * @roles admin,admin_operator,admin_service_lv1,admin_service_lv2
