@@ -59,8 +59,8 @@ class RemitController extends BaseController
             'order_no'=>$order->order_no,
         ];
 
-        if(!in_array($order->status,[Remit::STATUS_BANK_PROCESSING, Remit::STATUS_DEDUCT, Remit::STATUS_NOT_REFUND])){
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '订单状态必须是已扣款|处理中|失败未退款');
+        if(!in_array($order->status,[Remit::STATUS_BANK_PROCESSING, Remit::STATUS_DEDUCT, Remit::STATUS_CHECKED, Remit::STATUS_NOT_REFUND])){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '订单状态必须是已扣款|已审核|处理中|失败未退款');
         }
 
         $orderOpList = [];
