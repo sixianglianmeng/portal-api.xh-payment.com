@@ -74,7 +74,6 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         if (!parent::beforeSave($insert)) {
             return false;
         }
-
         if ($insert){
             //按规则生成uid,(2位分组id+1位是否主账号+当前规则下数据库最大值区3位之后)+10-500随机数,且总长度中6位以上
             $uidPrefix = ($this->group_id<10?99:$this->group_id).''.intval($this->isMainAccount());
@@ -85,7 +84,11 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
                 $maxPrefixId = substr($maxPrefixId,3);
             }
             if($maxPrefixId<1000)  $maxPrefixId = mt_rand(1000,1500);
-            $this->id = intval($uidPrefix.$maxPrefixId)+mt_rand(10,500);
+
+            $id = intval($uidPrefix.$maxPrefixId)+mt_rand(10,500);
+            $exist = Yii::$app->db->createCommand("SELECT id from ".User::tableName()." WHERE id={$id}")->queryScalar();
+            if($exist)  $id = $id+mt_rand(10,500);
+            $this->id = $id;
         }
 
         return true;
