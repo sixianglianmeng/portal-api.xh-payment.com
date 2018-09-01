@@ -967,17 +967,11 @@ class AccountController extends BaseController
          * 问题,在只有订单为本人直属下级商户的时候,以上sql将无法运作: select substring_index('[2012234]','2012234,',-1) => [2012234]. group by first_child_id之后将会只有一条记录
          * 解决办法: 使用CASE判断是否订单是直属下级商户订单 CASE all_parent_agent_id WHEN '[2012234]' THEN merchant_id ELSE substring_index(REPLACE(substring_index(all_parent_agent_id,'2012234,',-1),']',','),',',1) END
          */
-//        $firstChildFieldStr = "(CASE o.all_parent_agent_id WHEN '[{$user->id}]' THEN merchant_id ELSE substring_index(REPLACE(substring_index(o.all_parent_agent_id,'{$user->id},',-1),']',','),',',1) END) as first_child_id";
-//        $userQuery = (new Query())->select(["merchant_id","merchant_account AS order_account","sum(amount) as amount","u.username as merchant_account",$firstChildFieldStr])
-//            ->from(Order::tableName()." o")
-//            ->leftJoin(User::tableName()." u", "first_child_id = u.id")
-//            ->where(['o.status'=>[Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])
-//            ->orderBy("merchant_id ASC");
         //原始版,直属下级无法统计
 //        $firstChildFieldStr = "substring_index(REPLACE(substring_index(all_parent_agent_id,'{$user->id},',-1),']',','),',',1) AS first_child_id";
         //优化如果是直属下级的订单
         $firstChildFieldStr = "(CASE all_parent_agent_id WHEN '[{$user->id}]' THEN merchant_id ELSE substring_index(REPLACE(substring_index(all_parent_agent_id,'{$user->id},',-1),']',','),',',1) END) as first_child_id";
-        $orderQuery = (new Query())->select(["merchant_id","merchant_account","sum(amount) as amount","count(amount) as num",$firstChildFieldStr])
+        $orderQuery = (new Query())->select(["merchant_id","merchant_account as oder_merchant_account","sum(amount) as amount","count(amount) as num",$firstChildFieldStr])
             ->from(Order::tableName())
             ->where(['status'=>[Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])
             ->orderBy("merchant_id ASC");
@@ -1007,7 +1001,7 @@ class AccountController extends BaseController
         }
         $orderQuery->groupBy('first_child_id');
 
-        $query = (new Query())->select(['u.username', 'o.*']);
+        $query = (new Query())->select(['u.username as merchant_account', 'o.*']);
         $query->from(['o' => $orderQuery])
             ->leftJoin(User::tableName()." u", "first_child_id = u.id");
 
