@@ -61,7 +61,7 @@ class FinancialController extends BaseController
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
 
-        $uid = ControllerParameterValidator::getRequestParam($this->allParams, 'uid','',Macro::CONST_PARAM_TYPE_INT,'商户号错误',[0,100]);
+        $uid = ControllerParameterValidator::getRequestParam($this->allParams, 'uid','',Macro::CONST_PARAM_TYPE_INT,'商户号错误');
 
         $username = ControllerParameterValidator::getRequestParam($this->allParams, 'username','',Macro::CONST_PARAM_TYPE_STRING,'商户账号号错误',[6,16]);
 
