@@ -232,6 +232,7 @@ class AccountController extends BaseController
             $methodConfig->all_parent_method_config_id = $pm['all_parent_method_config_id'];
             $methodConfig->status = ($pm['status']==MerchantRechargeMethod::STATUS_ACTIVE)?MerchantRechargeMethod::STATUS_ACTIVE:MerchantRechargeMethod::STATUS_INACTIVE;
             $methodConfig->settlement_type = !empty($pm['settlement_type'])?$pm['settlement_type']:SiteConfig::cacheGetContent('default_settlement_type');
+            $methodConfig->account_transfer_fee = SiteConfig::cacheGetContent('account_transfer_fee');
 
             if($channelAccountId){
                 $methodConfig->channel_account_id = $channel->id;
