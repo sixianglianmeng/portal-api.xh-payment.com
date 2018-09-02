@@ -213,6 +213,7 @@ class AccountController extends BaseController
         $userPayment->allow_manual_fast_remit = SiteConfig::cacheGetContent('manual_fast_remit_quota');
         $userPayment->account_transfer_fee = SiteConfig::cacheGetContent('account_transfer_fee');
         $userPayment->remit_quota_pertime = $data['remit_quota_pertime'];
+        $userPayment->account_transfer_fee = SiteConfig::cacheGetContent('account_transfer_fee');
         $userPayment->save();
 
         //批量写入每种支付类型配置
@@ -232,7 +233,6 @@ class AccountController extends BaseController
             $methodConfig->all_parent_method_config_id = $pm['all_parent_method_config_id'];
             $methodConfig->status = ($pm['status']==MerchantRechargeMethod::STATUS_ACTIVE)?MerchantRechargeMethod::STATUS_ACTIVE:MerchantRechargeMethod::STATUS_INACTIVE;
             $methodConfig->settlement_type = !empty($pm['settlement_type'])?$pm['settlement_type']:SiteConfig::cacheGetContent('default_settlement_type');
-            $methodConfig->account_transfer_fee = SiteConfig::cacheGetContent('account_transfer_fee');
 
             if($channelAccountId){
                 $methodConfig->channel_account_id = $channel->id;
