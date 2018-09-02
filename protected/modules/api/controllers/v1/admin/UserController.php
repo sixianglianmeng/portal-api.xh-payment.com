@@ -79,6 +79,8 @@ class UserController extends BaseController
         $data['allow_manual_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_manual_remit',1,Macro::CONST_PARAM_TYPE_INT,'允许手工结算错误');
         $data['allow_api_fast_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_api_fast_remit',1,Macro::CONST_PARAM_TYPE_INT,'接口结算不需审核错误');
         $data['allow_manual_fast_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_manual_fast_remit','',Macro::CONST_PARAM_TYPE_INT,'手工结算不需审核错误');
+        $data['account_transfer_fee'] = ControllerParameterValidator::getRequestParam($this->allParams, 'account_transfer_fee','',Macro::CONST_PARAM_TYPE_DECIMAL,'手工结算不需审核错误');
+        $data['remit_fee_free_quota'] = ControllerParameterValidator::getRequestParam($this->allParams, 'remit_fee_free_quota','',Macro::CONST_PARAM_TYPE_INT,'手工结算不需审核错误');
         //管理员开的账户均为顶级账户
         $parentAccountName = ControllerParameterValidator::getRequestParam($arrAllParams, 'parentMerchantAccount','',Macro::CONST_PARAM_TYPE_USERNAME,'上级帐号错误');
         //收款和出款通道在通道切换处统一设置
@@ -239,6 +241,9 @@ class UserController extends BaseController
             $userPayment->allow_manual_remit = $data['allow_manual_remit'];
             $userPayment->allow_api_fast_remit = $data['allow_api_fast_remit']==''?SiteConfig::cacheGetContent('api_fast_remit_quota'):$data['allow_api_fast_remit'];
             $userPayment->allow_manual_fast_remit = $data['allow_manual_fast_remit']==''?SiteConfig::cacheGetContent('manual_fast_remit_quota'):$data['allow_manual_fast_remit'];
+            if($data['account_transfer_fee']<0) $data['account_transfer_fee'] = -1;
+            $userPayment->account_transfer_fee = $data['account_transfer_fee']==''?SiteConfig::cacheGetContent('account_transfer_fee'):$data['account_transfer_fee'];
+            $userPayment->remit_fee_free_quota = $data['remit_fee_free_quota']==''?SiteConfig::cacheGetContent('remit_fee_free_quota'):$data['remit_fee_free_quota'];
             $userPayment->save();
 
             //批量写入每种支付类型配置
@@ -991,6 +996,8 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $userInfo['allow_manual_remit']          = $paymentInfo->allow_manual_remit;
         $userInfo['can_check_remit_status']      = $paymentInfo->can_check_remit_status;
         $userInfo['api_response_rule']           = $paymentInfo->api_response_rule;
+        $userInfo['account_transfer_fee']           = $paymentInfo->account_transfer_fee;
+        $userInfo['remit_fee_free_quota']           = $paymentInfo->remit_fee_free_quota;
 
         //处理代理
         if($user->all_parent_agent_id){
@@ -1116,6 +1123,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $remitChannelId = ControllerParameterValidator::getRequestParam($this->allParams, 'remitChannelId','',Macro::CONST_PARAM_TYPE_STRING,'出款渠道编号错误');
         $remit_fee = ControllerParameterValidator::getRequestParam($this->allParams, 'remit_fee','',Macro::CONST_PARAM_TYPE_DECIMAL,'出款手续费错误');
         $pay_methods = ControllerParameterValidator::getRequestParam($this->allParams, 'pay_methods','',Macro::CONST_PARAM_TYPE_ARRAY,'收款续费错误');
+        $transferFee = ControllerParameterValidator::getRequestParam($this->allParams, 'account_transfer_fee','',Macro::CONST_PARAM_TYPE_DECIMAL,'转账费错误');
 
         $user = User::find()->where(['id'=>$userId])->limit(1)->one();
         if(!$user){
@@ -1172,6 +1180,10 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
                 $userPaymentInfo->remit_fee_rebate = bcsub($remit_fee, $parentRemitFee, 9);
             }
         }
+        if($transferFee!=''){
+            if($transferFee<0) $transferFee = -1;
+            $userPaymentInfo->account_transfer_fee = $transferFee;
+        }
         $userPaymentInfo->save();
 
         $userPaymentInfo->updatePayMethods($parentAccount,$pay_methods);
@@ -1221,6 +1233,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         }
         $data['allow_api_fast_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_api_fast_remit','',Macro::CONST_PARAM_TYPE_INT,'接口结算不需审核错误');
         $data['allow_manual_fast_remit'] = ControllerParameterValidator::getRequestParam($this->allParams, 'allow_manual_fast_remit','',Macro::CONST_PARAM_TYPE_INT,'手工结算不需审核错误');
+        $data['remit_fee_free_quota'] = ControllerParameterValidator::getRequestParam($this->allParams, 'remit_fee_free_quota','',Macro::CONST_PARAM_TYPE_INT,'免出款费额度错误');
 
         $userPaymentInfo = UserPaymentInfo::getUserDefaultPaymentInfo($userId);
         if(!$userPaymentInfo){

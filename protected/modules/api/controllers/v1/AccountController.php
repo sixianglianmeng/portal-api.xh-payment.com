@@ -211,6 +211,7 @@ class AccountController extends BaseController
         $userPayment->allow_manual_remit = 1;//$data['allow_manual_remit'];
         $userPayment->allow_api_fast_remit = SiteConfig::cacheGetContent('api_fast_remit_quota');
         $userPayment->allow_manual_fast_remit = SiteConfig::cacheGetContent('manual_fast_remit_quota');
+        $userPayment->account_transfer_fee = SiteConfig::cacheGetContent('account_transfer_fee');
         $userPayment->remit_quota_pertime = $data['remit_quota_pertime'];
         $userPayment->save();
 

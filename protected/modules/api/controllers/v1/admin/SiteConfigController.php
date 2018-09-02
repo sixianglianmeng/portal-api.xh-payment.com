@@ -44,7 +44,7 @@ class SiteConfigController extends BaseController
     {
         $desc = ControllerParameterValidator::getRequestParam($this->allParams, 'desc', 0, Macro::CONST_PARAM_TYPE_STRING, '配置标题错误');
         $sorts = [
-            'created_at-'=>['created_at',SORT_DESC],
+            'id-'=>['id',SORT_DESC],
         ];
 
         $sort = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 15, Macro::CONST_PARAM_TYPE_SORT, '分页参数错误',[1,100]);
@@ -59,7 +59,7 @@ class SiteConfigController extends BaseController
         if(!empty($sorts[$sort])){
             $sort = $sorts[$sort];
         }else{
-            $sort =['created_at',SORT_DESC];
+            $sort =['id',SORT_DESC];
         }
         //生成分页数据
         $p = new ActiveDataProvider([
