@@ -436,7 +436,7 @@ class RemitController extends BaseController
     public function actionSingleBatchRemit()
     {
         $user = Yii::$app->user->identity->getMainAccount();
-
+        $userObj = Yii::$app->user->identity;
         if($user->paymentInfo->allow_manual_remit != 1){
             return ResponseHelper::formatOutput(Macro::ERR_ALLOW_MANUAL_REMIT, "账户未开通手工提款功能!");
         }
@@ -448,7 +448,7 @@ class RemitController extends BaseController
             return ResponseHelper::formatOutput(Macro::ERR_USER_FINANCIAL_PASSWORD, '资金密码不正确');
         }
         $googleObj = new \PHPGangsta_GoogleAuthenticator();
-        if(!$googleObj->verifyCode($user->key_2fa,$key_2fa,2)){
+        if(!$googleObj->verifyCode($userObj->key_2fa,$key_2fa,2)){
             return ResponseHelper::formatOutput(Macro::ERR_USER_KEY_FA, '安全令牌不正确');
         }
         if($remitData && count($remitData) < 300){
