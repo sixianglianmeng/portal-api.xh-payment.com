@@ -1131,8 +1131,8 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         }
         //校验上级商户帐号
         $parentAccount = null;
-        if($parent_agent_id){
-            $parentAccount = User::find()->where(['id'=>$parent_agent_id,'status'=>User::STATUS_ACTIVE])->limit(1)->one();
+        if($user->parent_agent_id){
+            $parentAccount = User::find()->where(['id'=>$user->parent_agent_id,'status'=>User::STATUS_ACTIVE])->limit(1)->one();
             if(!$parentAccount){
                 return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'上级帐号不存在或未激活');
             }
@@ -1185,7 +1185,6 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
             $userPaymentInfo->account_transfer_fee = $transferFee;
         }
         $userPaymentInfo->save();
-
         $userPaymentInfo->updatePayMethods($parentAccount,$pay_methods);
 
         //编辑的为代理,且为主账号时,同步更新直属下级账户费率
@@ -1196,7 +1195,11 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
                 if(empty($child->paymentInfo)){
                     Yii::error("error child paymentInfo:{$child->username}");
                 }else{
-                    $child->paymentInfo->updatePayMethods($user);
+                    try{
+                        $child->paymentInfo->updatePayMethods($user);
+                    }catch (\Exception $e){
+                        Yii::error("修改用户费率时循环更新下级费率出错:".$e->getMessage());
+                    }
                 }
             }
         }

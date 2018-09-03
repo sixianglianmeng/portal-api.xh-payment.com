@@ -7,6 +7,7 @@ use app\common\models\model\LogOperation;
 use app\common\models\model\SiteConfig;
 use app\common\models\model\User;
 use app\components\Macro;
+use app\components\RpcPaymentGateway;
 use app\components\Util;
 use app\lib\helpers\ControllerParameterValidator;
 use app\lib\helpers\ResponseHelper;
@@ -536,5 +537,43 @@ class UserController extends BaseController
         }
 
         return ResponseHelper::formatOutput(Macro::SUCCESS);
+    }
+
+    /**
+     * 转账
+     *
+     * @role admin,agent,merchant
+     */
+    public function actionTransfer()
+    {
+        $transferIn = ControllerParameterValidator::getRequestParam($this->allParams, 'transferIn', null, Macro::CONST_PARAM_TYPE_USERNAME, '转入用户名错误');
+        $amount = ControllerParameterValidator::getRequestParam($this->allParams, 'amount',null,Macro::CONST_PARAM_TYPE_DECIMAL,'金额错误');
+        $bak = ControllerParameterValidator::getRequestParam($this->allParams, 'bak','',Macro::CONST_PARAM_TYPE_STRING,'转账原因错误');
+
+        $user = Yii::$app->user->identity;
+        $mainAccount = $user->getMainAccount();
+
+        $financial_password_hash = ControllerParameterValidator::getRequestParam($this->allParams, 'financial_password_hash','',Macro::CONST_PARAM_TYPE_STRING,'资金密码必须在8位以上');
+        $key_2fa = ControllerParameterValidator::getRequestParam($this->allParams,'key_2fa','',Macro::CONST_PARAM_TYPE_INT,'验证码错误',[6]);
+        if(!$mainAccount->validateFinancialPassword($financial_password_hash)) {
+            return ResponseHelper::formatOutput(Macro::ERR_USER_FINANCIAL_PASSWORD, '资金密码不正确');
+        }
+        $googleObj = new \PHPGangsta_GoogleAuthenticator();
+        if(!$googleObj->verifyCode($user->key_2fa,$key_2fa,2)){
+            return ResponseHelper::formatOutput(Macro::ERR_USER_KEY_FA, '安全令牌不正确');
+        }
+
+        $userIn = User::findOne(['username'=>$transferIn]);
+        if(!$userIn){
+            return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'转入账户不存在');
+        }
+
+        if(bccomp($amount,$mainAccount->balance,6) === 1){
+            return ResponseHelper::formatOutput(Macro::ERR_BALANCE_NOT_ENOUGH,'账户余额不足');
+        }
+
+        RpcPaymentGateway::call('/account/transfer', ['transferOut'=>$mainAccount->username,'transferIn'=>$userIn->username,'amount'=>$amount,'bak'=>$bak]);
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'转账成功');
     }
 }

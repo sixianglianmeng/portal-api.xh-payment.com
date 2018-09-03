@@ -218,7 +218,6 @@ class AccountController extends BaseController
             $userPayment->allow_manual_fast_remit = SiteConfig::cacheGetContent('manual_fast_remit_quota');
             $userPayment->account_transfer_fee = SiteConfig::cacheGetContent('account_transfer_fee');
             $userPayment->remit_quota_pertime = $data['remit_quota_pertime'];
-            $userPayment->account_transfer_fee = SiteConfig::cacheGetContent('account_transfer_fee');
             $userPayment->save();
 
             //批量写入每种支付类型配置
