@@ -360,6 +360,7 @@ class AccountController extends BaseController
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
         $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,1000]);
         $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'userId', 0, Macro::CONST_PARAM_TYPE_INT, '商户id错误');
+        $username = ControllerParameterValidator::getRequestParam($this->allParams, 'username', '', Macro::CONST_PARAM_TYPE_USERNAME, '商户账户错误');
         $merchantId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId', 0, Macro::CONST_PARAM_TYPE_INT, '商户id错误');
         $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status','',Macro::CONST_PARAM_TYPE_INT,'状态错误',[0,100]);
         $remit = ControllerParameterValidator::getRequestParam($this->allParams, 'remit','',Macro::CONST_PARAM_TYPE_INT,'下发通道错误',[0,100]);
@@ -407,6 +408,9 @@ class AccountController extends BaseController
         }
         if($userId){
             $query->andwhere(['u.id' => $userId]);
+        }
+        if($username){
+            $query->andwhere(['u.username' => $username]);
         }
         if ($type != '') {
             $query->andwhere(['u.group_id' => $type]);
