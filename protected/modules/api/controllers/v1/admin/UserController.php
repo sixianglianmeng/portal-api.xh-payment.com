@@ -998,6 +998,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $userInfo['api_response_rule']           = $paymentInfo->api_response_rule;
         $userInfo['account_transfer_fee']           = $paymentInfo->account_transfer_fee;
         $userInfo['remit_fee_free_quota']           = $paymentInfo->remit_fee_free_quota;
+        $userInfo['sys_account_transfer_fee'] =  SiteConfig::cacheGetContent('account_transfer_fee');
 
         //处理代理
         if($user->all_parent_agent_id){

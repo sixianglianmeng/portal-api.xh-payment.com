@@ -289,7 +289,7 @@ class FinancialController extends BaseController
         }
 
         //生成分页数据
-        $fields = ['id','uid','username','event_id','amount','balance_before','balance','bak','event_id','status','event_type','created_at'];
+        $fields = ['id','uid','username','event_id','amount','balance_before','balance','bak','event_id','status','event_type','created_at','to_username'];
         $paginationData = LogicElementPagination::getPagination($query,$fields,$page-1,$perPage,$sort);
         $records=[];
         foreach ($paginationData['data'] as $i=>$d){
