@@ -1459,7 +1459,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
             try{
                 $auth->assign($role, $user->id);
             }catch (\Exception $e){
-                Yii::error("error assign merchant_check_remit: ".$e->getMessage());
+//                Yii::error("error assign merchant_check_remit: ".$e->getMessage());
             }
         }else{
             $auth->revoke($role, $this->id);
