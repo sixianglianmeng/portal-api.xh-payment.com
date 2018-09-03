@@ -86,8 +86,10 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             if($maxPrefixId<1000)  $maxPrefixId = mt_rand(1000,1500);
 
             $id = intval($uidPrefix.$maxPrefixId)+mt_rand(10,500);
+            Yii::info("create user {$this->username},uidPrefix {$uidPrefix},maxPrefixId {$maxPrefixId} rand uid {$id}");
             $exist = Yii::$app->db->createCommand("SELECT id from ".User::tableName()." WHERE id={$id}")->queryScalar();
             if($exist)  $id = $id+mt_rand(10,500);
+            Yii::info("create user {$this->username}, final rand uid {$id}");
             $this->id = $id;
         }
 
