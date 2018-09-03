@@ -627,11 +627,18 @@ class RemitController extends BaseController
             $query->andwhere(['bank_status' => $status]);
         }
 
-        //支持审核的商户普通订单列表,只显示已经审核过的订单
-        if($user->paymentInfo->can_check_remit_status && !$selfCheck){
-            $query->andwhere(['merchant_check_status' => [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED]]);
-        }
-
+        //只查询不需要商户审核,或者通过了商户审核的
+        $merchantCheckStatusCanBeShow = [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED];
+        $query->andFilterWhere([
+                'or',
+                ['need_merchant_check'=> 0],
+                [
+                    'and',
+                    'need_merchant_check=1',
+                    'merchant_check_status IN('.implode(',',$merchantCheckStatusCanBeShow).')'
+                ]
+            ]
+        );
 
         if($export==1 && $exportType){
             $fieldLabel = ["订单号","商户订单号","商户号","金额","状态","下单时间","成功时间"];
