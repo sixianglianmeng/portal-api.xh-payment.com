@@ -789,7 +789,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
      * @param int $uid 指定的uid,传0表示删除所有人缓存
      * return array
      */
-    public static function delPermissionCache($uid)
+    public static function delPermissionCache($uid=0)
     {
         if($uid){
             Yii::$app->redis->hdel(Macro::CACHE_HSET_USER_PERMISSION,$uid);
