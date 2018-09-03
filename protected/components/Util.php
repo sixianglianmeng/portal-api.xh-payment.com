@@ -119,6 +119,13 @@ class Util
 //                }
                 $exp = filter_var($val, FILTER_VALIDATE_FLOAT);
                 $exp = $exp !== false;
+                if($exp && $extRule){
+                    if(count($extRule)==2){
+                        $exp = $val>=$extRule[0] && $val<=$extRule[1];
+                    }elseif(count($extRule)==1){
+                        $exp = $val>=$extRule[0];
+                    }
+                }
                 break;
             case Macro::CONST_PARAM_TYPE_ORDER_NO:
                 $exp = "/^[0-9a-z_-]{10,24}$/i";

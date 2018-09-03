@@ -547,9 +547,12 @@ class UserController extends BaseController
     public function actionTransfer()
     {
         $transferIn = ControllerParameterValidator::getRequestParam($this->allParams, 'transferIn', null, Macro::CONST_PARAM_TYPE_USERNAME, '转入用户名错误');
-        $amount = ControllerParameterValidator::getRequestParam($this->allParams, 'amount',null,Macro::CONST_PARAM_TYPE_DECIMAL,'金额错误');
+        $amount = ControllerParameterValidator::getRequestParam($this->allParams, 'amount',null,Macro::CONST_PARAM_TYPE_DECIMAL,'金额错误',[0,1000000]);
         $bak = ControllerParameterValidator::getRequestParam($this->allParams, 'bak','',Macro::CONST_PARAM_TYPE_STRING,'转账原因错误');
 
+        if($amount<=0){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '金额错误');
+        }
         $user = Yii::$app->user->identity;
         $mainAccount = $user->getMainAccount();
 
