@@ -132,17 +132,17 @@ class RemitController extends BaseController
         }
 
         //只查询不需要商户审核,或者通过了商户审核的
-        $merchantCheckStatusCanBeShow = [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED];
-        $query->andFilterWhere([
-            'or',
-            ['need_merchant_check'=> 0],
-            [
-                'and',
-                'need_merchant_check=1',
-                'merchant_check_status IN('.implode(',',$merchantCheckStatusCanBeShow).')'
-            ]
-        ]
-        );
+//        $merchantCheckStatusCanBeShow = [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED];
+//        $query->andFilterWhere([
+//            'or',
+//            ['need_merchant_check'=> 0],
+//            [
+//                'and',
+//                'need_merchant_check=1',
+//                'merchant_check_status IN('.implode(',',$merchantCheckStatusCanBeShow).')'
+//            ]
+//        ]
+//        );
 
         if($export==1 && $exportType){
             $fieldLabel = ["订单号","商户订单号","商户号","商户账户","金额","银行","姓名","卡号","状态","时间","备注"];
@@ -212,6 +212,7 @@ class RemitController extends BaseController
             $records[$i]['amount'] = $d->amount;
             $records[$i]['remited_amount'] = $d->remited_amount;
             $records[$i]['merchant_check_status'] = $d->merchant_check_status;
+            $records[$i]['need_merchant_check'] = $d->need_merchant_check;
             $records[$i]['merchant_check_status_str'] = '-';
             if($d->need_merchant_check){
                 $records[$i]['merchant_check_status_str'] = Remit::ARR_MERCHANT_CHECK_STATUS[$d->merchant_check_status]??'-';
@@ -627,18 +628,21 @@ class RemitController extends BaseController
             $query->andwhere(['bank_status' => $status]);
         }
 
-        //只查询不需要商户审核,或者通过了商户审核的
-        $merchantCheckStatusCanBeShow = [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED];
-        $query->andFilterWhere([
-                'or',
-                ['need_merchant_check'=> 0],
-                [
-                    'and',
-                    'need_merchant_check=1',
-                    'merchant_check_status IN('.implode(',',$merchantCheckStatusCanBeShow).')'
+        if(!$selfCheck){
+            //只查询不需要商户审核,或者通过了商户审核的
+            $merchantCheckStatusCanBeShow = [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED];
+            $query->andFilterWhere([
+                    'or',
+                    ['need_merchant_check'=> 0],
+                    [
+                        'and',
+                        'need_merchant_check=1',
+                        'merchant_check_status IN('.implode(',',$merchantCheckStatusCanBeShow).')'
+                    ]
                 ]
-            ]
-        );
+            );
+        }
+
 
         if($export==1 && $exportType){
             $fieldLabel = ["订单号","商户订单号","商户号","金额","状态","下单时间","成功时间"];
