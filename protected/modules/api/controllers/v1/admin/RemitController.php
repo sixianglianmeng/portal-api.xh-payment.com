@@ -316,11 +316,11 @@ class RemitController extends BaseController
                 $failed[] = $remit->order_no;
                 continue;
             }
-
+            $oldChannelAccount = $remit->channelAccount;
             $remit->channel_id = $channelAccount->channel_id;
             $remit->channel_account_id = $channelAccount->id;
             $remit->channel_merchant_id = $channelAccount->merchant_id;
-            $remit->bank_ret = $remit->bank_ret.date('Ymd H:i:s')." {$user->username}切换通道{$remit->channelAccount->channel_name}->{$channelAccount->channel_name}\n";
+            $remit->bank_ret = $remit->bank_ret.date('Ymd H:i:s')." {$user->username}切换通道{$oldChannelAccount->channel_name}->{$channelAccount->channel_name}\n";
             $remit->save();
         }
         if($failed){
