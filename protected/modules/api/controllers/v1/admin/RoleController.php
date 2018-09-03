@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\api\controllers\v1\admin;
 
+use app\common\models\model\User;
 use app\components\Macro;
 use app\lib\helpers\ControllerParameterValidator;
 use app\lib\helpers\ResponseHelper;
@@ -264,6 +265,8 @@ class RoleController extends BaseController
 
         }
 
+        //刷新用户权限缓存
+        User::delPermissionCache();
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '更新成功');
     }
