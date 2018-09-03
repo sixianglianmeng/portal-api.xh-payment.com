@@ -547,6 +547,7 @@ class UserController extends BaseController
     public function actionTransfer()
     {
         $transferIn = ControllerParameterValidator::getRequestParam($this->allParams, 'transferIn', null, Macro::CONST_PARAM_TYPE_USERNAME, '转入用户名错误');
+        $transferInUid = ControllerParameterValidator::getRequestParam($this->allParams, 'transferInUid', null, Macro::CONST_PARAM_TYPE_INT, '转入商户号错误',[1000]);
         $amount = ControllerParameterValidator::getRequestParam($this->allParams, 'amount',null,Macro::CONST_PARAM_TYPE_DECIMAL,'金额错误',[0,1000000]);
         $bak = ControllerParameterValidator::getRequestParam($this->allParams, 'bak','',Macro::CONST_PARAM_TYPE_STRING,'转账原因错误');
 
@@ -566,7 +567,7 @@ class UserController extends BaseController
             return ResponseHelper::formatOutput(Macro::ERR_USER_KEY_FA, '安全令牌不正确');
         }
 
-        $userIn = User::findOne(['username'=>$transferIn]);
+        $userIn = User::findOne(['username'=>$transferIn,'id'=>$transferInUid]);
         if(!$userIn){
             return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'转入账户不存在');
         }
