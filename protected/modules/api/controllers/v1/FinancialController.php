@@ -310,9 +310,19 @@ class FinancialController extends BaseController
         }
 
         //格式化返回json结构
+        $typeOptions = Util::addAllLabelToOptionList(Financial::ARR_EVENT_TYPES, true);
+        //普通用户不显示分润类型
+        if($userObj->isMerchant()){
+            $typeOptionsDisableArr = [Financial::EVENT_TYPE_RECHARGE_BONUS,Financial::EVENT_TYPE_REMIT_BONUS,Financial::EVENT_TYPE_RECHARGE_BONUS_REFUND,Financial::EVENT_TYPE_REFUND_REMIT_BONUS];
+            foreach ($typeOptions as $tk=>$tv){
+                if(in_array($tv['id'],$typeOptionsDisableArr)){
+                    unset($typeOptions[$tk]);
+                }
+            }
+        }
         $data = [
             'options'=>[
-                'typeOptions'=> Util::addAllLabelToOptionList(Financial::ARR_EVENT_TYPES, true),
+                'typeOptions'=> $typeOptions,
             ],
             'data'=>$records,
             'summery'=>$summery,
