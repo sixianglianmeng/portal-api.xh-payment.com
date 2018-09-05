@@ -56,8 +56,7 @@ class FinancialController extends BaseController
 
         $orderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'orderNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'平台订单号错误',[0,32]);
 
-        $eventType = ControllerParameterValidator::getRequestParam($this->allParams, 'eventType','',Macro::CONST_PARAM_TYPE_INT,'订单状态错误',[0,100]);
-        $notifyStatus = ControllerParameterValidator::getRequestParam($this->allParams, 'notifyStatus','',Macro::CONST_PARAM_TYPE_INT,'通知状态错误',[0,100]);
+        $eventType = ControllerParameterValidator::getRequestParam($this->allParams, 'eventType','',Macro::CONST_PARAM_TYPE_ARRAY,'订单状态错误',[0,100]);
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
 
@@ -100,13 +99,8 @@ class FinancialController extends BaseController
         if($username){
             $query->andwhere(['username' => $username]);
         }
-        $summeryQuery = $query;
-        if($eventType!==''){
+        if($eventType){
             $query->andwhere(['event_type' => $eventType]);
-        }
-
-        if($notifyStatus!==''){
-            $query->andwhere(['notify_status' => $notifyStatus]);
         }
 
         if($export==1 && $exportType){
@@ -161,7 +155,7 @@ class FinancialController extends BaseController
         $sum = $query->select('event_type, sum(amount) as amount')->groupBy('event_type')->all();
         foreach ($sum as $s){
             $s = $s->toArray();
-            $s['event_type_str'] = Financial::getEventTypeStr($s['event_type']);//ARR_EVENT_TYPES[$s['event_type']]??'-';
+            $s['event_type_str'] = Financial::getEventTypeStr($s['event_type']);
             $summery[] = $s;
         }
 

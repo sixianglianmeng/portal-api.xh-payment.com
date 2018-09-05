@@ -68,9 +68,9 @@ class RemitController extends BaseController
         $merchantOrderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantOrderNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'商户订单号错误',[0,32]);
 //        $bankAccount = ControllerParameterValidator::getRequestParam($this->allParams, 'backAccount', '',Macro::CONST_PARAM_TYPE_CHINESE,'持卡人错误',[2,8]);
         $bankNo = ControllerParameterValidator::getRequestParam($this->allParams, 'bankNo', '',Macro::CONST_PARAM_TYPE_BANK_NO,'卡号错误');
-        $channelAccount = ControllerParameterValidator::getRequestParam($this->allParams, 'channelAccount','',Macro::CONST_PARAM_TYPE_INT,'通道号错误',[0,100]);
+        $channelAccount = ControllerParameterValidator::getRequestParam($this->allParams, 'channelAccount','',Macro::CONST_PARAM_TYPE_ARRAY,'通道号错误',[0,100]);
 
-        $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status','',Macro::CONST_PARAM_TYPE_INT,'订单状态错误',[0,100]);
+        $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status','',Macro::CONST_PARAM_TYPE_ARRAY,'订单状态错误',[0,100]);
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
         $minMoney = ControllerParameterValidator::getRequestParam($this->allParams, 'minMoney', '',Macro::CONST_PARAM_TYPE_DECIMAL,'最小金额输入错误');
@@ -128,7 +128,7 @@ class RemitController extends BaseController
         }
         $summeryQuery = $query;
 
-        if($status!==''){
+        if($status){
             $query->andwhere(['status' => $status]);
         }
 
