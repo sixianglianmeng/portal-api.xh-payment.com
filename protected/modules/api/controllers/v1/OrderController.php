@@ -621,18 +621,6 @@ class OrderController extends BaseController
         $summery['paid_amount'] = $summeryQuery->andwhere(['status' => [Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])->sum('paid_amount');
         $summery['paid_count'] = $summeryQuery->andwhere(['status' => [Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])->count('paid_amount');
 
-        //查询订单是否有调单记录
-        $trackOptions = [];
-        if(count($parentIds) > 0)
-            $trackOptions = ArrayHelper::map(Track::checkTrack($parentIds,'order'),'parent_id','num');
-
-        foreach($records as $key => $val){
-            if (isset($trackOptions[$val['id']])){
-                $records[$key]['track'] = 1;
-            }else{
-                $records[$key]['track'] = 0;
-            }
-        }
         //格式化返回json结构
 
         $data = [

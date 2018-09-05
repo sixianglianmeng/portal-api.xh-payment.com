@@ -7,6 +7,7 @@ use app\common\models\model\LogOperation;
 use app\common\models\model\Remit;
 use app\common\models\model\Track;
 use app\common\models\model\UploadedFile;
+use app\common\models\model\UserBlacklist;
 use app\common\models\model\UserPaymentInfo;
 use app\components\Macro;
 use app\components\RpcPaymentGateway;
@@ -199,10 +200,12 @@ class RemitController extends BaseController
         $channelAccountOptions[0] = '全部';
         //格式化返回记录数据
         $records=[];
-        $parentIds = [];
+        $parentIds = $pageOrderNoList= [];
         foreach ($p->getModels() as $i=>$d){
             $parentIds[$i] = $d->id;
             $records[$i]['id'] = $d->id;
+            $pageOrderNoList[] = $d->order_no;
+            $records[$i]['inBlackList'] = 0;
             $records[$i]['order_no'] = $d->order_no;
             $records[$i]['merchant_id'] = $d->merchant_id;
             $records[$i]['merchant_account'] = $d->merchant_account;
@@ -265,6 +268,18 @@ class RemitController extends BaseController
                 $records[$key]['track'] = 0;
             }
         }
+
+        if(count($pageOrderNoList) > 0){
+            $rawBlacklist = UserBlacklist::checkOrderNoInBalcklist($pageOrderNoList,2);
+            $blackList = ArrayHelper::map($rawBlacklist,'order_no','num');
+
+            foreach($records as $key => $val){
+                if (isset($blackList[$val['order_no']])){
+                    $records[$key]['inBlackList'] = 1;
+                }
+            }
+        }
+
         //格式化返回json结构
         $data = [
             'data'=>$records,
@@ -726,21 +741,10 @@ class RemitController extends BaseController
         //表格底部合计
         $summery['total'] = $pagination->totalCount;
         $summery['amount'] = $query->sum('amount');
-        $summery['success_amount'] = $summeryQuery->andwhere(['status' => Remit::STATUS_SUCCESS])->sum('remited_amount');
-        $summery['success_count'] = $summeryQuery->andwhere(['status' => Remit::STATUS_SUCCESS])->count('remited_amount');
+        $summeryQuery = $summeryQuery->andwhere(['status' => Remit::STATUS_SUCCESS]);
+        $summery['success_amount'] = $summeryQuery->sum('remited_amount');
+        $summery['success_count'] = $summeryQuery->count('remited_amount');
 
-        //查询订单是否有调单记录
-        $trackOptions = [];
-        if(count($parentIds) > 0)
-            $trackOptions = ArrayHelper::map(Track::checkTrack($parentIds,'remit'),'parent_id','num');
-
-        foreach($records as $key => $val){
-            if (isset($trackOptions[$val['id']])){
-                $records[$key]['track'] = 1;
-            }else{
-                $records[$key]['track'] = 0;
-            }
-        }
         //格式化返回json结构
         $statusOptions = ArrayHelper::merge([Macro::SELECT_OPTION_ALL=>'全部'],Remit::ARR_BANK_STATUS);
         $data = [

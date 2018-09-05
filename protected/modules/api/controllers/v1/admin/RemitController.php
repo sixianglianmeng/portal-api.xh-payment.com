@@ -4,6 +4,7 @@ namespace app\modules\api\controllers\v1\admin;
 use app\common\models\model\ChannelAccount;
 use app\common\models\model\LogOperation;
 use app\common\models\model\Remit;
+use app\common\models\model\UserBlacklist;
 use app\components\Macro;
 use app\components\RpcPaymentGateway;
 use app\lib\helpers\ControllerParameterValidator;
@@ -328,5 +329,60 @@ class RemitController extends BaseController
             $ret = Macro::FAIL;
         }
         return ResponseHelper::formatOutput($ret,$msg,['failed'=>$failed]);
+    }
+
+
+    /**
+     * 出款订单加入黑名单
+     * @admin
+     */
+    public function actionAddBlacklist()
+    {
+        $idList = ControllerParameterValidator::getRequestParam($this->allParams, 'idList', null, Macro::CONST_PARAM_TYPE_ARRAY, '订单ID错误');
+        $filter = $this->baseFilter;
+        $filter['id'] = $idList;
+
+        $query = (new \yii\db\Query())
+            ->select(['id','order_no','bank_no','merchant_id','merchant_account'])
+            ->from(Remit::tableName())
+            ->where($filter);
+        $rawOrders = $query->limit(1000)
+            ->all();
+
+        if(!$rawOrders || count($rawOrders)!=count($idList)){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '订单不存在');
+        }
+
+        $user = Yii::$app->user->identity;
+        $orderOpList = [];
+        foreach ($rawOrders as $order){
+            //接口日志埋点
+            Yii::$app->params['operationLogFields'] = [
+                'table'=>'p_orders',
+                'pk'=>$order['id'],
+                'order_no'=>$order['order_no'],
+            ];
+            LogOperation::inLog('ok');
+
+            $blaclist = UserBlacklist::findOne(['type'=>2,'val'=>$order['bank_no']]);
+            if(!$blaclist){
+                $data = [
+                    'type'=>3,
+                    'val'=>$order['bank_no'],
+                    'order_no'=>$order['order_no'],
+                    'order_type'=>2,
+                    'merchant_id'=>$order['merchant_id'],
+                    'merchant_name'=>$order['merchant_account'],
+                    'op_uid'=>$user->id,
+                    'op_username'=>$user->username,
+                ];
+                $blaclist = new UserBlacklist();
+                $blaclist->setAttributes($data,false);
+                $blaclist->save(false);
+            }
+        }
+
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS, "银行卡号{$order['bank_no']}成功加入黑名单");
     }
 }
