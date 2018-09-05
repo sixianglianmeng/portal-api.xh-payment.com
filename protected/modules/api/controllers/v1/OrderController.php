@@ -9,6 +9,7 @@ use app\common\models\model\Order;
 use app\common\models\model\SiteConfig;
 use app\common\models\model\Track;
 use app\common\models\model\User;
+use app\common\models\model\UserBlacklist;
 use app\components\Macro;
 use app\components\RpcPaymentGateway;
 use app\components\Util;
@@ -110,8 +111,8 @@ class OrderController extends BaseController
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
         $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,1000]);
 
-        $orderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'orderNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'平台订单号错误',[0,32]);
-        $merchantOrderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantOrderNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'商户订单号错误',[0,32]);
+        $orderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'orderNo', '',Macro::CONST_PARAM_TYPE_STRING,'平台订单号错误');
+        $merchantOrderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantOrderNo', '',Macro::CONST_PARAM_TYPE_STRING,'商户订单号错误');
         $merchantUsername = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantUserName', '',Macro::CONST_PARAM_TYPE_STRING,'用户名错误',[0,32]);
         $merchantNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'商户编号错误',[0,32]);
 
@@ -132,12 +133,19 @@ class OrderController extends BaseController
 
         $export = ControllerParameterValidator::getRequestParam($this->allParams, 'export',0,Macro::CONST_PARAM_TYPE_INT,'导出参数错误');
         $exportType = ControllerParameterValidator::getRequestParam($this->allParams, 'exportType','',Macro::CONST_PARAM_TYPE_ENUM,'导出类型错误',['csv','txt']);
+        $clientIp = ControllerParameterValidator::getRequestParam($this->allParams, 'client_ip', '',Macro::CONST_PARAM_TYPE_STRING,'ip错误');
+        $clientId = ControllerParameterValidator::getRequestParam($this->allParams, 'client_id', '',Macro::CONST_PARAM_TYPE_STRING,'设备号错误');
+        $checkInBlackList = ControllerParameterValidator::getRequestParam($this->allParams, 'checkInBlackList', '',Macro::CONST_PARAM_TYPE_STRING,'检测是否在黑名单错误');
 
         if(!empty($sorts[$sort])){
             $sort = $sorts[$sort];
         }else{
             $sort =['created_at',SORT_DESC];
         }
+
+        if($orderNo) $orderNo = explode(',',$orderNo);
+        if($clientIp) $clientIp = explode(',',$clientIp);
+        if($clientId) $clientId = explode(',',$clientId);
 
         //生成查询参数
         $filter = $this->baseFilter;
@@ -189,7 +197,13 @@ class OrderController extends BaseController
         if(!empty($notifyStatus)){
             $query->andwhere(['notify_status' => $notifyStatus]);
         }
-//        var_dump($query->createCommand()->getRawSql());
+        if(!empty($clientIp)){
+            $query->andwhere(['client_ip' => $clientIp]);
+        }
+        if(!empty($clientId)){
+            $query->andwhere(['client_id' => $clientId]);
+        }
+
         //生成分页数据
         $p = new ActiveDataProvider([
             'query' => $query,
@@ -246,10 +260,12 @@ class OrderController extends BaseController
         //格式化返回记录数据
 
         $records=[];
-        $parentIds=[];
+        $parentIds=$pageOrderNoList=[];
         foreach ($p->getModels() as $i=>$d){
             $records[$i]['id'] = $d->id;
             $parentIds[] = $d->id;
+            $pageOrderNoList[] = $d->order_no;
+            $records[$i]['inBlackList'] = 0;
             $records[$i]['order_no'] = $d->order_no;
             $records[$i]['merchant_order_no'] = $d->merchant_order_no;
             $records[$i]['merchant_account'] = $d->merchant_account;
@@ -267,6 +283,8 @@ class OrderController extends BaseController
             $records[$i]['created_at'] = date('Y-m-d H:i:s',$d->created_at);
             $records[$i]['notify_ret'] = $d->notify_ret;
             $records[$i]['bak'] = str_replace("\n",'<br />', $d->bak);
+            $records[$i]['client_ip'] = $d->client_ip;
+            $records[$i]['client_id'] = $d->client_id;
             $records[$i]['settlement_type'] = $d->settlement_type;
             $records[$i]['expect_settlement_at'] = date('Y-m-d H:i:s',$d->expect_settlement_at);
             $records[$i]['settlement_at'] = $d->settlement_at?date('Y-m-d H:i:s',$d->settlement_at):'';
@@ -311,6 +329,21 @@ class OrderController extends BaseController
                 $records[$key]['track'] = 0;
             }
         }
+
+        //查询订单是否在黑名单
+        if($checkInBlackList){
+            if(count($pageOrderNoList) > 0){
+                $rawBlacklist = UserBlacklist::checkOrderNoInBalcklist($pageOrderNoList,1);
+                $blackList = ArrayHelper::map($rawBlacklist,'order_no','num');
+
+                foreach($records as $key => $val){
+                    if (isset($blackList[$val['order_no']])){
+                        $records[$key]['inBlackList'] = 1;
+                    }
+                }
+            }
+        }
+
         //格式化返回json结构
         $data = [
             'data'=>$records,

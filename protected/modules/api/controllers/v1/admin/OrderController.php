@@ -3,6 +3,7 @@ namespace app\modules\api\controllers\v1\admin;
 
 use app\common\models\model\LogOperation;
 use app\common\models\model\Order;
+use app\common\models\model\UserBlacklist;
 use app\components\Macro;
 use app\components\RpcPaymentGateway;
 use app\components\Util;
@@ -73,26 +74,35 @@ class OrderController extends BaseController
      */
     public function actionFrozen()
     {
-        $id = ControllerParameterValidator::getRequestParam($this->allParams, 'id', null, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '订单ID错误');
-
+        $idList = ControllerParameterValidator::getRequestParam($this->allParams, 'idList', null, Macro::CONST_PARAM_TYPE_ARRAY, '订单ID错误');
         $filter = $this->baseFilter;
-        $filter['status'] = Order::STATUS_SETTLEMENT;
-        $filter['id'] = $id;
-//        $order = Order::findOne($filter);
-        $order = Order::find()->where($filter)->limit(1)->one();
-        if(!$order){
+        $filter['status'] = [Order::STATUS_SETTLEMENT];
+        $filter['id'] = $idList;
+
+        $query = (new \yii\db\Query())
+            ->select(['id','order_no','status'])
+            ->from(Order::tableName())
+            ->where($filter);
+        $rawOrders = $query->limit(1000)
+            ->all();
+
+        if(!$rawOrders || count($rawOrders)!=count($idList)){
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '订单不存在');
         }
 
-        //接口日志埋点
-        Yii::$app->params['operationLogFields'] = [
-            'table'=>'p_orders',
-            'pk'=>$order->id,
-            'order_no'=>$order->order_no,
-        ];
-
         $orderOpList = [];
-        $orderOpList[] = ['order_no'=>$order->order_no];
+        foreach ($rawOrders as $order){
+            //接口日志埋点
+            Yii::$app->params['operationLogFields'] = [
+                'table'=>'p_orders',
+                'pk'=>$order['id'],
+                'order_no'=>$order['order_no'],
+            ];
+            LogOperation::inLog('ok');
+
+            $orderOpList[] = ['order_no'=>$order['order_no']];
+        }
+
         RpcPaymentGateway::setOrderFrozen($orderOpList);
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '冻结成功');
@@ -282,5 +292,81 @@ class OrderController extends BaseController
 
         return ResponseHelper::formatOutput(Macro::SUCCESS,'结算成功');
     }
+
+    /**
+     * 充值订单加入黑名单
+     * @admin
+     */
+    public function actionAddBlacklist()
+    {
+        $idList = ControllerParameterValidator::getRequestParam($this->allParams, 'idList', null, Macro::CONST_PARAM_TYPE_ARRAY, '订单ID错误');
+        $filter = $this->baseFilter;
+        $filter['id'] = $idList;
+
+        $query = (new \yii\db\Query())
+            ->select(['id','order_no','client_ip','client_id','merchant_id','merchant_account'])
+            ->from(Order::tableName())
+            ->where($filter);
+        $rawOrders = $query->limit(1000)
+            ->all();
+
+        if(!$rawOrders || count($rawOrders)!=count($idList)){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '订单不存在');
+        }
+
+        $user = Yii::$app->user->identity;
+        $orderOpList = [];
+        foreach ($rawOrders as $order){
+            //接口日志埋点
+            Yii::$app->params['operationLogFields'] = [
+                'table'=>'p_orders',
+                'pk'=>$order['id'],
+                'order_no'=>$order['order_no'],
+            ];
+            LogOperation::inLog('ok');
+
+            $blaclist = UserBlacklist::findOne(['type'=>1,'val'=>$order['client_ip']]);
+            if(!$blaclist){
+                $data = [
+                    'type'=>1,
+                    'val'=>$order['client_ip'],
+                    'order_no'=>$order['order_no'],
+                    'order_type'=>1,
+                    'merchant_id'=>$order['merchant_id'],
+                    'merchant_name'=>$order['merchant_account'],
+                    'op_uid'=>$user->id,
+                    'op_username'=>$user->username,
+                ];
+                $blaclist = new UserBlacklist();
+                $blaclist->setAttributes($data,false);
+                $blaclist->save(false);
+            }
+
+            if($order['client_id']){
+                $blaclist = UserBlacklist::findOne(['type'=>2,'val'=>$order['client_id']]);
+                if(!$blaclist){
+                    $data = [
+                        'type'=>2,
+                        'val'=>$order['client_id'],
+                        'order_no'=>$order['order_no'],
+                        'order_type'=>1,
+                        'merchant_id'=>$order['merchant_id'],
+                        'merchant_name'=>$order['merchant_account'],
+                        'op_uid'=>$user->id,
+                        'op_username'=>$user->username,
+                    ];
+                    $blaclist = new UserBlacklist();
+                    $blaclist->setAttributes($datafalse);
+                    $blaclist->save(false);
+                }
+
+            }
+
+        }
+
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS, 'IP及设备ID成功加入黑名单');
+    }
+
 
 }

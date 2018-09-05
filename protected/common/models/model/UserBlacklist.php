@@ -10,10 +10,10 @@ use yii\db\ActiveRecord;
 class UserBlacklist extends BaseModel
 {
     //黑名单类型
-    const types = [
+    const ARR_TYPES = [
         1=>'IP',
         2=>'客户端id',
-        3=>'商户下uid',
+        3=>'银行卡号',
     ];
 
     public static function tableName()
@@ -22,7 +22,7 @@ class UserBlacklist extends BaseModel
     }
 
     public function behaviors() {
-        return [TimestampBehavior::className(),];
+        return [TimestampBehavior::class];
     }
 
     /**
@@ -31,5 +31,16 @@ class UserBlacklist extends BaseModel
     public function rules()
     {
         return [];
+    }
+
+
+    /**
+     * 检查订单是否在黑名单
+     */
+    public static function checkOrderNoInBalcklist($orderNoList,$orderType){
+        $filter = ['order_no'=>$orderNoList,'order_type'=>$orderType];
+        $query = self::find()->where($filter);
+        $query->groupBy('order_no');
+        return $query->select('order_no,count(id) as num')->asArray()->all();
     }
 }
