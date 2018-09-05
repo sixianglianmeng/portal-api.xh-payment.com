@@ -138,10 +138,6 @@ class ChannelController extends BaseController
 
         $accounts = $query->all();
 
-        $data['merchant_total_balance'] = (new \yii\db\Query())
-            ->select(['SUM(balance) AS balance', 'SUM(frozen_balance) AS frozen_balance'])
-            ->from(User::tableName())
-            ->One();
         $data['channel_total_balance'] = 0;
         //格式化返回记录数据
         $records=[];
@@ -150,13 +146,31 @@ class ChannelController extends BaseController
             $data['channel_total_balance'] = bcadd($data['channel_total_balance'],$a['balance'],6);
         }
         $data['list'] = $records;
-        //冻结余额暂时也算入利润
-        $data['total_profit'] = bcadd(bcsub($data['channel_total_balance'],$data['merchant_total_balance']['balance'],6),$data['merchant_total_balance']['frozen_balance'],2);
+
+        //冻结总余额
+        $data['merchant_total_balance']['frozen_balance'] = (new \yii\db\Query())
+            ->select(['SUM(frozen_balance) AS frozen_balance'])
+            ->from(User::tableName())
+            ->scalar();
+        //大于0的真实总余额
+        $data['merchant_total_balance']['balance'] = (new \yii\db\Query())
+            ->select(['SUM(balance) AS balance'])
+            ->from(User::tableName())
+            ->where(['>','balance',0])
+            ->scalar();
+        //负总余额
         $data['merchant_total_negative_balance'] = (new \yii\db\Query())
             ->select(['SUM(balance) AS balance'])
             ->from(User::tableName())
             ->where(['<','balance',0])
             ->scalar();
+
+        //冻结余额暂时也算入利润
+        $data['total_profit'] = bcadd(bcsub($data['channel_total_balance'],$data['merchant_total_balance']['balance'],6),$data['merchant_total_balance']['frozen_balance'],2);
+        //负数余额为亏损,
+        $data['total_profit'] = bcsub( $data['total_profit'],$data['merchant_total_negative_balance'],2);
+
+        $data['total_profit'] = bcsub($data['channel_total_balance'],$data['merchant_total_balance']['balance'],2);
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, $msg, $data);
     }
