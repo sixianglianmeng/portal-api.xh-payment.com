@@ -150,6 +150,13 @@ class ChannelController extends BaseController
             $data['channel_total_balance'] = bcadd($data['channel_total_balance'],$a['balance'],6);
         }
         $data['list'] = $records;
+        //冻结余额暂时也算入利润
+        $data['total_profit'] = bcadd(bcsub($data['channel_total_balance'],$data['merchant_total_balance']['balance'],6),$data['merchant_total_balance']['frozen_balance'],2);
+        $data['merchant_total_negative_balance'] = (new \yii\db\Query())
+            ->select(['SUM(balance) AS balance'])
+            ->from(User::tableName())
+            ->where(['<','balance',0])
+            ->scalar();
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, $msg, $data);
     }
