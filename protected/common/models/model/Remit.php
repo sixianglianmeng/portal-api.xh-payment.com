@@ -71,7 +71,7 @@ class Remit extends BaseModel
 
     const ARR_BANK_STATUS = [
         self::BANK_STATUS_NONE => '已受理',
-        self::STATUS_BANK_PROCESSING => '处理中',
+        self::BANK_STATUS_PROCESSING => '处理中',
         self::BANK_STATUS_SUCCESS => '出款成功',
         self::BANK_STATUS_FAIL => '出款失败',
     ];
