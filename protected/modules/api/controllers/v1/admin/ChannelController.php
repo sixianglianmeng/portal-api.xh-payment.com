@@ -76,7 +76,7 @@ class ChannelController extends BaseController
     public function actionAccountList()
     {
         $query = ChannelAccount::find();
-        $accounts = $query->all();
+        $accounts = $query->where( ['deleted_at'=>0])->all();
 
         //格式化返回记录数据
         $records=[];
@@ -178,6 +178,7 @@ class ChannelController extends BaseController
         $payType = 0;//ControllerParameterValidator::getRequestParam($this->allParams, 'pay_type',1,Macro::CONST_PARAM_TYPE_INT,'pay_type错误');
         $filter = ['status'=>ChannelAccount::STATUS_ACTIVE];
         $query = ChannelAccount::find()->where($filter);
+        $query->andwhere(['deleted_at'=>0]);
         if($payType){
             $query->andwhere(['like', 'methods', '"id":'.$payType.',']);
         }
@@ -266,7 +267,7 @@ class ChannelController extends BaseController
         $exisitAccount = ChannelAccount::findOne(['app_id'=>$channelAccount->app_id,'channel_id'=>$channelAccount->channel_id]);
         if($exisitAccount){
             if(($id && $exisitAccount->id!=$id) || !$id){
-                ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'渠道号已存在!');
+                return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'渠道号已存在!');
             }
         }
 
@@ -331,6 +332,25 @@ class ChannelController extends BaseController
         }
 
         return ResponseHelper::formatOutput(Macro::SUCCESS);
+    }
+
+
+    /**
+     * 渠道号软删除
+     */
+    public function actionAccountDelete()
+    {
+        $id = ControllerParameterValidator::getRequestParam($this->allParams, 'id', 0, Macro::CONST_PARAM_TYPE_INT, 'ID错误');
+        $account = ChannelAccount::findOne(['id'=>$id]);
+        if(!$account){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'渠道号不存在!');
+        }
+        $account->visible = 0;
+        $account->status = ChannelAccount::STATUS_BANED;
+        $account->deleted_at = time();
+        $account->save();
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS,"删除成功");
     }
 
     /**

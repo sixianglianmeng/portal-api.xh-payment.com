@@ -93,6 +93,7 @@ class RemitController extends BaseController
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天');
             $dateStart=$dateEnd-86400*31;
         }
+        $baseQuery = $query;
         if($dateStart){
             $query->andFilterCompare('created_at', '>='.$dateStart);
         }
@@ -111,12 +112,7 @@ class RemitController extends BaseController
         if($merchantAccount){
             $query->andwhere(['merchant_account' => $merchantAccount]);
         }
-        if($orderNo){
-            $query->andwhere(['order_no' => $orderNo]);
-        }
-        if($merchantOrderNo){
-            $query->andwhere(['merchant_order_no' => $merchantOrderNo]);
-        }
+
         if(!empty($channelAccount)){
             $query->andwhere(['channel_account_id' => $channelAccount]);
         }
@@ -130,6 +126,16 @@ class RemitController extends BaseController
 
         if($status){
             $query->andwhere(['status' => $status]);
+        }
+        //订单号查询情况下忽略其他条件
+        if($orderNo || $merchantNo) {
+            $query = $baseQuery;
+            if($orderNo){
+                $query->andwhere(['order_no' => $orderNo]);
+            }
+            if($merchantOrderNo){
+                $query->andwhere(['merchant_order_no' => $merchantOrderNo]);
+            }
         }
 
         //只查询不需要商户审核,或者通过了商户审核的
@@ -660,7 +666,7 @@ class RemitController extends BaseController
 
 
         if($export==1 && $exportType){
-            $fieldLabel = ["订单号","商户订单号","商户号","金额","状态","下单时间","成功时间"];
+            $fieldLabel = ["订单号","商户订单号","商户号","卡号","姓名","银行","金额","状态","下单时间","成功时间"];
             foreach ($fieldLabel as $fi=>&$fk){
                 $fk = mb_convert_encoding($fk,'GBK');
             }
@@ -669,8 +675,11 @@ class RemitController extends BaseController
             $rows = $query->limit(5000)->all();
             foreach ($rows as $i=>$d){
                 $record['order_no'] = "'".$d->order_no;
-                $record['merchant_order_no'] = $d->merchant_order_no;
+                $record['merchant_order_no'] = "'".$d->merchant_order_no;
                 $record['uid'] = $d->merchant_id;
+                $record['bank_no'] = "'".$d->bank_no;
+                $record['bank_account'] = mb_convert_encoding($d->bank_account,'GBK');
+                $record['bank_name'] = mb_convert_encoding(!empty($d->bank_name)?$d->bank_name:BankCodes::getBankNameByCode($d->bank_code),'GBK');
                 $record['amount'] = $d->amount;
                 $record['status_str'] = mb_convert_encoding($d->showStatusStr($d->status),'GBK');
                 $record['created_at'] = date('Y-m-d H:i:s',$d->created_at);

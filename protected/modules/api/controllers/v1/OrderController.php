@@ -113,6 +113,7 @@ class OrderController extends BaseController
 
         $orderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'orderNo', '',Macro::CONST_PARAM_TYPE_STRING,'平台订单号错误');
         $merchantOrderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantOrderNo', '',Macro::CONST_PARAM_TYPE_STRING,'商户订单号错误');
+        $channelOrderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'channelOrderNo', '',Macro::CONST_PARAM_TYPE_STRING,'渠道订单号错误');
         $merchantUsername = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantUserName', '',Macro::CONST_PARAM_TYPE_STRING,'用户名错误',[0,32]);
         $merchantNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'商户编号错误',[0,32]);
 
@@ -157,6 +158,7 @@ class OrderController extends BaseController
             $dateStart=$dateEnd-86400*31;
         }
 
+        $baseQuery = $query;
         if($dateStart){
             $query->andFilterCompare('created_at', '>='.$dateStart);
         }
@@ -168,12 +170,6 @@ class OrderController extends BaseController
         }
         if($maxMoney){
             $query->andFilterCompare('amount', '=<'.$maxMoney);
-        }
-        if($orderNo){
-            $query->andwhere(['order_no' => $orderNo]);
-        }
-        if($merchantOrderNo){
-            $query->andwhere(['merchant_order_no' => $merchantOrderNo]);
         }
         if($merchantUsername){
             $query->andwhere(['merchant_account' => $merchantUsername]);
@@ -202,6 +198,20 @@ class OrderController extends BaseController
         }
         if(!empty($clientId)){
             $query->andwhere(['client_id' => $clientId]);
+        }
+
+        //订单号查询情况下忽略其他条件
+        if($orderNo || $merchantNo || $channelOrderNo){
+            $query = $baseQuery;
+            if($orderNo){
+                $query->andwhere(['order_no' => $orderNo]);
+            }
+            if($merchantOrderNo){
+                $query->andwhere(['merchant_order_no' => $merchantOrderNo]);
+            }
+            if($channelOrderNo){
+                $query->andwhere(['channel_order_no' => $channelOrderNo]);
+            }
         }
 
         //生成分页数据
