@@ -447,7 +447,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
     {
         if($this->bind_login_ip){
             $ip = Util::getClientIp();
-            $allowIps = json_decode($this->bind_login_ip);
+            $allowIps = json_decode($this->bind_login_ip,true);
 
             if($allowIps && !in_array($ip,$allowIps)){
                 return false;
