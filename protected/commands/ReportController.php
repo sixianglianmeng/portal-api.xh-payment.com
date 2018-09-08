@@ -48,7 +48,7 @@ class ReportController extends \yii\console\Controller
     /**
      * 商户帐变日报
      *
-     * ./protected/yii report/daily-financial
+     * ./protected/yii report/daily-financial --day 20180907
      */
     public function actionDailyFinancial()
     {
@@ -208,7 +208,7 @@ class ReportController extends \yii\console\Controller
     /**
      * 商户代理收款订单日报
      *
-     * ./protected/yii report/daily-recharge
+     * ./protected/yii report/daily-recharge --day 20180907
      */
     public function actionDailyRecharge()
     {
@@ -292,7 +292,7 @@ WHERE d.user_id=os.user_id and d.date=os.date";
     /**
      * 渠道每日利润
      *
-     * ./protected/yii report/channel-daily-profit
+     * ./protected/yii report/channel-daily-profit --day 20180907
      */
     public function actionChannelDailyProfit()
     {
@@ -374,17 +374,25 @@ WHERE d.user_id=os.user_id and d.date=os.date";
             'remit_plat_fee_profit','remit_count','remit_total','recharge_channel_fee','remit_channel_fee','plat_sum'
         ];
 
+        Yii::$app->db->createCommand()->delete(ReportChannelProfitDaily::tableName(), "date={$day}")->execute();
         foreach ($reports as $i=>$d){
+//            echo json_encode($d,JSON_UNESCAPED_UNICODE).PHP_EOL;
             foreach ($fields as $f){
-                if(!isset($reports[$i][$f])) $reports[$i][$f]=0;
+
+                if(!isset($reports[$i][$f])){
+//                    echo "no {$i},{$f}\n";
+                    $reports[$i][$f]=0;
+                }
             }
 
             //当天渠道结余
             $reports[$i]['plat_sum'] =  bcsub($reports[$i]['recharge_total'],bcadd(bcadd($reports[$i]['remit_total'],$reports[$i]['recharge_channel_fee']),$reports[$i]['remit_channel_fee']));
+            $newReportChannelProfitDaily = new ReportChannelProfitDaily();
+            $newReportChannelProfitDaily->setAttributes($reports[$i],false);
+            $newReportChannelProfitDaily->save(false);
         }
-
-        Yii::$app->db->createCommand()->delete(ReportChannelProfitDaily::tableName(), "date={$day}")->execute();
-        $okCount = Yii::$app->db->createCommand()->batchInsert(ReportChannelProfitDaily::tableName(),$fields,$reports)->execute();
+        //批量写入字段对齐有问题,无法将值对应到对应字段
+//        $okCount = Yii::$app->db->createCommand()->batchInsert(ReportChannelProfitDaily::tableName(),$fields,$reports)->execute();
 
         $this->actionReconciliation();
     }
@@ -393,7 +401,7 @@ WHERE d.user_id=os.user_id and d.date=os.date";
     /**
      * 渠道对账
      *
-     * ./protected/yii report/reconciliation
+     * ./protected/yii report/reconciliation --day 20180907
      */
     public function actionReconciliation()
     {
