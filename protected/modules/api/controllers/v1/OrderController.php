@@ -201,7 +201,7 @@ class OrderController extends BaseController
         }
 
         //订单号查询情况下忽略其他条件
-        if($orderNo || $merchantNo || $channelOrderNo){
+        if($orderNo || $merchantOrderNo || $channelOrderNo){
             $query = $baseQuery;
             if($orderNo){
                 $query->andwhere(['order_no' => $orderNo]);
@@ -278,6 +278,8 @@ class OrderController extends BaseController
             $records[$i]['inBlackList'] = 0;
             $records[$i]['order_no'] = $d->order_no;
             $records[$i]['merchant_order_no'] = $d->merchant_order_no;
+            $records[$i]['channel_order_no'] = $d->channel_order_no;
+            //$records[$i]['final_channel_order_no'] = $d->final_channel_order_no;
             $records[$i]['merchant_account'] = $d->merchant_account;
             $records[$i]['merchant_id'] = $d->merchant_id;
             $records[$i]['amount'] = $d->amount;
