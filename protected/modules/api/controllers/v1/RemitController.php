@@ -128,7 +128,7 @@ class RemitController extends BaseController
             $query->andwhere(['status' => $status]);
         }
         //订单号查询情况下忽略其他条件
-        if($orderNo || $merchantNo) {
+        if($orderNo || $merchantOrderNo) {
             $query = $baseQuery;
             if($orderNo){
                 $query->andwhere(['order_no' => $orderNo]);
