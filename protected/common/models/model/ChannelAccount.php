@@ -157,4 +157,8 @@ class ChannelAccount extends BaseModel
     {
         return self::ARR_STATUS[$this->status]??'-';
     }
+
+    public function afterSave($insert, $changeAttributes) {
+       Yii::$app->redis->set("tb:".Yii::$app->db->schema->getRawTableName(ChannelAccount::tableName()).":{$this->channel_id}_{$this->merchant_id}",json_encode($this->toArray()));
+    }
 }

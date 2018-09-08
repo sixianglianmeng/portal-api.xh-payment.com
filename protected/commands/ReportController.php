@@ -355,7 +355,6 @@ WHERE d.user_id=os.user_id and d.date=os.date";
             if(empty($reports[$d['channel_account_id']])){
                 $reports[$d['channel_account_id']]['date'] = $day;
                 $reports[$d['channel_account_id']]['recharge_total'] = 0;
-                $reports[$d['channel_account_id']]['recharge_amount'] = 0;
                 $reports[$d['channel_account_id']]['recharge_count'] = 0;
                 $reports[$d['channel_account_id']]['channel_account_name'] = $d['channel_account_name'];
                 $reports[$d['channel_account_id']]['channel_account_id'] = $d['channel_account_id'];

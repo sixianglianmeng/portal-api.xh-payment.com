@@ -247,7 +247,7 @@ class OrderController extends BaseController
                 $record['bank_name']           = mb_convert_encoding(BankCodes::getBankNameByCode($d->bank_code), 'GBK');
                 $record['status_str']          = mb_convert_encoding($d->getStatusStr(), 'GBK');
                 $record['created_at']          = date('Y-m-d H:i:s', $d->created_at);
-                $record['bak']                 = $d->bak;
+                $record['bak']                 = mb_convert_encoding($d->bak, 'GBK');
                 $records[]                     = $record;
             }
 
