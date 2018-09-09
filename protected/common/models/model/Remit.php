@@ -64,7 +64,7 @@ class Remit extends BaseModel
         self::STATUS_BANK_PROCESSING   => '银行处理中',
         self::STATUS_SUCCESS           => '成功已出款',
         self::STATUS_REFUND            => '失败已退款',
-        self::STATUS_NOT_REFUND        => '失败未退款',
+        self::STATUS_NOT_REFUND        => '提交失败',
         self::STATUS_BANK_NET_FAIL     => '提交银行失败',
         self::STATUS_BANK_PROCESS_FAIL => '银行处理失败',
     ];

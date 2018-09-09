@@ -1059,7 +1059,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
 
     /**
      * 修改商户安全资料
-     * 1-清除资金密码 2- 解绑安全令牌 3-修改商户状态 4-修改商户邮箱
+     * 1-清除资金密码 2- 解绑安全令牌 3-修改商户状态 4-修改商户邮箱 4-重置密码
      */
     public function actionClearUnbindUpdate()
     {
