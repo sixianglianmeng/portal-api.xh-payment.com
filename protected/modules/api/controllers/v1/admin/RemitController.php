@@ -99,7 +99,7 @@ class RemitController extends BaseController
     }
 
     /**
-     * 管理员同步提款状态
+     * 管理员实时查看订单上游状态
      * @role admin
      */
     public function actionSyncStatusRealtime()
