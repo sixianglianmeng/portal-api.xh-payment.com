@@ -95,7 +95,7 @@ class RemitController extends BaseController
 
         $ret = RpcPaymentGateway::syncRemitStatus(0,[$order->order_no]);
 
-        return ResponseHelper::formatOutput(Macro::SUCCESS, str_replace("\n","<br/>",$ret['message']));
+        return ResponseHelper::formatOutput(Macro::SUCCESS, "订单处理成功");
     }
 
     /**
