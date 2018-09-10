@@ -93,6 +93,33 @@ class RemitController extends BaseController
             'order_no'=>$order->order_no,
         ];
 
+        $ret = RpcPaymentGateway::syncRemitStatus(0,[$order->order_no]);
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS, str_replace("\n","<br/>",$ret['message']));
+    }
+
+    /**
+     * 管理员同步提款状态
+     * @role admin
+     */
+    public function actionSyncStatusRealtime()
+    {
+        $id = ControllerParameterValidator::getRequestParam($this->allParams, 'id', null, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '订单ID错误');
+
+        $filter = $this->baseFilter;
+        $filter['id'] = $id;
+        $order = Remit::find()->where($filter)->limit(1)->one();
+        if(!$order){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '订单不存在');
+        }
+
+        //接口日志埋点
+        Yii::$app->params['operationLogFields'] = [
+            'table'=>'p_remit',
+            'pk'=>$order->id,
+            'order_no'=>$order->order_no,
+        ];
+
         $orderOpList = [];
         $orderOpList[] = ['order_no'=>$order->order_no];
         $ret = RpcPaymentGateway::syncRemitStatusRealtime($order->order_no);
@@ -122,7 +149,7 @@ class RemitController extends BaseController
             'order_no'=>$order->order_no,
         ];
 
-        if(!in_array($order->status,[Remit::STATUS_BANK_PROCESSING, Remit::STATUS_CHECKED,  Remit::STATUS_DEDUCT, Remit::STATUS_NOT_REFUND])){
+        if(!in_array($order->status,[Remit::STATUS_BANK_PROCESSING, Remit::STATUS_CHECKED,  Remit::STATUS_DEDUCT, Remit::STATUS_NOT_REFUND, Remit::STATUS_BANK_NET_FAIL, Remit::STATUS_BANK_PROCESS_FAIL])){
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '订单状态必须是已审核|已扣款|处理中|失败未退款:'.$order->status);
         }
 
