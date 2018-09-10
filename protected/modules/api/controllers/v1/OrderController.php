@@ -227,9 +227,12 @@ class OrderController extends BaseController
                 ]
             ],
         ]);
+        //获取渠道号 为筛选和订单详情准备数据
+        $channelAccountOptions = ArrayHelper::map(ChannelAccount::getALLChannelAccount(), 'id', 'channel_name');
+        $channelAccountOptions[0] = '全部';
 
         if($export==1 && $exportType){
-            $fieldLabel = ["订单号","商户订单号","商户号","商户账户","金额","支付类型","银行","状态","时间","备注"];
+            $fieldLabel = ["订单号","商户订单号","渠道订单号","最终订单号","通道名称","商户号","商户账户","金额","支付类型","银行","状态","时间","备注"];
             foreach ($fieldLabel as $fi=>&$fk){
                 $fk = mb_convert_encoding($fk,'GBK');
             }
@@ -237,18 +240,20 @@ class OrderController extends BaseController
             $records[] = $fieldLabel;
             $rows = $query->limit(5000)->all();
             foreach ($rows as $i => $d) {
-                $record['order_no']          = "'" . $d->order_no;
-                $record['merchant_order_no'] = "'" . $d->merchant_order_no;
-//                $record['channel_order_no'] = $d->channel_order_no;
-                $record['uid']                 = $d->merchant_id;
-                $record['username']            = mb_convert_encoding($d->merchant_account, 'GBK');
-                $record['amount']              = $d->amount;
-                $record['pay_method_code_str'] = mb_convert_encoding(Channel::getPayMethodsStr($d->pay_method_code), 'GBK');
-                $record['bank_name']           = mb_convert_encoding(BankCodes::getBankNameByCode($d->bank_code), 'GBK');
-                $record['status_str']          = mb_convert_encoding($d->getStatusStr(), 'GBK');
-                $record['created_at']          = date('Y-m-d H:i:s', $d->created_at);
-                $record['bak']                 = mb_convert_encoding($d->bak, 'GBK');
-                $records[]                     = $record;
+                $record['order_no']               = "'" . $d->order_no;
+                $record['merchant_order_no']      = "'" . $d->merchant_order_no;
+                $record['channel_order_no']      = "'" . $d->channel_order_no;
+                $record['final_channel_order_no'] = "'" . $d->final_channel_order_no;
+                $record['channel_name']           = $channelAccountOptions[$d->channel_account_id];
+                $record['uid']                    = $d->merchant_id;
+                $record['username']               = mb_convert_encoding($d->merchant_account, 'GBK');
+                $record['amount']                 = $d->amount;
+                $record['pay_method_code_str']    = mb_convert_encoding(Channel::getPayMethodsStr($d->pay_method_code), 'GBK');
+                $record['bank_name']              = mb_convert_encoding(BankCodes::getBankNameByCode($d->bank_code), 'GBK');
+                $record['status_str']             = mb_convert_encoding($d->getStatusStr(), 'GBK');
+                $record['created_at']             = date('Y-m-d H:i:s', $d->created_at);
+                $record['bak']                    = mb_convert_encoding($d->bak, 'GBK');
+                $records[]                        = $record;
             }
 
             $outFilename='收款订单明细-'.date('YmdHi').'.'.$exportType;
@@ -264,11 +269,7 @@ class OrderController extends BaseController
             exit;
         }
 
-//        获取渠道号 为筛选和订单详情准备数据
-        $channelAccountOptions = ArrayHelper::map(ChannelAccount::getALLChannelAccount(), 'id', 'channel_name');
-        $channelAccountOptions[0] = '全部';
         //格式化返回记录数据
-
         $records=[];
         $parentIds=$pageOrderNoList=[];
         foreach ($p->getModels() as $i=>$d){
@@ -279,7 +280,7 @@ class OrderController extends BaseController
             $records[$i]['order_no'] = $d->order_no;
             $records[$i]['merchant_order_no'] = $d->merchant_order_no;
             $records[$i]['channel_order_no'] = $d->channel_order_no;
-            //$records[$i]['final_channel_order_no'] = $d->final_channel_order_no;
+            $records[$i]['final_channel_order_no'] = $d->final_channel_order_no;
             $records[$i]['merchant_account'] = $d->merchant_account;
             $records[$i]['merchant_id'] = $d->merchant_id;
             $records[$i]['amount'] = $d->amount;
