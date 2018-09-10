@@ -145,7 +145,7 @@ class RoleController extends BaseController
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 100]);
         $page    = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 1000]);
 
-        $name = ControllerParameterValidator::getRequestParam($this->allParams, 'name', null, Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE, '名称错误', [1, 64]);
+        $name = ControllerParameterValidator::getRequestParam($this->allParams, 'name', null, Macro::CONST_PARAM_TYPE_STRING, '名称错误', [1, 64]);
 
         $auth = \Yii::$app->authManager;
 
@@ -240,7 +240,7 @@ class RoleController extends BaseController
     public function actionUpdatePermissions()
     {
 
-        $name = ControllerParameterValidator::getRequestParam($this->allParams, 'name', null, Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE, '名称错误', [1, 64]);
+        $name = ControllerParameterValidator::getRequestParam($this->allParams, 'name', null, Macro::CONST_PARAM_TYPE_STRING, '名称错误', [1, 64]);
         $permissions = ControllerParameterValidator::getRequestParam($this->allParams, 'permissions', null, Macro::CONST_PARAM_TYPE_ARRAY, '权限错误');
 
         $auth = \Yii::$app->authManager;

@@ -66,6 +66,7 @@ class RemitController extends BaseController
         $merchantAccount = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantAccount', '',Macro::CONST_PARAM_TYPE_USERNAME,'商户账号错误',[2,16]);
         $orderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'orderNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'结算订单号错误',[0,32]);
         $merchantOrderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantOrderNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'商户订单号错误',[0,32]);
+        $channelOrderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'channelOrderNo', '',Macro::CONST_PARAM_TYPE_STRING,'渠道订单号错误');
 //        $bankAccount = ControllerParameterValidator::getRequestParam($this->allParams, 'backAccount', '',Macro::CONST_PARAM_TYPE_CHINESE,'持卡人错误',[2,8]);
         $bankNo = ControllerParameterValidator::getRequestParam($this->allParams, 'bankNo', '',Macro::CONST_PARAM_TYPE_BANK_NO,'卡号错误');
         $channelAccount = ControllerParameterValidator::getRequestParam($this->allParams, 'channelAccount','',Macro::CONST_PARAM_TYPE_ARRAY,'通道号错误',[0,100]);
@@ -128,13 +129,16 @@ class RemitController extends BaseController
             $query->andwhere(['status' => $status]);
         }
         //订单号查询情况下忽略其他条件
-        if($orderNo || $merchantOrderNo) {
+        if($orderNo || $merchantOrderNo || $channelOrderNo) {
             $query = $baseQuery;
             if($orderNo){
                 $query->andwhere(['order_no' => $orderNo]);
             }
             if($merchantOrderNo){
                 $query->andwhere(['merchant_order_no' => $merchantOrderNo]);
+            }
+            if($channelOrderNo){
+                $query->andwhere(['channel_order_no' => $channelOrderNo]);
             }
         }
 
