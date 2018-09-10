@@ -548,7 +548,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
      */
     public function validateKey2fa(string $key2fa){
         if(!$this->checkKey2faIsSet()){
-            throw new OperationFailureException('请先设置安全密码',Macro::FAIL);
+            throw new OperationFailureException('请先设置安全令牌',Macro::FAIL);
         }
 
         $cacheKey = 'validateKey2fa_ret_'.$this->id;
@@ -559,7 +559,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
             $limitData = json_decode($limitData,true);
             if(isset($limitData['ts']) && $limitData['ts']>(time()-$limitDuration)){
                 if(isset($limitData['times']) && $limitData['times']>=$maxTime){
-                    throw new OperationFailureException('安全密码失败次数过多，请稍候重试或联系客服。',Macro::FAIL);
+                    throw new OperationFailureException('安全令牌失败次数过多，请稍候重试或联系客服。',Macro::FAIL);
                 }
             }
         }else{
