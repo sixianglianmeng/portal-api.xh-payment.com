@@ -27,10 +27,12 @@ class Channel extends BaseModel
     const METHOD_BANK_TRANSFER = 'BANKTRANS';
     const METHOD_ALIPAY_TRANSFER = 'ALITRANS';
     const METHOD_WECHAT_TRANSFER = 'WXTRANS';
+    const METHOD_WEBBANK_NC = 'WYNC';
 
     const ARR_METHOD = [
         self::METHOD_WEBBANK    => '网银',
         self::METHOD_BANK_QUICK => '网银快捷',
+        self::METHOD_WEBBANK_NC => '网银内充',
 
         self::METHOD_WECHAT_QR      => '微信扫码',
         self::METHOD_WECHAT_H5      => '微信H5',
@@ -73,6 +75,7 @@ class Channel extends BaseModel
         self::METHOD_BANK_TRANSFER    => 'bankTransfer',
         self::METHOD_ALIPAY_TRANSFER  => 'alipayTransfer',
         self::METHOD_WECHAT_TRANSFER  => 'wechatTransfer',
+        self::METHOD_WEBBANK_NC       => 'webBankNc',
     ];
 
     public static function tableName()
