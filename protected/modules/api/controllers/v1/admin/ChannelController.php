@@ -84,6 +84,7 @@ class ChannelController extends BaseController
         $channelSecretTemplates = ArrayHelper::map(Channel::find()->select('id,app_secrets_template')->asArray()->all(), 'id', 'app_secrets_template');
 
         foreach ($accounts as $i=>$a){
+            $records[$i] = $a->toArray();
             $records[$i]['id'] = $a->id;
             $records[$i]['channel_name'] = $a->channel_name;
             $records[$i]['parent_name'] = $a->channel->name;
@@ -334,25 +335,6 @@ class ChannelController extends BaseController
         return ResponseHelper::formatOutput(Macro::SUCCESS);
     }
 
-
-    /**
-     * 渠道号软删除
-     */
-    public function actionAccountDelete()
-    {
-        $id = ControllerParameterValidator::getRequestParam($this->allParams, 'id', 0, Macro::CONST_PARAM_TYPE_INT, 'ID错误');
-        $account = ChannelAccount::findOne(['id'=>$id]);
-        if(!$account){
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'渠道号不存在!');
-        }
-        $account->visible = 0;
-        $account->status = ChannelAccount::STATUS_BANED;
-        $account->deleted_at = time();
-        $account->save();
-
-        return ResponseHelper::formatOutput(Macro::SUCCESS,"删除成功");
-    }
-
     /**
      * 三方渠道编辑
      *
@@ -375,5 +357,23 @@ class ChannelController extends BaseController
         $channel->save(false);
 
         return ResponseHelper::formatOutput(Macro::SUCCESS);
+    }
+
+    /**
+     * 渠道号软删除
+     */
+    public function actionAccountDelete()
+    {
+        $id = ControllerParameterValidator::getRequestParam($this->allParams, 'id', 0, Macro::CONST_PARAM_TYPE_INT, 'ID错误');
+        $account = ChannelAccount::findOne(['id'=>$id]);
+        if(!$account){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'渠道号不存在!');
+        }
+        $account->visible = 0;
+        $account->status = ChannelAccount::STATUS_BANED;
+        $account->deleted_at = time();
+        $account->save();
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS,"删除成功");
     }
 }

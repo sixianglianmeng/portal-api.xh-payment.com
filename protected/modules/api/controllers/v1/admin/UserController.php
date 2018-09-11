@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\api\controllers\v1\admin;
 
+use app\common\exceptions\OperationFailureException;
 use app\common\models\model\AccountOpenFee;
 use app\common\models\model\Channel;
 use app\common\models\model\ChannelAccount;
@@ -439,25 +440,25 @@ class UserController extends BaseController
         if(empty($switchPayChannelForm['payMethodId'])
             || empty($switchPayChannelForm['rechargeChannelId'])
         ){
-            throw new \Exception('请选择正确的收款方式和收款通道');
+            throw new OperationFailureException('请选择正确的收款方式和收款通道');
         }
         foreach ($switchPayChannelForm['payMethodId'] as $pmi){
             if(empty(Channel::ARR_METHOD[$pmi])){
-                throw new \Exception("请选择正确的收款方式,{$pmi}不存在");
+                throw new OperationFailureException("请选择正确的收款方式,{$pmi}不存在");
             }
         }
 
 //        || empty(Channel::ARR_METHOD[$switchPayChannelForm['payMethodId']])
         $channelAccount = ChannelAccount::findOne(['id'=>$switchPayChannelForm['rechargeChannelId']]);
         if(!$channelAccount){
-            throw new \Exception('选择的收款通道不存在');
+            throw new OperationFailureException('选择的收款通道不存在');
         }
 
 //        var_dump($switchPayChannelForm['payMethodId']);
 //        exit;
 //        $channelAccountMethod = $channelAccount->getPayMethodById($switchPayChannelForm['payMethodId']);
 //        if(!$channelAccountMethod){
-//            throw new \Exception('选择的收款方式和收款通道不匹配');
+//            throw new OperationFailureException('选择的收款方式和收款通道不匹配');
 //        }
 
         //生成查询参数
@@ -465,10 +466,10 @@ class UserController extends BaseController
         //查询条件不能为空
         if(
             count($searchFilter['subUpdateFilter'])<=1 //默认 1=1
-         || count($searchFilter['updateFilter'])<=2 //默认 u.group_id!=10 AND parent_merchant_id=0
+         && count($searchFilter['updateFilter'])<=2 //默认 u.group_id!=10 AND parent_merchant_id=0
         ){
-            Yii::error("切换收款通道条件错误: ".json_encode($this->allParams));
-            throw new \Exception('商户筛选条件不能为空，请刷新页面重试');
+            //Yii::error("切换收款通道条件错误: ".json_encode($this->allParams)." ".json_encode($searchFilter));
+            throw new OperationFailureException('商户筛选条件不能为空，请刷新页面重试');
         }
         //添加payMethodId条件是因为一个up.app_id对应多个method_id及一个商户有多个支付方式。
         //为了筛选出只有payMethodId的p_merchant_recharge_methods表记录，防止GROUP BY up.app_id的时候获取到的通道ID不是要切换的，最终导致切换错误。
@@ -732,7 +733,7 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
 //        $channelAccount = ChannelAccount::findOne(['id'=>$remitId]);
         $channelAccount = ChannelAccount::find()->where(['id'=>$remitId])->limit(1)->one();
         if(!$channelAccount){
-            throw new \Exception('选择的收款通道不存在');
+            throw new OperationFailureException('选择的收款通道不存在');
         }
         $searchFilter = $this->getSearchFilter();
 
@@ -777,7 +778,7 @@ WHERE rm.id=c.id";
 //        $tag = Tag::findOne(['id'=>$tagIdSwitchTo]);
         $tag = Tag::find()->where(['id'=>$tagIdSwitchTo])->limit(1)->one();
         if(!$tag){
-            throw new \Exception('分组标签不存不在');
+            throw new OperationFailureException('分组标签不存不在');
         }
 
         $searchFilter = $this->getSearchFilter();
@@ -847,7 +848,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
 
         $tag = Tag::findOne(['name'=>$tagName]);
         if($tag) {
-            throw new \Exception('标签已经存在!');
+            throw new OperationFailureException('标签已经存在!');
         }
 
         $tag = new Tag();
@@ -1295,7 +1296,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
                 foreach ($parentMinRate as $k => $cmr) {
                     if ($pm['id'] == $cmr->method_id && $pm['status'] == '1') {
                         if ($pm['rate'] < $cmr->fee_rate) {
-                            throw new \Exception("收款渠道费率不能低于上级费率(" . Channel::ARR_METHOD[$pm['id']] . ":{$cmr->fee_rate})");
+                            throw new OperationFailureException("收款渠道费率不能低于上级费率(" . Channel::ARR_METHOD[$pm['id']] . ":{$cmr->fee_rate})");
                         }
                         //提前计算好需要给上级的分润比例
                         $allMids = [];
@@ -1318,7 +1319,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
             $methodConfig->payment_info_id = $userPaymentInfo->id;
             $methodConfig->parent_method_config_id = $pm['parent_method_config_id'];
             $methodConfig->all_parent_method_config_id = $pm['all_parent_method_config_id'];
-        $methodConfig->parent_recharge_rebate_rate = $pm['parent_recharge_rebate_rate'];
+            $methodConfig->parent_recharge_rebate_rate = $pm['parent_recharge_rebate_rate'];
             $methodConfig->status = ($pm['status']==MerchantRechargeMethod::STATUS_ACTIVE)?MerchantRechargeMethod::STATUS_ACTIVE:MerchantRechargeMethod::STATUS_INACTIVE;
             $methodConfig->fee_rate = $pm['rate'];
             $methodConfig->save();
