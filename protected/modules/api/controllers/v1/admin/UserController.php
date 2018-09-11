@@ -1192,7 +1192,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         //编辑的为代理,且为主账号时,同步更新直属下级账户费率
         if($user->group_id == User::GROUP_AGENT && $user->isMainAccount()){
 //            $children = User::getAllAgentChildren($user->id);
-            $children = User::findAll(['parent_agent_id'=>$user->id]);
+            $children = User::findAll(['parent_agent_id'=>$user->id,'parent_merchant_id'=>0]);
             foreach ($children as $child) {
                 if(empty($child->paymentInfo)){
                     Yii::error("error child paymentInfo:{$child->username}");
