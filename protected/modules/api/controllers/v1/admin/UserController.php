@@ -1195,14 +1195,17 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
             $children = User::findAll(['parent_agent_id'=>$user->id,'parent_merchant_id'=>0]);
             foreach ($children as $child) {
                 if(empty($child->paymentInfo)){
-                    Yii::error("error child paymentInfo:{$child->username}");
-                }else{
-                    try{
-                        $child->paymentInfo->updatePayMethods($user);
-                    }catch (\Exception $e){
-                        Yii::error("修改用户费率时循环更新下级费率出错:".$e->getMessage());
-                    }
+//                    Yii::error("error child paymentInfo:{$child->username}");
+                    //bug,没有user payment 信息,重新进行初始化
+                    $child->addUserPaymentInfo(['remit_fee'=>$userPaymentInfo->remit_fee]);
                 }
+
+                try{
+                    $child->paymentInfo->updatePayMethods($user);
+                }catch (\Exception $e){
+                    Yii::error("修改用户费率时循环更新下级费率出错:".$e->getMessage());
+                }
+
             }
         }
         return ResponseHelper::formatOutput(Macro::SUCCESS);

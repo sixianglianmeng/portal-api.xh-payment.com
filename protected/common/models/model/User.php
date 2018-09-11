@@ -833,4 +833,34 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
 
         return $ret;
     }
+
+    /**
+     * 初始化用户支付配置记录
+     *
+     * @param array $payInfo 用户支付配置
+     */
+    public function addUserPaymentInfo($payInfo=[]){
+        $userPayment = new UserPaymentInfo();
+        $data['user_id'] = $this->id;
+        $data['username'] = $this->username;
+        $data['app_key_md5'] = Util::uuid('uuid');
+        $data['app_id'] = $this->id;
+        $data['remit_fee_rebate'] = 0;
+        $data['remit_fee'] = 1;
+        $data['recharge_quota_pertime'] = 0;
+        $data['remit_quota_pertime'] = 0;
+        $data['allow_api_recharge'] = 0;
+        $data['allow_manual_recharge'] = 0;
+        $data['allow_api_remit'] = 0;
+        $data['allow_manual_remit'] = 0;
+        $data['allow_api_fast_remit'] = SiteConfig::cacheGetContent('api_fast_remit_quota');
+        $data['allow_manual_fast_remit'] = SiteConfig::cacheGetContent('manual_fast_remit_quota');
+        $data['account_transfer_fee'] = SiteConfig::cacheGetContent('account_transfer_fee');
+        $data['remit_quota_pertime'] = 0;
+        $data = array_merge($data,$payInfo);
+        $userPayment->setAttributes($data,false);
+        $userPayment->save();
+
+        return $userPayment;
+    }
 }

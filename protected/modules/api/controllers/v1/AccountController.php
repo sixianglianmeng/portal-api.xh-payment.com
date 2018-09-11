@@ -1092,6 +1092,11 @@ class AccountController extends BaseController
         }
         $paymentObj->fee_rate = $rate;
         $paymentObj->save();
+
+        //重新计算商户返点等信息
+        $merchantPayIfno = UserPaymentInfo::findOne(['user_id'=>$merchantId]);
+        $merchantPayIfno->updatePayMethods($mainAccount);
+
         return ResponseHelper::formatOutput(Macro::SUCCESS,'操作成功');
     }
 }
