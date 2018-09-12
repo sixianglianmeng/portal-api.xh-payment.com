@@ -2,6 +2,7 @@
 namespace app\modules\api\controllers\v1;
 
 use app\common\models\model\Channel;
+use app\common\models\model\ChannelAccount;
 use app\common\models\model\Notice;
 use app\common\models\model\Remit;
 use app\common\models\model\UserPaymentInfo;
@@ -150,7 +151,7 @@ class DashboardController extends BaseController
             $data['user']['remit_yesterday_total_fail'] = $remitYesterdaySuccess['total'] ?? 0;
             $data['user']['remit_yesterday_amount_fail'] = $remitYesterdaySuccess['amount'] ?? 0;
         }
-//        Yii::info('user----',$data['user']);
+//        Yii::info('user----',$data['user'])
         $data['rate'] = UserPaymentInfo::getPayMethodsArrByAppId($user->id);
         $data['remit_fee'] = $user->paymentInfo->remit_fee;
         $data['payMethodOptions'] = Channel::ARR_METHOD;
