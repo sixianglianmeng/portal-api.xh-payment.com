@@ -106,7 +106,7 @@ class FinancialController extends BaseController
         //订单号查询情况下忽略其他条件
         if($orderNo) {
             $query->where=[];
-            $query->andwhere(['order_no' => $orderNo]);
+            $query->andwhere(['event_id' => $orderNo]);
         }
 
         if($export==1 && $exportType){
