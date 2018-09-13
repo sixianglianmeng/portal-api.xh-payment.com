@@ -44,7 +44,7 @@ class EchartsController extends BaseController
         if (!$list) return ResponseHelper::formatOutput(Macro::SUCCESS,'',[]);
         $data = [];
         foreach ($list as $val){
-            list($date,$time) = $val['times'];
+            list($date,$time) = explode(" ",$val['times']);
             $data[$date][$time] = $val['amount'];
         }
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
