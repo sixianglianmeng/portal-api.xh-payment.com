@@ -88,6 +88,7 @@ class Remit extends BaseModel
     ];
 
     const STATUS_LIST_PROCESSING = [
+        self::STATUS_NONE,
         self::STATUS_NOT_REFUND,
         self::STATUS_CHECKED,
         self::STATUS_DEDUCT,
