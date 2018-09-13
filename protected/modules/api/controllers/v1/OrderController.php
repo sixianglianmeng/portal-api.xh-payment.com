@@ -158,7 +158,6 @@ class OrderController extends BaseController
             $dateStart=$dateEnd-86400*31;
         }
 
-        $baseQuery = $query;
         if($dateStart){
             $query->andFilterCompare('created_at', '>='.$dateStart);
         }
@@ -202,7 +201,7 @@ class OrderController extends BaseController
 
         //订单号查询情况下忽略其他条件
         if($orderNo || $merchantOrderNo || $channelOrderNo){
-            $query = $baseQuery;
+            $query->where=[];
             if($orderNo){
                 $query->andwhere(['order_no' => $orderNo]);
             }

@@ -103,6 +103,12 @@ class FinancialController extends BaseController
             $query->andwhere(['event_type' => $eventType]);
         }
 
+        //订单号查询情况下忽略其他条件
+        if($orderNo) {
+            $query->where=[];
+            $query->andwhere(['order_no' => $orderNo]);
+        }
+
         if($export==1 && $exportType){
             $fieldLabel = ["订单号","商户号","商户账户","项目类型","变动前余额","金额","当前余额","状态","时间","备注"];
             foreach ($fieldLabel as $fi=>&$fk){

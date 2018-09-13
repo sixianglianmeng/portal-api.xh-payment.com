@@ -94,7 +94,6 @@ class RemitController extends BaseController
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天');
             $dateStart=$dateEnd-86400*31;
         }
-        $baseQuery = $query;
         if($dateStart){
             $query->andFilterCompare('created_at', '>='.$dateStart);
         }
@@ -130,7 +129,7 @@ class RemitController extends BaseController
         }
         //订单号查询情况下忽略其他条件
         if($orderNo || $merchantOrderNo || $channelOrderNo) {
-            $query = $baseQuery;
+            $query->where=[];
             if($orderNo){
                 $query->andwhere(['order_no' => $orderNo]);
             }
@@ -141,19 +140,6 @@ class RemitController extends BaseController
                 $query->andwhere(['channel_order_no' => $channelOrderNo]);
             }
         }
-
-        //只查询不需要商户审核,或者通过了商户审核的
-//        $merchantCheckStatusCanBeShow = [Remit::MERCHANT_CHECK_STATUS_CHECKED,Remit::MERCHANT_CHECK_STATUS_DENIED];
-//        $query->andFilterWhere([
-//            'or',
-//            ['need_merchant_check'=> 0],
-//            [
-//                'and',
-//                'need_merchant_check=1',
-//                'merchant_check_status IN('.implode(',',$merchantCheckStatusCanBeShow).')'
-//            ]
-//        ]
-//        );
 
         if($export==1 && $exportType){
             $fieldLabel = ["订单号","商户订单号","商户号","商户账户","金额","银行","姓名","卡号","状态","时间","备注"];
