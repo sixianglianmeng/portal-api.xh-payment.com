@@ -207,8 +207,8 @@ class Order extends BaseModel
     public static function totalChargeAmount($where)
     {
         $query = self::find();
-        $query->andFilterCompare('settlement_at','>='.$where['start_time']);
-        $query->andFilterCompare('settlement_at','<='.$where['end_time']);
+        $query->andFilterCompare('settlement_at','>='.strtotime($where['start_time']));
+        $query->andFilterCompare('settlement_at','<='.strtotime($where['end_time']));
         $query->andWhere(['status'=>self::STATUS_SETTLEMENT]);
         $amount = $query->sum('paid_amount');
         return empty($amount) ? 0 : $amount;
