@@ -198,4 +198,19 @@ class Order extends BaseModel
 
         return $order[0];
     }
+
+    /**
+     * 统计每小时充值金额
+     * @param $where
+     * @return int|mixed
+     */
+    public static function totalChargeAmount($where)
+    {
+        $query = self::find();
+        $query->andFilterCompare('settlement_at','>='.$where['start_time']);
+        $query->andFilterCompare('settlement_at','<='.$where['end_time']);
+        $query->andWhere(['status'=>self::STATUS_SETTLEMENT]);
+        $amount = $query->sum('paid_amount');
+        return empty($amount) ? 0 : $amount;
+    }
 }
