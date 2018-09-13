@@ -37,7 +37,7 @@ class EchartsController extends BaseController
         $query->andWhere(['status'=>Order::STATUS_SETTLEMENT]);
 //        $query->groupBy("from_unixtime(`settlement_at`,'%Y%m%d%H')");
         $query->groupBy = "from_unixtime(`settlement_at`,'%Y%m%d %H')";
-        $query->select("sum(`paid_amount`) as amount,from_unixtime(settlement_at,'%Y%m%d%H') as times");
+        $query->select = "sum(`paid_amount`) as amount,from_unixtime(`settlement_at`,'%Y%m%d%H') as times";
         $list = $query->asArray()->all();
         $sql = $query->createCommand()->getRawSql();
         $data = [];
