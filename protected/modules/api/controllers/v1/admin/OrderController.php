@@ -377,10 +377,10 @@ class OrderController extends BaseController
     {
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
-
-        $startTime = empty($dateStart) ? strtotime('-4 days',strtotime(date("Y-m-d"))) : strtotime($dateStart);
-        $endTime = empty($dateEnd) ? strtotime(date("Y-m-d")) : strtotime($dateEnd);
-        if(($endTime-$startTime)>86400*4){
+        $startTime = empty($dateStart) ? strtotime('-4 days',strtotime(date("Y-m-d"))) : strtotime(date("Y-m-d",strtotime($dateStart)));
+        $endTime = empty($dateEnd) ? strtotime(date("Y-m-d")) : strtotime(date("Y-m-d",strtotime($dateEnd)));
+        $days = ($endTime - $startTime) / (24*3600) ;
+        if($days > 4){
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过4天');
         }
         $timeArray = [
@@ -409,7 +409,6 @@ class OrderController extends BaseController
             22=>['date_start'=>'22:00:00','date_end'=>'22:59:59'],
             23=>['date_start'=>'23:00:00','date_end'=>'23:59:59']
         ];
-        $days = ($endTime - $startTime) / (24*3600) ;
         $data = [];
         for($i = 0 ;$i < $days ;$i++){
             $dayTime = date("Y-m-d",strtotime("-{$i} days"));
@@ -419,7 +418,6 @@ class OrderController extends BaseController
                 $data[$dayTime][$key] = Order::totalChargeAmount($where);
             }
         }
-
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
 
