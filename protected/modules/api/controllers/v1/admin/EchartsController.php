@@ -37,8 +37,8 @@ class EchartsController extends BaseController
         $query->andFilterCompare('settlement_at','>='.$startTime);
         $query->andFilterCompare('settlement_at','<='.$endTime);
         $query->andWhere(['status'=>Order::STATUS_SETTLEMENT]);
-        $query->select(new Expression("sum(`paid_amount`) as amount,from_unixtime(`settlement_at`,'%Y-%m-%d %H') as times"));
-        $query->groupBy(new Expression("from_unixtime(`settlement_at`,'%Y%m%d%H')"));
+        $query->select(new Expression("sum(`paid_amount`) as amount,from_unixtime(`settlement_at`,'%y-%m-%d %H') as times"));
+        $query->groupBy(new Expression("from_unixtime(`settlement_at`,'%y%m%d%H')"));
         $list = $query->asArray()->all();
         if (!$list) return ResponseHelper::formatOutput(Macro::SUCCESS,'',[]);
         $chartData = [];
