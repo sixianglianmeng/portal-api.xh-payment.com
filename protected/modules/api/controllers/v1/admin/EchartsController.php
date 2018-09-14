@@ -53,11 +53,11 @@ class EchartsController extends BaseController
                 }
             }
         }
-        foreach ($chartData as $key => $val){
-            foreach ($val as $value){
-                $data[$key][] = $value;
-            }
-        }
+//        foreach ($chartData as $key => $val){
+//            foreach ($val as $value){
+//                $data[$key][] = $value;
+//            }
+//        }
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
 }
