@@ -47,12 +47,12 @@ class EchartsController extends BaseController
         foreach ($list as $val){
             list($date,$time) = explode(" ",$val['times']);
             $chartData[$date][$time] = $val['amount'];
-            $tmpTime[] = $time;
+            $tmpTime[$date][] = $time;
         }
         $data = [];
         foreach ($chartData as $key => $val){
             foreach ($tmp as $tmpVal){
-                if(!in_array($tmpVal,$tmpTime)){
+                if(!in_array($tmpVal,$tmpTime[$key])){
                     $val[$tmpVal] = 0;
                 }
             }
