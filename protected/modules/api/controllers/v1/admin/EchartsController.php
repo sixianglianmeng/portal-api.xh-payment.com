@@ -48,8 +48,8 @@ class EchartsController extends BaseController
             foreach ($tmp as $tmpVal){
                 if (!isset($chartData[$date][$tmpVal])){
                     $chartData[$date][$tmpVal] = 0;
-                }else if ($time == $tmpVal){
-                    $chartData[$date][$tmpVal] = $val['amount'];
+                }elseif($tmpVal == (string)$time){
+                    $chartData[$date][(string)$tmpVal] = $val['amount'];
                 }
             }
         }
