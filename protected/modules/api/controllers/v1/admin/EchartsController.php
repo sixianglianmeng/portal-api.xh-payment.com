@@ -41,17 +41,17 @@ class EchartsController extends BaseController
         $query->groupBy(new Expression("from_unixtime(`settlement_at`,'%Y%m%d%H')"));
         $list = $query->asArray()->all();
         if (!$list) return ResponseHelper::formatOutput(Macro::SUCCESS,'',[]);
-        $data = [];
+        $chartData = [];
         foreach ($list as $val){
             $tmp = ['00' => 0 , '01' => 0 , '02' => 0 , '03' => 0 , '04' => 0 , '05' => 0 , '06' => 0 , '07' => 0 , '08' => 0 , '09' => 0 , '10' => 0 , '11' => 0 , '12' => 0 , '13' => 0,'14' => 0 ,'15' => 0 ,'16' => 0 ,'17' => 0 ,'18' => 0 ,'19' => 0 ,'20' => 0,'21' => 0 ,'22' => 0 ,'23' => 0];
             list($date,$time) = explode(" ",$val['times']);
             $tmp[$time] = $val['amount'];
-            $data[$date] = $tmp;
+            $chartData[$date] = $tmp;
         }
-        $chartData = [];
-        foreach ($data as $key => $val){
+        $data = [];
+        foreach ($chartData as $key => $val){
             foreach ($val as $value){
-                $chartData[$key][] = $value;
+                $data[$key][] = $value;
             }
         }
 
@@ -60,6 +60,6 @@ class EchartsController extends BaseController
 //        $data['2018-09-13'] = ["1042847.62", "324156.39", "324878.52", "180085.00", "214001.75", "177087.90", "259895.04", "1330923.61", "3049007.72", "2956231.97", "3075395.27", "3778228.01", "3341839.14", "4529695.05", "4024294.83", "4185795.08", "3356373.75", "3356332.78", "3016910.81", "3017963.43", "2795871.18", "1320512.08", "1887223.95", "1524706.97"];
 //        $data['2018-09-14'] = ["1017278.55", "42579.12", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"];
 
-        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$chartData);
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
 }
