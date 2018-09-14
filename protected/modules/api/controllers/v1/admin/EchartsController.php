@@ -46,6 +46,7 @@ class EchartsController extends BaseController
         foreach ($list as $val){
             list($date,$time) = explode(" ",$val['times']);
             foreach ($tmp as $tmpVal){
+                echo $time.'==='.$tmpVal;
                 if (!isset($chartData[$date][$tmpVal])){
                     $chartData[$date][$tmpVal] = 0;
                 }else if ($time == $tmpVal){
@@ -53,11 +54,11 @@ class EchartsController extends BaseController
                 }
             }
         }
-//        foreach ($chartData as $key => $val){
-//            foreach ($val as $value){
-//                $data[$key][] = $value;
-//            }
-//        }
-        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$list);
+        foreach ($chartData as $key => $val){
+            foreach ($val as $value){
+                $data[$key][] = $value;
+            }
+        }
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
 }
