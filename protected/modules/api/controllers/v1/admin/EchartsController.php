@@ -42,27 +42,20 @@ class EchartsController extends BaseController
         $list = $query->asArray()->all();
         if (!$list) return ResponseHelper::formatOutput(Macro::SUCCESS,'',[]);
         $chartData = [];
-        $tmpTime= [];
         $tmp = ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23'];
         foreach ($list as $val){
             list($date,$time) = explode(" ",$val['times']);
-            $chartData[$date][$time] = $val['amount'];
-            $tmpTime[$date][] = $time;
-        }
-        $data = [];
-        foreach ($chartData as $key => $val){
             foreach ($tmp as $tmpVal){
-                if(!in_array($tmpVal,$tmpTime[$key])){
-                    $chartData[$key][$tmpVal] = 0;
+                if (!isset($chartData[$date][$tmpVal])){
+                    $chartData[$date][$tmpVal] = 0;
+                }else if ($time == $tmpVal){
+                    $chartData[$date][$time] = $val['amount'];
                 }
             }
         }
-
         foreach ($chartData as $key => $val){
-            $i = 0;
             foreach ($val as $value){
-                $data[$key][$i] = $value;
-                $i++;
+                $data[$key][] = $value;
             }
         }
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
