@@ -58,6 +58,6 @@ class EchartsController extends BaseController
 //                $data[$key][] = $value;
 //            }
 //        }
-        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$chartData);
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$list);
     }
 }
