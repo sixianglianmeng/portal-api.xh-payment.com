@@ -31,7 +31,7 @@ class EchartsController extends BaseController
         $endTime = empty($dateEnd) ? strtotime(date("Y-m-d 23:59:59")) : strtotime(date("Y-m-d 23:59:59",strtotime($dateEnd)));
         $days = (strtotime(date("Y-m-d",$endTime)) - strtotime(date("Y-m-d",$startTime))) / (24*3600) ;
         if($days > 15){
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过4天');
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过15天',[]);
         }
         $query = Order::find();
         $query->andFilterCompare('settlement_at','>='.$startTime);
@@ -40,7 +40,7 @@ class EchartsController extends BaseController
         $query->select(new Expression("sum(`paid_amount`) as amount,from_unixtime(`settlement_at`,'%y-%m-%d %H') as times"));
         $query->groupBy(new Expression("from_unixtime(`settlement_at`,'%Y%m%d%H')"));
         $list = $query->asArray()->all();
-        if (!$list) return ResponseHelper::formatOutput(Macro::SUCCESS,'',[]);
+        if (!$list) return ResponseHelper::formatOutput(Macro::SUCCESS,'未查询到充值数据，请检查查询条件',[]);
         $chartData = [];
         $tmp = ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23'];
         foreach ($list as $val){
