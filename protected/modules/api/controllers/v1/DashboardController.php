@@ -9,6 +9,7 @@ use app\common\models\model\UserPaymentInfo;
 use app\modules\gateway\models\logic\LogicOrder;
 use Yii;
 use yii\data\ActiveDataProvider;
+use yii\db\Expression;
 use yii\helpers\ArrayHelper;
 use app\lib\helpers\ResponseHelper;
 use app\lib\helpers\ControllerParameterValidator;
@@ -159,6 +160,65 @@ class DashboardController extends BaseController
         $data['needPayAccountOpenAmount'] = 0;
         if($data['needPayAccountOpenFee']){
             $data['needPayAccountOpenAmount'] = $user->accountOpenFeeInfo->fee;
+        }
+        $data['charts']['charge'] = [];
+        $data['charts']['remit'] = [];
+        if($data['isMainAccount']) {
+            $queryOrder = Order::find();
+            $queryOrder->andFilterCompare('settlement_at', '>=' . strtotime(date("Y-m-d 00:00:00")));
+            $queryOrder->andFilterCompare('settlement_at', '<=' . strtotime(date("Y-m-d 23:59:59")));
+            $queryOrder->andWhere(['status' => Order::STATUS_SETTLEMENT]);
+            $queryOrder->andWhere(['merchant_id' => $user->id]);
+            $queryOrder->select(new Expression("sum(`paid_amount`) as amount,from_unixtime(`settlement_at`,'%y-%m-%d %H') as times"));
+            $queryOrder->groupBy(new Expression("from_unixtime(`settlement_at`,'%Y%m%d%H')"));
+            $listOrder = $queryOrder->asArray()->all();
+            $tmp = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'];
+            if (!empty($listOrder)) {
+                $chartData = [];
+                foreach ($listOrder as $val) {
+                    list($date, $time) = explode(" ", $val['times']);
+                    foreach ($tmp as $tmpVal) {
+                        if (!isset($chartData[$date][$tmpVal])) {
+                            $chartData['charge'][$tmpVal] = 0;
+                        }
+                        if ($tmpVal == (string)$time) {
+                            $chartData['charge'][(string)$tmpVal] = $val['amount'];
+                        }
+                    }
+                }
+                foreach ($chartData as $key => $val) {
+                    foreach ($val as $value) {
+                        $data['charts'][$key][] = $value;
+                    }
+                }
+            }
+            $queryRemit = Remit::find();
+            $queryRemit->andFilterCompare('remit_at', '>=' . strtotime(date("Y-m-d 00:00:00")));
+            $queryRemit->andFilterCompare('remit_at', '<=' . strtotime(date("Y-m-d 23:59:59")));
+            $queryRemit->andWhere(['status' => Remit::STATUS_SUCCESS]);
+            $queryRemit->andWhere(['merchant_id' => $user->id]);
+            $queryRemit->select(new Expression("sum(`remited_amount`) as amount,from_unixtime(`remit_at`,'%y-%m-%d %H') as times"));
+            $queryRemit->groupBy(new Expression("from_unixtime(`remit_at`,'%Y%m%d%H')"));
+            $listRemit = $queryRemit->asArray()->all();
+            if (!empty($listRemit)) {
+                $chartData = [];
+                foreach ($listRemit as $val) {
+                    list($date, $time) = explode(" ", $val['times']);
+                    foreach ($tmp as $tmpVal) {
+                        if (!isset($chartData[$date][$tmpVal])) {
+                            $chartData['remit'][$tmpVal] = 0;
+                        }
+                        if ($tmpVal == (string)$time) {
+                            $chartData['remit'][(string)$tmpVal] = $val['amount'];
+                        }
+                    }
+                }
+                foreach ($chartData as $key => $val) {
+                    foreach ($val as $value) {
+                        $data['charts'][$key][] = $value;
+                    }
+                }
+            }
         }
         //格式化返回json结构
 //        $data = [];
