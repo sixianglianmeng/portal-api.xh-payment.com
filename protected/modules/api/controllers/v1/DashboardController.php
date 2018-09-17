@@ -179,16 +179,16 @@ class DashboardController extends BaseController
                     list($date, $time) = explode(" ", $val['times']);
                     foreach ($tmp as $tmpVal) {
                         if (!isset($chartData[$date][$tmpVal])) {
-                            $chartData['charge'][$tmpVal] = 0;
+                            $chartData[$date][$tmpVal] = 0;
                         }
                         if ($tmpVal == (string)$time) {
-                            $chartData['charge'][(string)$tmpVal] = $val['amount'];
+                            $chartData[$date][(string)$tmpVal] = $val['amount'];
                         }
                     }
                 }
                 foreach ($chartData as $key => $val) {
                     foreach ($val as $value) {
-                        $data['charts'][$key][] = $value;
+                        $data['charts']['charge'][] = $value;
                     }
                 }
             }
@@ -197,7 +197,7 @@ class DashboardController extends BaseController
             $queryRemit->andFilterCompare('remit_at', '<=' . strtotime(date("Y-m-d 23:59:59")));
             $queryRemit->andWhere(['status' => Remit::STATUS_SUCCESS]);
             $queryRemit->andWhere(['merchant_id' => $user->id]);
-            $queryRemit->select(new Expression("sum(`remited_amount`) as amount,from_unixtime(`remit_at`,'%y-%m-%d %H') as times"));
+            $queryRemit->select(new Expression("sum(`amount`) as amount,from_unixtime(`remit_at`,'%y-%m-%d %H') as times"));
             $queryRemit->groupBy(new Expression("from_unixtime(`remit_at`,'%Y%m%d%H')"));
             $listRemit = $queryRemit->asArray()->all();
             if (!empty($listRemit)) {
@@ -206,16 +206,16 @@ class DashboardController extends BaseController
                     list($date, $time) = explode(" ", $val['times']);
                     foreach ($tmp as $tmpVal) {
                         if (!isset($chartData[$date][$tmpVal])) {
-                            $chartData['remit'][$tmpVal] = 0;
+                            $chartData[$date][$tmpVal] = 0;
                         }
                         if ($tmpVal == (string)$time) {
-                            $chartData['remit'][(string)$tmpVal] = $val['amount'];
+                            $chartData[$date][(string)$tmpVal] = $val['amount'];
                         }
                     }
                 }
                 foreach ($chartData as $key => $val) {
                     foreach ($val as $value) {
-                        $data['charts'][$key][] = $value;
+                        $data['charts']['remit'][] = $value;
                     }
                 }
             }
