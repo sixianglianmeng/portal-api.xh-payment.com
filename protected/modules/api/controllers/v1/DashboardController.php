@@ -161,65 +161,9 @@ class DashboardController extends BaseController
         if($data['needPayAccountOpenFee']){
             $data['needPayAccountOpenAmount'] = $user->accountOpenFeeInfo->fee;
         }
-        $data['charts']['charge'] = [];
-        $data['charts']['remit'] = [];
-        if($data['isMainAccount']) {
-            $queryOrder = Order::find();
-            $queryOrder->andFilterCompare('settlement_at', '>=' . strtotime(date("Y-m-d 00:00:00")));
-            $queryOrder->andFilterCompare('settlement_at', '<=' . strtotime(date("Y-m-d 23:59:59")));
-            $queryOrder->andWhere(['status' => Order::STATUS_SETTLEMENT]);
-            $queryOrder->andWhere(['merchant_id' => $user->id]);
-            $queryOrder->select(new Expression("sum(`paid_amount`) as amount,from_unixtime(`settlement_at`,'%y-%m-%d %H') as times"));
-            $queryOrder->groupBy(new Expression("from_unixtime(`settlement_at`,'%Y%m%d%H')"));
-            $listOrder = $queryOrder->asArray()->all();
-            $tmp = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'];
-            if (!empty($listOrder)) {
-                $chartData = [];
-                foreach ($listOrder as $val) {
-                    list($date, $time) = explode(" ", $val['times']);
-                    foreach ($tmp as $tmpVal) {
-                        if (!isset($chartData[$date][$tmpVal])) {
-                            $chartData[$date][$tmpVal] = 0;
-                        }
-                        if ($tmpVal == (string)$time) {
-                            $chartData[$date][(string)$tmpVal] = $val['amount'];
-                        }
-                    }
-                }
-                foreach ($chartData as $key => $val) {
-                    foreach ($val as $value) {
-                        $data['charts']['charge'][] = $value;
-                    }
-                }
-            }
-            $queryRemit = Remit::find();
-            $queryRemit->andFilterCompare('remit_at', '>=' . strtotime(date("Y-m-d 00:00:00")));
-            $queryRemit->andFilterCompare('remit_at', '<=' . strtotime(date("Y-m-d 23:59:59")));
-            $queryRemit->andWhere(['status' => Remit::STATUS_SUCCESS]);
-            $queryRemit->andWhere(['merchant_id' => $user->id]);
-            $queryRemit->select(new Expression("sum(`amount`) as amount,from_unixtime(`remit_at`,'%y-%m-%d %H') as times"));
-            $queryRemit->groupBy(new Expression("from_unixtime(`remit_at`,'%Y%m%d%H')"));
-            $listRemit = $queryRemit->asArray()->all();
-            if (!empty($listRemit)) {
-                $chartData = [];
-                foreach ($listRemit as $val) {
-                    list($date, $time) = explode(" ", $val['times']);
-                    foreach ($tmp as $tmpVal) {
-                        if (!isset($chartData[$date][$tmpVal])) {
-                            $chartData[$date][$tmpVal] = 0;
-                        }
-                        if ($tmpVal == (string)$time) {
-                            $chartData[$date][(string)$tmpVal] = $val['amount'];
-                        }
-                    }
-                }
-                foreach ($chartData as $key => $val) {
-                    foreach ($val as $value) {
-                        $data['charts']['remit'][] = $value;
-                    }
-                }
-            }
-        }
+
+//        $data['charts']['charge'] = [11,12,13,11,23,22,15,17,18,12,15,23,34,23,12,14,15,13,15,13,23,14,34];
+//        $data['charts']['remit'] = [16,18,14,15,13,12,13,19,20,21,13,17,24,21,20,18,11,12,11,18,13,16,24];
         //格式化返回json结构
 //        $data = [];
 //        foreach ($user as $key=>$val){
