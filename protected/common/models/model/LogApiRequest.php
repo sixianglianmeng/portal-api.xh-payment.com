@@ -59,7 +59,7 @@ class LogApiRequest extends BaseModel
 
         self::EVENT_TYPE_OUT_RECHARGE_ADD       => '请求到三方充值',
         self::EVENT_TYPE_OUT_RECHARGE_BATCH_ADD => '请求到三方批量充值',
-        self::EVENT_TYPE_OUT_RECHARGE_QUERY     => '请求到三方余额查询',
+        self::EVENT_TYPE_OUT_RECHARGE_QUERY     => '请求到三方充值查询',
         self::EVENT_TYPE_OUT_RECHARGE_NOTIFY    => '订单通知商户',
         self::EVENT_TYPE_OUT_REMIT_NOTIFY       => '出款通知商户',
         self::EVENT_TYPE_OUT_REMIT_ADD          => '请求到三方提款',
