@@ -152,7 +152,7 @@ class OrderController extends BaseController
         $filter = $this->baseFilter;
         $query = Order::find()->where($filter);
         $dateStart = strtotime($dateStart);
-        $dateEnd = strtotime($dateEnd);
+        $dateEnd = $dateEnd?strtotime($dateEnd):time();
         if(($dateEnd-$dateStart)>86400*31){
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天');
             $dateStart=$dateEnd-86400*31;
