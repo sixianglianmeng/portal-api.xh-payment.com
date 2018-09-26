@@ -571,7 +571,7 @@ class RemitController extends BaseController
         $orderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'orderNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'结算订单号错误',[0,32]);
         $merchantOrderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantOrderNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'商户订单号错误',[0,32]);
 
-        $bankNo = ControllerParameterValidator::getRequestParam($this->allParams, 'bankNo', '',Macro::CONST_PARAM_TYPE_BANK_NO,'卡号错误');
+        $bankNo = ControllerParameterValidator::getRequestParam($this->allParams, 'bankNo', '',Macro::CONST_PARAM_TYPE_INT,'卡号错误');
 
         $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status','',Macro::CONST_PARAM_TYPE_INT,'订单状态错误',[0,100]);
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
