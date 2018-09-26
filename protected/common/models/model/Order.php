@@ -52,8 +52,10 @@ use yii\db\ActiveRecord;
 class Order extends BaseModel
 {
     //充值订单状态
-    const STATUS_NOTPAY= 10;
     const STATUS_NONE=0;
+    const STATUS_ACCEPTED= 10;
+    const STATUS_CASHIER= 11;
+    const STATUS_NOTPAY= 12;
     const STATUS_PAID = 20;
     const STATUS_FREEZE = 30;
     const STATUS_FAIL = 40;
@@ -62,8 +64,10 @@ class Order extends BaseModel
 
 //    充值订单状态
     const ARR_STATUS = [
-        self::STATUS_NOTPAY=>'待支付',
         self::STATUS_NONE=>'未受理',
+        self::STATUS_ACCEPTED=>'已下单',
+        self::STATUS_CASHIER=>'已访问',
+        self::STATUS_NOTPAY=>'待支付',//已扫码/跳转到上游
         self::STATUS_PAID=>'已支付',
         self::STATUS_FREEZE=>'冻结',
         self::STATUS_FAIL=>'支付失败',
