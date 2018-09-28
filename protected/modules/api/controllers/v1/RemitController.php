@@ -786,6 +786,10 @@ class RemitController extends BaseController
         $pwd = ControllerParameterValidator::getRequestParam($this->allParams, 'pwd','',Macro::CONST_PARAM_TYPE_STRING,'资金密码必须在8位以上');
         $key2fa = ControllerParameterValidator::getRequestParam($this->allParams,'t2fa','',Macro::CONST_PARAM_TYPE_INT,'验证码错误',[6]);
 
+        if(empty($remitIdList)){
+            return ResponseHelper::formatOutput(Macro::ERR_USER_KEY_FA, '订单ID错误,请重新选择');
+        }
+
         $user = Yii::$app->user->identity;//->getMainAccount();
         //令牌校验操作人员的
         $googleObj = new \PHPGangsta_GoogleAuthenticator();
