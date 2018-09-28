@@ -787,7 +787,7 @@ class RemitController extends BaseController
         $key2fa = ControllerParameterValidator::getRequestParam($this->allParams,'t2fa','',Macro::CONST_PARAM_TYPE_INT,'验证码错误',[6]);
 
         if(empty($remitIdList)){
-            return ResponseHelper::formatOutput(Macro::ERR_USER_KEY_FA, '订单ID错误,请重新选择');
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '订单ID错误,请重新选择');
         }
 
         $user = Yii::$app->user->identity;//->getMainAccount();
