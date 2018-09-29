@@ -44,10 +44,13 @@ class OrderController extends BaseController
      */
     public function actionSetSuccess()
     {
-        $id = ControllerParameterValidator::getRequestParam($this->allParams, 'id', null, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '订单ID错误');
+        $orderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'order_no', null, Macro::CONST_PARAM_TYPE_ORDER_NO, '订单号错误');
+        $final_channel_order = ControllerParameterValidator::getRequestParam($this->allParams, 'final_channel_order_no', null, Macro::CONST_PARAM_TYPE_STRING, 'final_channel_order');
+        $channel_order = ControllerParameterValidator::getRequestParam($this->allParams, 'channel_order_no', null, Macro::CONST_PARAM_TYPE_STRING, 'channel_order');
+        $bak = ControllerParameterValidator::getRequestParam($this->allParams, 'bak', null, Macro::CONST_PARAM_TYPE_STRING, 'bak');
 
         $filter = $this->baseFilter;
-        $filter['id'] = $id;
+        $filter['order_no'] = $orderNo;
 //        $filter['status'] = Order::STATUS_PAID;
 //        $order = Order::findOne($filter);
         $order = Order::find()->where($filter)->limit(1)->one();
@@ -63,7 +66,7 @@ class OrderController extends BaseController
         ];
 
         $orderOpList = [];
-        $orderOpList[] = ['order_no'=>$order->order_no];
+        $orderOpList[] = ['order_no'=>$order->order_no,'channel_order_no'=>$channel_order,'final_channel_order_no'=>$final_channel_order,'bak'=>$bak];
         RpcPaymentGateway::setOrderSuccess($orderOpList);
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '订单已更新为成功状态');
