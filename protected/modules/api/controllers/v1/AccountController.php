@@ -988,9 +988,9 @@ class AccountController extends BaseController
          */
         //原始版,直属下级无法统计
 //        $firstChildFieldStr = "substring_index(REPLACE(substring_index(all_parent_agent_id,'{$user->id},',-1),']',','),',',1) AS first_child_id";
-        $merchantIdLen = strlen($user->id)+1;
+        $merchantIdLen = strlen($user->id)+2;
         //优化如果是直属下级的订单
-        $firstChildFieldStr = "(CASE all_parent_agent_id WHEN '[{$user->id}]' THEN merchant_id WHEN substring(all_parent_agent_id,-{$merchantIdLen})=',{$user->id}]' THEN merchant_id  ELSE substring_index(REPLACE(substring_index(all_parent_agent_id,'{$user->id},',-1),']',','),',',1) END) as first_child_id";
+        $firstChildFieldStr = "(CASE WHEN all_parent_agent_id='[{$user->id}]' THEN merchant_id WHEN substring(all_parent_agent_id,-{$merchantIdLen})=',{$user->id}]' THEN merchant_id  ELSE substring_index(REPLACE(substring_index(all_parent_agent_id,'{$user->id},',-1),']',','),',',1) END) as first_child_id";
         $orderQuery = (new Query())->select(["merchant_id","merchant_account as oder_merchant_account","sum(amount) as amount","count(amount) as num",$firstChildFieldStr])
             ->from(Order::tableName())
             ->where(['status'=>[Order::STATUS_SETTLEMENT,Order::STATUS_PAID]])
