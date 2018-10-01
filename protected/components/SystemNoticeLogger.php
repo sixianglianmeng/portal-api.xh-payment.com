@@ -81,6 +81,13 @@ class SystemNoticeLogger extends Target
         if(strpos($messages,'NotFoundHttpException')){
             return true;
         }
+        //其它
+        if(
+            strpos($messages,'MySQL server has gone away')!==false
+            || strpos($messages,'ProcessTimedOutException')!==false
+        ){
+            return true;
+        }
 
         $title = gethostname();
         if(Yii::$app->request->getIsConsoleRequest()){
