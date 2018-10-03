@@ -153,11 +153,12 @@ class ChannelController extends BaseController
             ->select(['SUM(frozen_balance) AS frozen_balance'])
             ->from(User::tableName())
             ->scalar();
-        //大于0的真实总余额
+        //大于0的真实总余额 xinhuipay不统计(sh倒账到新汇
         $data['merchant_total_balance']['balance'] = (new \yii\db\Query())
             ->select(['SUM(balance) AS balance'])
             ->from(User::tableName())
             ->where(['>','balance',0])
+            ->where(['!=','id',3011804])
             ->scalar();
         //负总余额
         $data['merchant_total_negative_balance'] = (new \yii\db\Query())
