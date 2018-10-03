@@ -611,7 +611,7 @@ class RemitController extends BaseController
             $query->andFilterCompare('amount', '>='.$minMoney);
         }
         if($maxMoney){
-            $query->andFilterCompare('amount', '=<'.$maxMoney);
+            $query->andFilterCompare('amount', '<='.$maxMoney);
         }
         if($merchantNo){
             $query->andwhere(['merchant_id' => $merchantNo]);
