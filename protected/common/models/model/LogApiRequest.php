@@ -48,6 +48,7 @@ class LogApiRequest extends BaseModel
     const EVENT_TYPE_OUT_REMIT_QUERY = 221;
     const EVENT_TYPE_OUT_REMIT_NOTIFY = 222;
     const EVENT_TYPE_OUT_BALANCE_QUERY = 230;
+    const EVENT_TYPE_OUT_REGISTER_BANKCARD = 240;
 
     const ARR_EVENT_TYPE = [
         self::EVENT_TYPE_IN_RECHARGE_ADD    => '商户充值请求',
@@ -69,6 +70,7 @@ class LogApiRequest extends BaseModel
         self::EVENT_TYPE_OUT_REMIT_ADD          => '请求到三方提款',
         self::EVENT_TYPE_OUT_REMIT_QUERY        => '请求到三方提款查询',
         self::EVENT_TYPE_OUT_BALANCE_QUERY      => '请求到三方余额查询',
+        self::EVENT_TYPE_OUT_REGISTER_BANKCARD  => '请求到三方注册银行卡',
     ];
 
     /**

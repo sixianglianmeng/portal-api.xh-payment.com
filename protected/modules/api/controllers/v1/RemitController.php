@@ -5,6 +5,7 @@ use app\common\models\model\BankCodes;
 use app\common\models\model\ChannelAccount;
 use app\common\models\model\LogOperation;
 use app\common\models\model\Remit;
+use app\common\models\model\SiteConfig;
 use app\common\models\model\Track;
 use app\common\models\model\UploadedFile;
 use app\common\models\model\UserBlacklist;
@@ -283,7 +284,8 @@ class RemitController extends BaseController
                 'statusOptions'=> ArrayHelper::merge([Macro::SELECT_OPTION_ALL=>'全部'],Remit::ARR_STATUS),
                 'channelAccountOptions'=>$channelAccountOptions,
             ),
-            'summery'=>$summery,
+            'summery' => $summery,
+            'remitAutoCommitStatus' => SiteConfig::findOne(['title'=>'enable_remit_commit'])->toArray(),
             "pagination"=>[
                 "total" =>  $total,
                 "per_page" =>  $perPage,
