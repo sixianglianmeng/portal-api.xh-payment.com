@@ -134,7 +134,7 @@ class RemitController extends BaseController
             $query->andwhere(['type' => $type]);
         }
         //订单号查询情况下忽略其他条件
-        if($orderNo || $merchantOrderNo || $channelOrderNo) {
+        if($orderNo || $merchantOrderNo || $channelOrderNo || $bankNo) {
             $query->where=[];
             if($orderNo){
                 $query->andwhere(['order_no' => $orderNo]);
@@ -144,6 +144,9 @@ class RemitController extends BaseController
             }
             if($channelOrderNo){
                 $query->andwhere(['channel_order_no' => $channelOrderNo]);
+            }
+            if($bankNo!==''){
+                $query->andwhere(['bank_no' => $bankNo]);
             }
         }
 

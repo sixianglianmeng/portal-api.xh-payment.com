@@ -7,6 +7,7 @@ use app\common\models\model\Remit;
 use app\common\models\model\UserBlacklist;
 use app\components\Macro;
 use app\components\RpcPaymentGateway;
+use app\components\Util;
 use app\lib\helpers\ControllerParameterValidator;
 use app\lib\helpers\ResponseHelper;
 use app\modules\api\controllers\BaseController;
@@ -217,12 +218,9 @@ class RemitController extends BaseController
         if(count($idList)>$maxNum){
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, "单次最多设置{$maxNum}个订单");
         }
-        $rawOrders = (new \yii\db\Query())
-            ->select(['id','order_no'])
-            ->from(Remit::tableName())
-            ->where($filter)
-            ->limit(100)
-            ->all();
+
+        $query = self::_remitListQueryObjectGenerator(['id','order_no']);
+        $rawOrders = $query->limit(1000)->all();
 
         if(!$rawOrders){
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '订单不存在');
@@ -413,4 +411,96 @@ class RemitController extends BaseController
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, "银行卡号{$order['bank_no']}成功加入黑名单");
     }
-}
+
+    /**
+     * 根据搜索表单构造query对象
+     *
+     * return \yii\db\Query()
+     */
+    public function _remitListQueryObjectGenerator(array $selectField)
+    {
+
+        $merchantNo      = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantNo', '', Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE, '商户编号错误', [0, 32]);
+        $merchantAccount = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantAccount', '', Macro::CONST_PARAM_TYPE_USERNAME, '商户账号错误', [2, 16]);
+        $orderNo         = ControllerParameterValidator::getRequestParam($this->allParams, 'orderNo', '', Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE, '结算订单号错误', [0, 32]);
+        $merchantOrderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantOrderNo', '', Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE, '商户订单号错误', [0, 32]);
+        $channelOrderNo  = ControllerParameterValidator::getRequestParam($this->allParams, 'channelOrderNo', '', Macro::CONST_PARAM_TYPE_STRING, '渠道订单号错误');
+        $bankNo         = ControllerParameterValidator::getRequestParam($this->allParams, 'bankNo', '', Macro::CONST_PARAM_TYPE_INT, '卡号错误');
+        $channelAccount = ControllerParameterValidator::getRequestParam($this->allParams, 'channelAccount', '', Macro::CONST_PARAM_TYPE_ARRAY, '通道号错误', [0, 100]);
+
+        $status     = ControllerParameterValidator::getRequestParam($this->allParams, 'status', '', Macro::CONST_PARAM_TYPE_ARRAY, '订单状态错误', [0, 100]);
+        $dateStart  = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '', Macro::CONST_PARAM_TYPE_DATE, '开始日期错误');
+        $dateEnd    = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '', Macro::CONST_PARAM_TYPE_DATE, '结束日期错误');
+        $minMoney   = ControllerParameterValidator::getRequestParam($this->allParams, 'minMoney', '', Macro::CONST_PARAM_TYPE_DECIMAL, '最小金额输入错误');
+        $maxMoney   = ControllerParameterValidator::getRequestParam($this->allParams, 'maxMoney', '', Macro::CONST_PARAM_TYPE_DECIMAL, '最大金额输入错误');
+        $idList = ControllerParameterValidator::getRequestParam($this->allParams, 'idList', null, Macro::CONST_PARAM_TYPE_ARRAY, '订单ID错误');
+
+        //生成查询参数
+//        $filter    = $this->baseFilter;
+        //        $query     = Remit::find()->where($filter);
+        $query     = (new \yii\db\Query());
+        if($selectField){
+            $query->select($selectField);
+        }
+        $query->from(Remit::tableName());
+
+        $dateStart = strtotime($dateStart);
+        $dateEnd   = strtotime($dateEnd);
+
+        if ($dateStart) {
+            $query->andFilterCompare('created_at', '>=' . $dateStart);
+        }
+        if ($dateEnd) {
+            $query->andFilterCompare('created_at', '<' . $dateEnd);
+        }
+        if ($minMoney) {
+            $query->andFilterCompare('amount', '>=' . $minMoney);
+        }
+        if ($maxMoney) {
+            $query->andFilterCompare('amount', '=<' . $maxMoney);
+        }
+        if ($merchantNo) {
+            $query->andwhere(['merchant_id' => $merchantNo]);
+        }
+        if ($merchantAccount) {
+            $query->andwhere(['merchant_account' => $merchantAccount]);
+        }
+
+        if (!empty($channelAccount)) {
+            $query->andwhere(['channel_account_id' => $channelAccount]);
+        }
+        if ($bankNo !== '') {
+            $query->andwhere(['bank_no' => $bankNo]);
+        }
+
+        if ($status) {
+            $query->andwhere(['status' => $status]);
+        }
+        //订单号查询情况下忽略其他条件
+        if($orderNo || $merchantOrderNo || $channelOrderNo || $bankNo) {
+            $query->where=[];
+            if($orderNo){
+                $query->andwhere(['order_no' => $orderNo]);
+            }
+            if($merchantOrderNo){
+                $query->andwhere(['merchant_order_no' => $merchantOrderNo]);
+            }
+            if($channelOrderNo){
+                $query->andwhere(['channel_order_no' => $channelOrderNo]);
+            }
+            if($bankNo!==''){
+                $query->andwhere(['bank_no' => $bankNo]);
+            }
+        }
+
+        //有订单id列表的
+        if($idList){
+            $query->where = [];
+            $query->andwhere(['id' => $idList]);
+        }
+
+        return $query;
+    }
+
+
+    }
