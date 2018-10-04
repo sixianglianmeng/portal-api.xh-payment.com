@@ -107,6 +107,13 @@ class Remit extends BaseModel
         self::MERCHANT_CHECK_STATUS_DENIED => '拒绝',
     ];
 
+    const ORDER_TYPE_API = 1;
+    const ORDER_TYPE_MANUAL = 2;
+    const ARR_ORDER_TYPES = [
+        self::ORDER_TYPE_API => 'API',
+        self::ORDER_TYPE_MANUAL => '后台',
+    ];
+
     /**
      * @inheritdoc
      */
@@ -194,6 +201,18 @@ class Remit extends BaseModel
         }else{
             return self::ARR_STATUS[$this->status]??'-';
         }
+    }
+
+
+    /**
+     * 获取订单类型描述
+     *
+     * @return string
+     * @author bootmall@gmail.com
+     */
+    public static function getTypeStr($type)
+    {
+        return self::ARR_ORDER_TYPES[$type]??'-';
     }
 
     /**

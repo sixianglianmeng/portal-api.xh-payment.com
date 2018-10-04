@@ -79,6 +79,8 @@ class RemitController extends BaseController
         $maxMoney = ControllerParameterValidator::getRequestParam($this->allParams, 'maxMoney', '',Macro::CONST_PARAM_TYPE_DECIMAL,'最大金额输入错误');
         $export = ControllerParameterValidator::getRequestParam($this->allParams, 'export',0,Macro::CONST_PARAM_TYPE_INT,'导出参数错误');
         $exportType = ControllerParameterValidator::getRequestParam($this->allParams, 'exportType','',Macro::CONST_PARAM_TYPE_ENUM,'导出类型错误',['csv','txt']);
+        $type = ControllerParameterValidator::getRequestParam($this->allParams, 'type', 0, Macro::CONST_PARAM_TYPE_INT, '订单类型参数错误',[1,100]);
+
 
         if(!empty($sorts[$sort])){
             $sort = $sorts[$sort];
@@ -92,7 +94,7 @@ class RemitController extends BaseController
         $dateStart = strtotime($dateStart);
         $dateEnd = strtotime($dateEnd);
         if(($dateEnd-$dateStart)>86400*31){
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天');
+//            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天');
             $dateStart=$dateEnd-86400*31;
         }
         if($dateStart){
@@ -127,6 +129,9 @@ class RemitController extends BaseController
 
         if($status){
             $query->andwhere(['status' => $status]);
+        }
+        if($type){
+            $query->andwhere(['type' => $type]);
         }
         //订单号查询情况下忽略其他条件
         if($orderNo || $merchantOrderNo || $channelOrderNo) {
@@ -226,6 +231,7 @@ class RemitController extends BaseController
             $records[$i]['bank_name'] = !empty($d->bank_name)?$d->bank_name:BankCodes::getBankNameByCode($d->bank_code);
             $records[$i]['bak'] = str_replace("\n",'<br />', $d->bak);
             $records[$i]['created_at'] = date('Y-m-d H:i:s',$d->created_at);
+            $records[$i]['type_str'] = Remit::getTypeStr($d->type);
         }
 
         //分页数据
@@ -734,6 +740,7 @@ class RemitController extends BaseController
             $records[$i]['bank_code'] = $d->bank_code;
             $records[$i]['bank_name'] = !empty($d->bank_name)?$d->bank_name:BankCodes::getBankNameByCode($d->bank_code);
             $records[$i]['created_at'] = date('Y-m-d H:i:s',$d->created_at);
+            $records[$i]['type_str'] = Remit::getTypeStr($d->type);
         }
 
         //分页数据
