@@ -1202,6 +1202,13 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
 
                 try{
                     $child->paymentInfo->updatePayMethods($user);
+
+                    //更新下级出款费率
+                    if ($remit_fee > $child->paymentInfo->remit_fee) {
+                        $child->paymentInfo->remit_fee = $remit_fee;
+                    }
+                    $child->paymentInfo->remit_fee_rebate = bcsub($child->paymentInfo->remit_fee, $remit_fee, 9);
+                    $child->paymentInfo->save();
                 }catch (\Exception $e){
                     Yii::error("修改用户费率时循环更新下级费率出错:".$e->getMessage());
                 }
