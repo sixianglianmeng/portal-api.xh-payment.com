@@ -105,7 +105,7 @@ class RemitController extends BaseController
             $query->andFilterCompare('amount', '>='.$minMoney);
         }
         if($maxMoney){
-            $query->andFilterCompare('amount', '=<'.$maxMoney);
+            $query->andFilterCompare('amount', '<='.$maxMoney);
         }
         if($merchantNo){
             $query->andwhere(['merchant_id' => $merchantNo]);
@@ -580,6 +580,7 @@ class RemitController extends BaseController
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
         $minMoney = ControllerParameterValidator::getRequestParam($this->allParams, 'minMoney', '',Macro::CONST_PARAM_TYPE_DECIMAL,'最小金额输入错误');
         $maxMoney = ControllerParameterValidator::getRequestParam($this->allParams, 'maxMoney', '',Macro::CONST_PARAM_TYPE_DECIMAL,'最大金额输入错误');
+        $remit_type = ControllerParameterValidator::getRequestParam($this->allParams, 'remit_type', '',Macro::CONST_PARAM_TYPE_INT,'出款类型输入错误');
         $selfCheck = ControllerParameterValidator::getRequestParam($this->allParams, 'selfCheck', 0,Macro::CONST_PARAM_TYPE_INT,'审核参数错误');
         $checkStatus = ControllerParameterValidator::getRequestParam($this->allParams, 'checkStatus', 0,Macro::CONST_PARAM_TYPE_INT,'审核状态错误');
         $export = ControllerParameterValidator::getRequestParam($this->allParams, 'export',0,Macro::CONST_PARAM_TYPE_INT,'导出参数错误');
@@ -611,7 +612,7 @@ class RemitController extends BaseController
             $query->andFilterCompare('amount', '>='.$minMoney);
         }
         if($maxMoney){
-            $query->andFilterCompare('amount', '=<'.$maxMoney);
+            $query->andFilterCompare('amount', '<='.$maxMoney);
         }
         if($merchantNo){
             $query->andwhere(['merchant_id' => $merchantNo]);
@@ -627,6 +628,9 @@ class RemitController extends BaseController
         }
         if($bankNo!==''){
             $query->andwhere(['bank_no' => $bankNo]);
+        }
+        if($remit_type > 0){
+            $query->andWhere(['type'=>$remit_type]);
         }
         $summeryQuery = $query;
 
