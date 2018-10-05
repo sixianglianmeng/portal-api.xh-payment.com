@@ -78,23 +78,28 @@ class RemitController extends BaseController
      */
     public function actionSyncStatus()
     {
-        $id = ControllerParameterValidator::getRequestParam($this->allParams, 'id', null, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '订单ID错误');
 
-        $filter = $this->baseFilter;
-        $filter['id'] = $id;
-        $order = Remit::find()->where($filter)->limit(1)->one();
-        if(!$order){
+        $query = self::_remitListQueryObjectGenerator(['id','order_no']);
+        $rawOrders = $query->limit(1000)->all();
+
+        if(!$rawOrders){
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '订单不存在');
         }
 
-        //接口日志埋点
-        Yii::$app->params['operationLogFields'] = [
-            'table'=>'p_remit',
-            'pk'=>$order->id,
-            'order_no'=>$order->order_no,
-        ];
+        $orders = [];
+        foreach ($rawOrders as $o){
+            $orders[] = $o['order_no'];
 
-        $ret = RpcPaymentGateway::syncRemitStatus(0,[$order->order_no]);
+            //接口日志埋点
+            Yii::$app->params['operationLogFields'] = [
+                'table'=>'p_remit',
+                'pk'=>$o['id'],
+                'order_no'=>$o['order_no'],
+            ];
+            LogOperation::inLog('ok');
+        }
+
+        $ret = RpcPaymentGateway::syncRemitStatus(0,$orders);
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, "订单处理成功");
     }
@@ -210,15 +215,6 @@ class RemitController extends BaseController
      */
     public function actionReSubmitToBank()
     {
-        $idList = ControllerParameterValidator::getRequestParam($this->allParams, 'idList', null, Macro::CONST_PARAM_TYPE_ARRAY, '订单ID错误');
-
-        $filter = $this->baseFilter;
-        $filter['id'] = $idList;
-        $maxNum = 100;
-        if(count($idList)>$maxNum){
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, "单次最多设置{$maxNum}个订单");
-        }
-
         $query = self::_remitListQueryObjectGenerator(['id','order_no']);
         $rawOrders = $query->limit(1000)->all();
 
