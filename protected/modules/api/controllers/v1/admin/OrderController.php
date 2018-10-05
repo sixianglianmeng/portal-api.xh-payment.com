@@ -368,4 +368,143 @@ class OrderController extends BaseController
         }
         return ResponseHelper::formatOutput(Macro::SUCCESS, 'IP及设备ID成功加入黑名单');
     }
+
+    /**
+     * 到三方同步订单状态
+     */
+    public function actionSyncStatus()
+    {
+        $query = self::_orderListQueryObjectGenerator(['id','order_no']);
+        $rawOrders = $query->limit(1000)->all();
+
+        if(!$rawOrders){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '订单不存在');
+        }
+
+        $orders = [];
+        foreach ($rawOrders as $o){
+            $orders[] = $o['order_no'];
+
+            //接口日志埋点
+            Yii::$app->params['operationLogFields'] = [
+                'table'=>Order::tableName(),
+                'pk'=>$o['id'],
+                'order_no'=>$o['order_no'],
+            ];
+            LogOperation::inLog('ok');
+        }
+
+        RpcPaymentGateway::syncRechargeOrderStatus(0, $orders);
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS, "同步请求提交成功");
+    }
+
+    /**
+     * 根据搜索表单构造query对象
+     *
+     * return \yii\db\Query()
+     */
+    public function _orderListQueryObjectGenerator(array $selectField)
+    {
+        $orderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'orderNo', '',Macro::CONST_PARAM_TYPE_STRING,'平台订单号错误');
+        $merchantOrderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantOrderNo', '',Macro::CONST_PARAM_TYPE_STRING,'商户订单号错误');
+        $channelOrderNo = ControllerParameterValidator::getRequestParam($this->allParams, 'channelOrderNo', '',Macro::CONST_PARAM_TYPE_STRING,'渠道订单号错误');
+        $merchantUsername = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantUserName', '',Macro::CONST_PARAM_TYPE_STRING,'用户名错误',[0,32]);
+        $merchantNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'商户编号错误',[0,32]);
+
+        $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status','',Macro::CONST_PARAM_TYPE_ARRAY,'订单状态错误',[0,100]);
+
+        $method = ControllerParameterValidator::getRequestParam($this->allParams, 'method','',Macro::CONST_PARAM_TYPE_ARRAY,'支付类型错误',[0,100]);
+
+        $channelAccount = ControllerParameterValidator::getRequestParam($this->allParams, 'channelAccount','',Macro::CONST_PARAM_TYPE_ARRAY,'通道号错误',[0,100]);
+
+
+        $notifyStatus = ControllerParameterValidator::getRequestParam($this->allParams, 'notifyStatus','',Macro::CONST_PARAM_TYPE_INT,'通知状态错误',[0,100]);
+        $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
+        $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
+
+        $minMoney = ControllerParameterValidator::getRequestParam($this->allParams, 'minMoney', '',Macro::CONST_PARAM_TYPE_DECIMAL,'最小金额输入错误');
+
+        $maxMoney = ControllerParameterValidator::getRequestParam($this->allParams, 'maxMoney', '',Macro::CONST_PARAM_TYPE_DECIMAL,'最大金额输入错误');
+        $clientIp = ControllerParameterValidator::getRequestParam($this->allParams, 'client_ip', '',Macro::CONST_PARAM_TYPE_STRING,'ip错误');
+        $clientId = ControllerParameterValidator::getRequestParam($this->allParams, 'client_id', '',Macro::CONST_PARAM_TYPE_STRING,'设备号错误');
+        $idList = ControllerParameterValidator::getRequestParam($this->allParams, 'idList', null, Macro::CONST_PARAM_TYPE_ARRAY, '订单ID错误');
+
+        if($orderNo) $orderNo = explode(',',$orderNo);
+        if($clientIp) $clientIp = explode(',',$clientIp);
+        if($clientId) $clientId = explode(',',$clientId);
+
+        //生成查询参数
+        $query     = (new \yii\db\Query());
+        if($selectField){
+            $query->select($selectField);
+        }
+        $query->from(Order::tableName());
+
+        $dateStart = strtotime($dateStart);
+        $dateEnd = $dateEnd?strtotime($dateEnd):time();
+
+        if($dateStart){
+            $query->andFilterCompare('created_at', '>='.$dateStart);
+        }
+        if($dateEnd){
+            $query->andFilterCompare('created_at', '<'.$dateEnd);
+        }
+        if($minMoney){
+            $query->andFilterCompare('amount', '>='.$minMoney);
+        }
+        if($maxMoney){
+            $query->andFilterCompare('amount', '=<'.$maxMoney);
+        }
+        if($merchantUsername){
+            $query->andwhere(['merchant_account' => $merchantUsername]);
+        }
+        if($merchantNo){
+            $query->andwhere(['merchant_id' => $merchantNo]);
+        }
+        if($status){
+            $query->andwhere(['status' => $status]);
+        }
+
+        if(!empty($channelAccount)){
+            $query->andwhere(['channel_account_id' => $channelAccount]);
+        }
+
+        if(!empty($method)){
+            $query->andwhere(['pay_method_code' => $method]);
+        }
+
+        if(!empty($notifyStatus)){
+            $query->andwhere(['notify_status' => $notifyStatus]);
+        }
+        if(!empty($clientIp)){
+            $query->andwhere(['client_ip' => $clientIp]);
+        }
+        if(!empty($clientId)){
+            $query->andwhere(['client_id' => $clientId]);
+        }
+
+        //订单号查询情况下忽略其他条件
+        if($orderNo || $merchantOrderNo || $channelOrderNo){
+            $query->where=[];
+            if($orderNo){
+                $query->andwhere(['order_no' => $orderNo]);
+            }
+            if($merchantOrderNo){
+                $query->andwhere(['merchant_order_no' => $merchantOrderNo]);
+            }
+            if($channelOrderNo){
+                $query->andwhere(['channel_order_no' => $channelOrderNo]);
+            }
+        }
+
+        //有订单id列表的
+        if($idList){
+            $query->where = [];
+            $query->andwhere(['id' => $idList]);
+        }
+
+        return $query;
+
+    }
 }

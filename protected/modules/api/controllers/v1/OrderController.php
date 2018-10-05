@@ -154,8 +154,8 @@ class OrderController extends BaseController
         $dateStart = strtotime($dateStart);
         $dateEnd = $dateEnd?strtotime($dateEnd):time();
         if(($dateEnd-$dateStart)>86400*31){
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天');
-            $dateStart=$dateEnd-86400*31;
+            //return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天');
+            //$dateStart=$dateEnd-86400*31;
         }
 
         if($dateStart){
@@ -431,7 +431,6 @@ class OrderController extends BaseController
             'order_no'=>$order->order_no,
         ];
 
-//        RpcPaymentGateway::syncRechargeOrderStatus(0, [$order->order_no]);
         $ret = RpcPaymentGateway::syncRechargeOrderStatusRealtime($order->order_no);
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, str_replace("\n","<br/>",$ret['message']));

@@ -432,8 +432,6 @@ class RemitController extends BaseController
         $idList = ControllerParameterValidator::getRequestParam($this->allParams, 'idList', null, Macro::CONST_PARAM_TYPE_ARRAY, '订单ID错误');
 
         //生成查询参数
-//        $filter    = $this->baseFilter;
-        //        $query     = Remit::find()->where($filter);
         $query     = (new \yii\db\Query());
         if($selectField){
             $query->select($selectField);
