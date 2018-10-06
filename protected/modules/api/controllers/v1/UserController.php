@@ -378,11 +378,9 @@ class UserController extends BaseController
     public function actionClearChildPassKey()
     {
         $user = Yii::$app->user->identity;
-        $childId = ControllerParameterValidator::getRequestParam($this->allParams, 'childId', 0,
-            Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'商户子账户ID错误');
-        $type = ControllerParameterValidator::getRequestParam($this->allParams, 'type', 0,
-            Macro::CONST_PARAM_TYPE_INT,'修改类型错误');
-
+        $childId = ControllerParameterValidator::getRequestParam($this->allParams, 'childId', 0, Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'商户子账户ID错误');
+        $type = ControllerParameterValidator::getRequestParam($this->allParams, 'type', 0, Macro::CONST_PARAM_TYPE_INT,'修改类型错误');
+        $ip = ControllerParameterValidator::getRequestParam($this->allParams, 'ip',[],Macro::CONST_PARAM_TYPE_ARRAY,'API接口IP地址错误');
         $childObj = User::find()->where(['parent_merchant_id'=>$user->id,'id'=>$childId])->limit(1)->one();
         if(!$childObj){
             return ResponseHelper::formatOutput(Macro::ERR_USER_CHILD_NON, '子账号不存在');
@@ -395,6 +393,9 @@ class UserController extends BaseController
         }else if($type ==3){
             $childObj->setDefaultPassword();
             $data = SiteConfig::cacheGetContent('user_default_password');
+        }else if($type == 4 ){
+            $ip = json_encode($ip);
+            $childObj->bind_login_ip = $ip;
         }
         $childObj->save();
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);

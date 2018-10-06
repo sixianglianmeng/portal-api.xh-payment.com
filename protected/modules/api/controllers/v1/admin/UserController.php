@@ -1402,27 +1402,22 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
     {
         $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId', null, Macro::CONST_PARAM_TYPE_INT, '用户id错误');
         $accountOpenFee = ControllerParameterValidator::getRequestParam($this->allParams, 'amount',null,Macro::CONST_PARAM_TYPE_DECIMAL,'开户费设置错误');
-
         $user = User::findOne(['id'=>$userId]);
         if(!$user){
             return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
         }
-
         $user->status = User::STATUS_ACTIVE;
         $user->account_open_fee = $accountOpenFee;
         $user->account_open_fee_status = AccountOpenFee::STATUS_UNPAID;
         $user->save();
-
         $accountOpenInfo = AccountOpenFee::findOne(['user_id'=>$userId]);
         if(!$accountOpenInfo){
             $accountOpenInfo = new AccountOpenFee();
         }
-
         $accountOpenInfo->user_id = $user->id;
         $accountOpenInfo->username = $user->username;
         $accountOpenInfo->fee = $accountOpenFee;
         $accountOpenInfo->save();
-
         return ResponseHelper::formatOutput(Macro::SUCCESS, '设置成功');
     }
 
@@ -1434,17 +1429,14 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
     public function actionBindLoginIp()
     {
         $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId',0,Macro::CONST_PARAM_TYPE_INT,'商户ID错误');
-        $ip = ControllerParameterValidator::getRequestParam($this->allParams, 'ip','',Macro::CONST_PARAM_TYPE_ARRAY,'API接口IP地址错误');
+        $ip = ControllerParameterValidator::getRequestParam($this->allParams, 'ip',[],Macro::CONST_PARAM_TYPE_ARRAY,'API接口IP地址错误');
         $user = User::findOne(['id'=>$userId]);
         if(!$user){
             return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
         }
-
-        if($ip) $ip = json_encode($ip);
+        if(!empty($ip)) $ip = json_encode($ip);
         $user->bind_login_ip = $ip;
-
         $user->save();
-
         return ResponseHelper::formatOutput(Macro::SUCCESS);
     }
 
