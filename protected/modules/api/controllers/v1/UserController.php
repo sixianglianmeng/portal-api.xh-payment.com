@@ -546,6 +546,8 @@ class UserController extends BaseController
      */
     public function actionTransfer()
     {
+        return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '转账功能维护中');
+
         $transferIn = ControllerParameterValidator::getRequestParam($this->allParams, 'transferIn', null, Macro::CONST_PARAM_TYPE_USERNAME, '转入用户名错误');
         $transferInUid = ControllerParameterValidator::getRequestParam($this->allParams, 'transferInUid', null, Macro::CONST_PARAM_TYPE_INT, '转入商户号错误',[1000]);
         $amount = ControllerParameterValidator::getRequestParam($this->allParams, 'amount',null,Macro::CONST_PARAM_TYPE_DECIMAL,'金额错误',[0,1000000]);
