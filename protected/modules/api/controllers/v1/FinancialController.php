@@ -79,9 +79,9 @@ class FinancialController extends BaseController
 
         $dateStart = strtotime($dateStart);
         $dateEnd = strtotime($dateEnd);
-        if(($dateEnd-$dateStart)>86400*15){
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过15天');
-            $dateStart=$dateEnd-86400*15;
+        if(($dateEnd-$dateStart)>86400*31){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天');
+            $dateStart=$dateEnd-86400*31;
         }
         if($dateStart){
             $query->andFilterCompare('created_at', '>='.strtotime(date("Y-m-d 00:00:00",$dateStart)));
@@ -220,9 +220,9 @@ class FinancialController extends BaseController
         $query->andWhere(['uid'=>$user->id]);
         $dateStart = strtotime($dateStart);
         $dateEnd = strtotime($dateEnd);
-        if(($dateEnd-$dateStart)>86400*15){
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过15天');
-            $dateStart=$dateEnd-86400*15;
+        if(($dateEnd-$dateStart)>86400*31){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天');
+            $dateStart=$dateEnd-86400*31;
         }
         if($dateStart){
             $query->andFilterCompare('created_at', '>='.strtotime(date("Y-m-d 00:00:00",$dateStart)));
