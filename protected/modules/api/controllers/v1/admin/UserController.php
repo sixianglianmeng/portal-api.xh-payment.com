@@ -1406,6 +1406,9 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         if(!$user){
             return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
         }
+        if($user->account_open_fee_status == AccountOpenFee::STATUS_PAID){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'开户费已缴纳，不能再编辑');
+        }
         $user->status = User::STATUS_ACTIVE;
         $user->account_open_fee = $accountOpenFee;
         $user->account_open_fee_status = AccountOpenFee::STATUS_UNPAID;
