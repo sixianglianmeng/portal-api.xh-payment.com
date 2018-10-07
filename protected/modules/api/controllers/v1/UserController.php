@@ -300,11 +300,19 @@ class UserController extends BaseController
     public function actionChildList()
     {
         $user = Yii::$app->user->identity;
+        $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchant_id', '', Macro::CONST_PARAM_TYPE_INT, '用户id错误');
+        if(!empty($userId)){
+            $user = User::findOne(['id'=>$userId]);
+        }
+        if(!$user){
+            return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'商户不存在');
+        }
         if($user->parent_merchant_id != 0){
             return ResponseHelper::formatOutput(Macro::ERR_USER_MASTER, '非主账号，没有权限管理子账号');
         }
         $filter['parent_merchant_id'] = $user->id;
         $childInfo = User::find()->where($filter)->asArray()->all();
+        $data['list'] = [];
         foreach ($childInfo as $key => $val){
             $val['last_login_time'] = date("Y-m-d H:i:s",$val['last_login_time']);
             $val['created_at'] = date("Y-m-d H:i:s",$val['created_at']);
@@ -360,9 +368,12 @@ class UserController extends BaseController
     public function actionEditChildStatus()
     {
         $user = Yii::$app->user->identity;
-        $childId = ControllerParameterValidator::getRequestParam($this->allParams, 'childId', 0,
-            Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'商户子账户ID错误');
+        $childId = ControllerParameterValidator::getRequestParam($this->allParams, 'childId', 0, Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'商户子账户ID错误');
         $status = ControllerParameterValidator::getRequestParam($this->allParams,'status',0,Macro::CONST_PARAM_TYPE_INT,'状态码错误');
+        $masterMerchantId = ControllerParameterValidator::getRequestParam($this->allParams, 'master_merchant_id', '', Macro::CONST_PARAM_TYPE_INT, '商户主账号ID错误');
+        if(!empty($masterMerchantId)){
+            $user = User::findOne(['id'=>$masterMerchantId]);
+        }
         $child = User::findOne(['id'=>$childId,'parent_merchant_id' => $user->id]);
         if(!$child){
             return ResponseHelper::formatOutput(Macro::ERR_USER_CHILD_NON, '子账号不存在');
@@ -381,6 +392,10 @@ class UserController extends BaseController
         $childId = ControllerParameterValidator::getRequestParam($this->allParams, 'childId', 0, Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'商户子账户ID错误');
         $type = ControllerParameterValidator::getRequestParam($this->allParams, 'type', 0, Macro::CONST_PARAM_TYPE_INT,'修改类型错误');
         $ip = ControllerParameterValidator::getRequestParam($this->allParams, 'ip',[],Macro::CONST_PARAM_TYPE_ARRAY,'API接口IP地址错误');
+        $masterMerchantId = ControllerParameterValidator::getRequestParam($this->allParams, 'master_merchant_id', '', Macro::CONST_PARAM_TYPE_INT, '商户主账号ID错误');
+        if(!empty($masterMerchantId)){
+            $user = User::findOne(['id'=>$masterMerchantId]);
+        }
         $childObj = User::find()->where(['parent_merchant_id'=>$user->id,'id'=>$childId])->limit(1)->one();
         if(!$childObj){
             return ResponseHelper::formatOutput(Macro::ERR_USER_CHILD_NON, '子账号不存在');

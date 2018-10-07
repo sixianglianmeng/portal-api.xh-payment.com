@@ -266,12 +266,14 @@ class AccountController extends BaseController
      */
     public function actionUpdateUserPermission()
     {
-        $uid = ControllerParameterValidator::getRequestParam($this->allParams, 'uid', null, Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE, '名称错误', [1,
-            64]);
+        $uid = ControllerParameterValidator::getRequestParam($this->allParams, 'uid', null, Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE, '名称错误', [1, 64]);
         $roles = ControllerParameterValidator::getRequestParam($this->allParams, 'roles', null, Macro::CONST_PARAM_TYPE_ARRAY, '权限错误');
+        $masterMerchantId = ControllerParameterValidator::getRequestParam($this->allParams, 'master_merchant_id', '', Macro::CONST_PARAM_TYPE_INT, '商户主账号ID错误');
         if(is_string($roles)) $roles = [$roles];
-
         $parent = Yii::$app->user->identity;
+        if(!empty($masterMerchantId)){
+            $parent = User::findOne(['id'=>$masterMerchantId]);
+        }
         $merchant = User::findOne(['id'=>$uid,'parent_merchant_id'=>$parent->getId()]);
         if(!$merchant){
             throw new \Exception('子账户不存在');
@@ -286,8 +288,7 @@ class AccountController extends BaseController
         if($merchant->isAgent()){
             $filter = " and (name like 'r_{$parentGroupName}_%' or name like 'r_merchant_%')";
         }
-        $rawAllRoles = Yii::$app->db->createCommand("select name from p_auth_item where type=1 {$filter}")
-            ->queryAll();
+        $rawAllRoles = Yii::$app->db->createCommand("select name from p_auth_item where type=1 {$filter}")->queryAll();
         $allRoles = [];
         foreach ($rawAllRoles as $rar){
             $allRoles[] = $rar['name'];
@@ -314,10 +315,15 @@ class AccountController extends BaseController
     public function actionUserPermissionList()
     {
         $uid = ControllerParameterValidator::getRequestParam($this->allParams, 'uid', null, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '商户ID错误');
+        $masterMerchantId = ControllerParameterValidator::getRequestParam($this->allParams, 'master_merchant_id', '', Macro::CONST_PARAM_TYPE_INT, '商户主账号ID错误');
         $parent = Yii::$app->user->identity;
+        if(!empty($masterMerchantId)){
+            $parent = User::findOne(['id'=>$masterMerchantId]);
+        }
         $parentGroupName = User::getGroupEnStr($parent->group_id);
 
-        $merchant = User::findOne(['id'=>$uid,'parent_merchant_id'=>Yii::$app->user->identity->getId()]);
+//        $merchant = User::findOne(['id'=>$uid,'parent_merchant_id'=>Yii::$app->user->identity->getId()]);
+        $merchant = User::findOne(['id'=>$uid,'parent_merchant_id'=>$parent->id]);
         if(!$merchant){
             throw new \Exception('子账户不存在');
         }
