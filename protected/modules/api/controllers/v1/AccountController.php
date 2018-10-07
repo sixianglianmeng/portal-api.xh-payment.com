@@ -324,6 +324,10 @@ class AccountController extends BaseController
         $auth = \Yii::$app->authManager;
 
         $filter = " and item_name like 'r_{$parentGroupName}_%'";
+        //代理组还拥有商户组赋予的权限
+        if($merchant->isAgent()){
+            $filter = " and (item_name like 'r_{$parentGroupName}_%' or item_name like 'r_merchant_%')";
+        }
         //子账户目前权限
         $userAllPermssions = Yii::$app->db->createCommand("select item_name from p_auth_assignment where user_id={$uid} {$filter}")
             ->queryAll();
