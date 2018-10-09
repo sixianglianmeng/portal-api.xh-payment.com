@@ -1040,6 +1040,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $data['methods'] = $methods;
         $data['payMethodsOptions'] = Channel::ARR_METHOD;
         $data['agentOptions'] = $agentOptions ?? [];
+        $data['parentMethods'] = $rateSection['parent_rate'] ?? [];
 
         $data['remitMaxFee'] =  SiteConfig::cacheGetContent('remit_max_fee');
         $data['rechargeMaxRate'] =  SiteConfig::cacheGetContent('recharge_max_rate');
