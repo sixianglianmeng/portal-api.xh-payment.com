@@ -318,7 +318,7 @@ class UserController extends BaseController
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE,
             Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
         $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1,
-            Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,1000]);
+            Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100000]);
 
         if($sort && !empty($sorts[$sort])){
             $sort = $sorts[$sort];
@@ -929,7 +929,8 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         }
         if($lower_level || $user->parent_agent_id )
         $rateSection = MerchantRechargeMethod::getPayMethodsRateSectionAppId($user->parent_agent_id,$lower_level);
-        $methods['min_rate'] = $methods['max_rate'] = $rateSection['parent_rate'] = $rateSection['lower_rate'] = [];
+        $methods['min_rate'] = $methods['max_rate'] = [];
+//        = $rateSection['parent_rate'] = $rateSection['lower_rate'] = [];
         foreach ($rate as $key => $val){
             $methods['rate'][$val['id']] = $val['rate'];
             $methods['status'][$val['id']] = $val['status'];
@@ -998,8 +999,8 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $userInfo['api_response_rule']           = $paymentInfo->api_response_rule;
         $userInfo['account_transfer_fee']        = $paymentInfo->account_transfer_fee;
         $userInfo['remit_fee_free_quota']        = $paymentInfo->remit_fee_free_quota;
-        $userInfo['allow_api_remit_str']             = $paymentInfo->allow_api_remit == 0 ? '否' : '是';
-        $userInfo['allow_manual_remit_str']          = $paymentInfo->allow_manual_remit == 0 ? '否' : '是';
+        $userInfo['allow_api_remit_str']         = $paymentInfo->allow_api_remit == 0 ? '否' : '是';
+        $userInfo['allow_manual_remit_str']      = $paymentInfo->allow_manual_remit == 0 ? '否' : '是';
         $userInfo['sys_account_transfer_fee']    =  SiteConfig::cacheGetContent('account_transfer_fee');
 
         //处理代理

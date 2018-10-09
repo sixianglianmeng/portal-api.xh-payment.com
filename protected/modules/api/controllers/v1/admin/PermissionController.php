@@ -51,7 +51,7 @@ class PermissionController extends BaseController
 
         $sort = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 20, Macro::CONST_PARAM_TYPE_SORT, '分页参数错误',[1,100]);
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
-        $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,1000]);
+        $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100000]);
 
         $name = ControllerParameterValidator::getRequestParam($this->allParams, 'name', '',Macro::CONST_PARAM_TYPE_STRING,'名称错误',[1,32]);
         $desc = ControllerParameterValidator::getRequestParam($this->allParams, 'description', '',Macro::CONST_PARAM_TYPE_STRING,'描述错误',[1,32]);
