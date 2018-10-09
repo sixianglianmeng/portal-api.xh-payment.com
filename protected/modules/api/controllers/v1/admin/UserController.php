@@ -896,7 +896,8 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
      * 用户详情
      */
     public function actionDetail()
-    {   $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId', 0, Macro::CONST_PARAM_TYPE_INT, '商户id错误');
+    {
+        $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId', 0, Macro::CONST_PARAM_TYPE_INT, '商户id错误');
 //        $user = User::findOne(['id'=>$userId]);
         $user = User::find()->where(['id'=>$userId])->limit(1)->one();
         if(!$user){
@@ -969,8 +970,6 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $userInfo['channel_account_id']          = $paymentInfo->channel_account_id;
         $userInfo['remit_channel_account_id']    = $paymentInfo->remit_channel_account_id;
         $userInfo['remit_fee']                   = $paymentInfo->remit_fee;
-        $userInfo['allow_api_remit']             = $paymentInfo->allow_api_remit == 0 ? '否' : '是';
-        $userInfo['allow_manual_remit']          = $paymentInfo->allow_manual_remit == 0 ? '否' : '是';
         $userInfo['remit_quota_perday']          = $paymentInfo->remit_quota_perday;
         $userInfo['recharge_quota_perday']       = $paymentInfo->recharge_quota_perday;
         $userInfo['remit_quota_pertime']         = $paymentInfo->remit_quota_pertime;
@@ -999,6 +998,8 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $userInfo['api_response_rule']           = $paymentInfo->api_response_rule;
         $userInfo['account_transfer_fee']        = $paymentInfo->account_transfer_fee;
         $userInfo['remit_fee_free_quota']        = $paymentInfo->remit_fee_free_quota;
+        $userInfo['allow_api_remit_str']             = $paymentInfo->allow_api_remit == 0 ? '否' : '是';
+        $userInfo['allow_manual_remit_str']          = $paymentInfo->allow_manual_remit == 0 ? '否' : '是';
         $userInfo['sys_account_transfer_fee']    =  SiteConfig::cacheGetContent('account_transfer_fee');
 
         //处理代理
@@ -1026,10 +1027,6 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
             ['like','all_parent_agent_id',','.$user->id.']']
         ];
         $userLower->andWhere($where);
-//        $userLower->andWhere(['like','all_parent_agent_id',','.$user->id.',']);
-//        $userLower->orWhere(['like','all_parent_agent_id','['.$user->id.']']);
-//        $userLower->orWhere(['like','all_parent_agent_id','['.$user->id.',']);
-//        $userLower->orWhere(['like','all_parent_agent_id',','.$user->id.']']);
         $userLowerInfo = $userLower->asArray()->all();
         if($userLowerInfo){
             foreach ($userLowerInfo as $key => $val){
