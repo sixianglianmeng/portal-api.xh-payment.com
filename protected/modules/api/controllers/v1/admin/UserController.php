@@ -898,8 +898,16 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
     public function actionDetail()
     {
         $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId', 0, Macro::CONST_PARAM_TYPE_INT, '商户id错误');
+        $username = ControllerParameterValidator::getRequestParam($this->allParams, 'merchant_username', '', Macro::CONST_PARAM_TYPE_USERNAME, '商户名错误', [0, 32]);
 //        $user = User::findOne(['id'=>$userId]);
-        $user = User::find()->where(['id'=>$userId])->limit(1)->one();
+        $query = User::find();
+        if($userId != 0 && !empty($userId)){
+            $query->andWhere(['id'=>$userId]);
+        }
+        if(!empty($username)){
+            $query->andWhere(['username'=>$username]);
+        }
+        $user = $query->limit(1)->one();
         if(!$user){
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'查看的的商户不存在');
         }
@@ -927,8 +935,10 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
                 $lower_level[$key] = $val['id'];
             }
         }
-        if($lower_level || $user->parent_agent_id )
-        $rateSection = MerchantRechargeMethod::getPayMethodsRateSectionAppId($user->parent_agent_id,$lower_level);
+        $rateSection = [];
+        if($lower_level || $user->parent_agent_id ){
+            $rateSection = MerchantRechargeMethod::getPayMethodsRateSectionAppId($user->parent_agent_id,$lower_level);
+        }
         $methods['min_rate'] = $methods['max_rate'] = [];
 //        = $rateSection['parent_rate'] = $rateSection['lower_rate'] = [];
         foreach ($rate as $key => $val){
@@ -1041,7 +1051,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         $data['methods'] = $methods;
         $data['payMethodsOptions'] = Channel::ARR_METHOD;
         $data['agentOptions'] = $agentOptions ?? [];
-        $data['parentMethods'] = $rateSection['parent_rate'];
+        $data['parentMethods'] = $rateSection['parent_rate'] ?? [];
 
         $data['remitMaxFee'] =  SiteConfig::cacheGetContent('remit_max_fee');
         $data['rechargeMaxRate'] =  SiteConfig::cacheGetContent('recharge_max_rate');
