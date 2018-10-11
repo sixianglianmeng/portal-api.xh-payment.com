@@ -2,6 +2,7 @@
 
 namespace app\modules\api\controllers\v1\admin;
 
+use app\common\models\model\AccountOpenFee;
 use app\common\models\model\Channel;
 use app\common\models\model\ChannelAccount;
 use app\common\models\model\Order;
@@ -481,5 +482,78 @@ class ReportController extends BaseController
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
     }
 
+    /**
+     * 开户费统计
+     * @return array
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     */
+    public function actionAccountOpenFee()
+    {
+        $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
+        $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
+        $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
+        $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100000]);
+        $startTime = empty($dateStart) ? strtotime('-31 days',strtotime(date("Y-m-d 00:00:00"))) : strtotime(date("Y-m-d 00:00:00",strtotime($dateStart)));
+        $endTime = empty($dateEnd) ? strtotime(date("Y-m-d 23:59:59")) : strtotime(date("Y-m-d 23:59:59",strtotime($dateEnd)));
+        $days = (strtotime(date("Y-m-d",$endTime)) - strtotime(date("Y-m-d",$startTime))) / (24*3600) ;
+        if($days > 30){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天',[]);
+        }
+        $field = "pa.user_id,pa.username,pa.status,pa.fee,pa.fee_paid,pa.paid_at,pa.order_no,pa.order_created_at,pa.created_at,pu.parent_agent_id";
+        $query = (new \yii\db\Query())
+            ->select($field)
+            ->from('p_account_open_fee AS pa')
+            ->leftJoin('p_users AS pu',"pa.user_id = pu.id");
+        $query->andWhere(['>=','pa.created_at',$startTime]);
+        $query->andWhere(['<=','pa.created_at',$endTime]);
+        $query->orderBy('pa.created_at desc');
+        $pageObj = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => $perPage,
+                'page' => $page-1,
+            ],
+        ]);
+        $userList = User::find()->where(['group_id'=>User::GROUP_AGENT])->asArray()->all();
+        $agentList = [];
+        foreach ($userList as $val){
+            $agentList[$val['id']] = $val['username'];
+        }
+        $tmpList = [];
+        $tmpTotalParent = [];
+        foreach ($pageObj->getModels() as $key=>$val){
+            $val['status_str'] = AccountOpenFee::ARR_STATUS[$val['status']];
+            $val['paid_at'] = date('Y-m-d H:i:s',$val['paid_at']);
+            $val['order_created_at'] = date('Y-m-d H:i:s',$val['order_created_at']);
+            $val['created_at'] = date('Y-m-d H:i:s',$val['created_at']);
+            $val['parent_agent_name'] = $agentList[$val['parent_agent_id']];
+            $tmpList[] = $val;
+            if(!isset($tmpTotalParent[$val['parent_agent_id']])){
+                $tmpTotalParent[$val['parent_agent_id']]['name'] = $agentList[$val['parent_agent_id']];
+                $tmpTotalParent[$val['parent_agent_id']]['open_fee'] = 0;
+            }
+            if($val['status'] == AccountOpenFee::STATUS_PAID && $val['fee_paid'] > 0){
+                $tmpTotalParent[$val['parent_agent_id']]['open_fee'] += $val['fee_paid'];
+            }
+        }
+        //分页数据
+        $pagination = $pageObj->getPagination();
+        $total = $pagination->totalCount;
+        $lastPage = ceil($pagination->totalCount/$perPage);
+        $from = ($page-1)*$perPage;
+        $to = $page*$perPage;
+        $data = [
+            'list'=>$tmpList,
+            'parentTotal' => $tmpTotalParent,
+            "total" =>  $total,
+            "per_page" =>  $perPage,
+            "current_page" =>  $page,
+            "last_page" =>  $lastPage,
+            "from" =>  $from,
+            "to" =>  $to
+        ];
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
+    }
 
 }

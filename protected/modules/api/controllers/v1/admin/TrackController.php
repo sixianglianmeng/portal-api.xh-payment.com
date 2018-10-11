@@ -87,7 +87,7 @@ class TrackController extends BaseController
         $field = 'pt.*,po.order_no as po_order_no,po.merchant_order_no as po_merchant_order_no,po.status as po_status,po.channel_account_id as po_channel_account_id,po.amount as po_amount,po.merchant_id as po_merchant_id,po.merchant_account as po_merchant_account,';
         $field .= 'pr.order_no as pr_order_no,pr.merchant_order_no as pr_merchant_order_no,pr.status as pr_status,pr.channel_account_id as pr_channel_account_id,pr.amount as pr_amount,pr.merchant_id as pr_merchant_id,pr.merchant_account as pr_merchant_account ';
         $grouyBy = "pt.parent_id,pt.parent_type";
-        $query = $query = (new \yii\db\Query())
+        $query = (new \yii\db\Query())
             ->select($field)
             ->from('p_track AS pt')
             ->leftJoin('p_orders AS po',"pt.parent_id = po.id AND pt.parent_type = 'order'")
