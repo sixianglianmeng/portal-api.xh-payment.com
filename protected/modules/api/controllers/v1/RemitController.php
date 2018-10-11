@@ -500,7 +500,7 @@ class RemitController extends BaseController
                     $remitArr[$i]['amount'] = $val['amount'];
                     $remitArr[$i]['bank_code'] = $val['bank_code'];
                     $remitArr[$i]['bank_no'] = $val['bank_number'];
-                    $remitArr[$i]['bank_account'] = $val['real_name'];
+                    $remitArr[$i]['bank_account'] = preg_replace('# #','',$val['real_name']);
                     $totalAmount = bcadd($totalAmount,$val['amount'],2);
                     $i++;
                 }
