@@ -520,7 +520,6 @@ class ReportController extends BaseController
             $agentList[$val['id']] = $val['username'];
         }
         $tmpList = [];
-        $tmpTotalParent = [];
         foreach ($pageObj->getModels() as $key=>$val){
             $val['status_str'] = AccountOpenFee::ARR_STATUS[$val['status']];
             $val['paid_at'] = date('Y-m-d H:i:s',$val['paid_at']);
@@ -528,12 +527,24 @@ class ReportController extends BaseController
             $val['created_at'] = date('Y-m-d H:i:s',$val['created_at']);
             $val['parent_agent_name'] = $agentList[$val['parent_agent_id']];
             $tmpList[] = $val;
-            if(!isset($tmpTotalParent[$val['parent_agent_id']])){
-                $tmpTotalParent[$val['parent_agent_id']]['name'] = $agentList[$val['parent_agent_id']];
-                $tmpTotalParent[$val['parent_agent_id']]['open_fee'] = 0;
-            }
-            if($val['status'] == AccountOpenFee::STATUS_PAID && $val['fee_paid'] > 0){
-                $tmpTotalParent[$val['parent_agent_id']]['open_fee'] += $val['fee_paid'];
+
+        }
+        $queryTotal = (new \yii\db\Query())
+            ->select('sum(pa.fee_paid) as fee_paid,pu.parent_agent_id')
+            ->from('p_account_open_fee AS pa')
+            ->leftJoin('p_users AS pu',"pa.user_id = pu.id");
+        $queryTotal->andWhere(['>=','pa.created_at',$startTime]);
+        $queryTotal->andWhere(['<=','pa.created_at',$endTime]);
+        $queryTotal->groupBy('pu.parent_agent_id');
+        $openFeeList = $queryTotal->all();
+        $tmpTotalParent = [];
+        if(!empty($openFeeList)){
+            foreach ($openFeeList as $val){
+                if(!isset($tmpTotalParent[$val['parent_agent_id']])){
+                    $tmpTotalParent[$val['parent_agent_id']]['name'] = $agentList[$val['parent_agent_id']];
+                    $tmpTotalParent[$val['parent_agent_id']]['open_fee'] = 0;
+                }
+                $tmpTotalParent[$val['parent_agent_id']]['open_fee'] = $val['fee_paid'];
             }
         }
         //分页数据
