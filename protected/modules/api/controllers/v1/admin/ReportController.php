@@ -361,12 +361,12 @@ class ReportController extends BaseController
                     if(!isset($data[$value['date']][$val])){
                         $data[$value['date']][$val] = 0;
                     }
-                    $data[$value['date']][$val] += $value[$val];
+                    $data[$value['date']][$val] = bcadd($data[$value['date']][$val],$value[$val],3);
                 }
                 if (!isset($data[$value['date']]['total_profit'])){
                     $data[$value['date']]['total_profit'] = 0;
                 }
-                $data[$value['date']]['total_profit'] += bcadd($value['recharge_plat_fee_profit'],$value['remit_plat_fee_profit'],3);
+                $data[$value['date']]['total_profit'] =bcadd($data[$value['date']]['total_profit'],bcadd($value['recharge_plat_fee_profit'],$value['remit_plat_fee_profit'],3),3) ;
                 $data[$value['date']]['date'] = $value['date'];
                 $data[$value['date']]['list'][] = $tmp;
             }
