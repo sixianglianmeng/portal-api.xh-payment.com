@@ -1010,4 +1010,28 @@ class Util
             Yii::info("telegram message config error,{$telgramKey},{$chatId},{$telgramUrl}");
         }
     }
+
+    /**
+     * 发送邮件
+     * @param $toEmail
+     * @param $title
+     * @param $message
+     */
+    public static function sendEmailMessage($toEmail,$title,$message,$type)
+    {
+        $typeArray = [
+            'updateEmail' => '变更邮箱'
+        ];
+        $mail = Yii::$app->mailer->compose();
+        //目标邮箱
+        $mail->setTo($toEmail);
+        //邮件标题
+        $mail->setSubject($typeArray[$type]);
+        //邮件内容，这里可以使用 HTML 代码
+        $tmpTime = time() + 15*60;
+        $html = "<div>验证码：".$message."</div>";
+        $html .= "<div>此验证码仅限 <span style='color: red'>".$typeArray[$type]."</span>,有效时间截止".date('Y-m-d H:i:s',$tmpTime)."</div>";
+        $mail->setHtmlBody($html);
+        $mail->send();//发送
+    }
 }

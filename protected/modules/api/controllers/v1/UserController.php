@@ -598,4 +598,41 @@ class UserController extends BaseController
 
         return ResponseHelper::formatOutput(Macro::SUCCESS,'转账成功');
     }
+
+    /**
+     * 发送邮件验证码
+     * @return array
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     * @role admin,agent,merchant
+     */
+    public function actionEmailCode(){
+        $user = Yii::$app->user->identity;
+//        $email = ControllerParameterValidator::getRequestParam($this->allParams,'email','',Macro::CONST_PARAM_TYPE_EMAIL,'邮箱地址错误');
+        $type = ControllerParameterValidator::getRequestParam($this->allParams,'type','',Macro::CONST_PARAM_TYPE_EMAIL,'类型错误');
+        $code = rand(100000,999999);
+        Yii::$app->redis->setex('email:'.$type.':'.$user->username,15*60,$code);
+        Util::sendEmailMessage($user->email,'',$code,$type);
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'发送邮件成功');
+    }
+
+    /**
+     * 变更邮箱
+     * @return array
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     */
+    public function actionUpdateEmail()
+    {
+        $user = Yii::$app->user->identity;
+        $email = ControllerParameterValidator::getRequestParam($this->allParams,'email',null,Macro::CONST_PARAM_TYPE_EMAIL,'邮箱地址错误');
+        $code = ControllerParameterValidator::getRequestParam($this->allParams,'code',null,Macro::CONST_PARAM_TYPE_INT,'邮箱验证码错误');
+        $type = ControllerParameterValidator::getRequestParam($this->allParams,'type','',Macro::CONST_PARAM_TYPE_EMAIL,'类型错误');
+        $redisCode = Yii::$app->redis->get('email:'.$type.':'.$user->username);
+        if($code != $redisCode){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '邮箱验证码不匹配');
+        }
+        Yii::$app->redis->del('email:'.$type.':'.$user->username);
+        $user->email = $email;
+        $user->save();
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'操作成功');
+    }
 }

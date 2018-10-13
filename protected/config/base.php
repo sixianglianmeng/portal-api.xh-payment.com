@@ -53,7 +53,7 @@ $config = [
         'redis' => [
             'class' => 'yii\redis\Connection',
             'hostname' => '127.0.0.1',
-            'port' => 6379,
+            'port' => 6381,
             'database' => 0,
         ],
         'formatter' => [
@@ -155,12 +155,14 @@ $config = [
                 'encryption' => 'tls',
                 'host' => 'smtp.gmail.com',
                 'port' => '587',
-                'username' => 'mail.booter.ui@gmail.com',
-                'password' => 'htXb7wyFhDDEu74Y',
+                'username' => 'kefu.gd95516@gmail.com',
+                'password' => 'gd95516.com',
+//                'username' => 'kerr8819@gmail.com',
+//                'password' => '@kerr8819',
             ],
             'messageConfig'=>[
                 'charset'=>'UTF-8',
-                'from'=>['mail.booter.ui@gmail.com'=>'支付网关']
+                'from'=>['kefu.gd95516@gmail.com'=>'XH']
             ],
         ],
         'i18n' => [
