@@ -211,6 +211,8 @@ class UserController extends BaseController
 
             $user->group_id = $data['group_id'];
             $user->status = $data['status'];
+            $user->account_open_fee = $accountOpenFee;
+            $user->account_open_fee_status = AccountOpenFee::STATUS_UNPAID;
             $user->save();
 
             if (!$id) {
