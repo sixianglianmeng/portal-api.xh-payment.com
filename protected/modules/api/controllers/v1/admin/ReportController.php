@@ -320,87 +320,131 @@ class ReportController extends BaseController
      */
     public function actionChannelDailyProfit()
     {
-        $user = Yii::$app->user->identity;
-
+//        $user = Yii::$app->user->identity;
         $channelAccountId = ControllerParameterValidator::getRequestParam($this->allParams, 'channelAccountId', '', Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '通道账户ID错误', [5]);
-        $dateStart        = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',
-            Macro::CONST_PARAM_TYPE_DATE, '开始日期错误');
-        $dateEnd          = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',
-            Macro::CONST_PARAM_TYPE_DATE, '结束日期错误');
+        $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '', Macro::CONST_PARAM_TYPE_DATE, '开始日期错误');
+        $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '', Macro::CONST_PARAM_TYPE_DATE, '结束日期错误');
+        $month = ControllerParameterValidator::getRequestParam($this->allParams, 'month', null, Macro::CONST_PARAM_TYPE_INT, '月份错误');
+//        $sort    = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', '', Macro::CONST_PARAM_TYPE_SORT, '分页参数错误', [1, 100]);
+//        $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 100]);
+//        $page    = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 1000]);
 
-        $sort    = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', '', Macro::CONST_PARAM_TYPE_SORT, '分页参数错误', [1, 100]);
-        $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 100]);
-        $page    = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误', [1, 1000]);
-
+        $monthList = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+        $dateStart = date('Y'.$monthList[$month].'01');
+        $dateEnd = date('Ymd', strtotime("$dateStart +1 month -1 day"));
         $query = ReportChannelProfitDaily::find();
-
         if ($channelAccountId) {
             $query->andWhere(['channel_account_id' => $channelAccountId]);
         }
-
         if ($dateStart) {
-            $query->andFilterCompare('date', '>=' . date('Ymd', strtotime($dateStart)));
+            $query->andFilterCompare('date', '>=' . $dateStart);
         }
         if ($dateEnd) {
-            $query->andFilterCompare('date', '<' . date('Ymd', strtotime($dateEnd) + 86400));
+            $query->andFilterCompare('date', '<=' . $dateEnd);
         }
-
-        $sorts = [
-            'date-' => ['date', SORT_DESC],
-        ];
-
-        if (!empty($sorts[$sort])) {
-            $sort = $sorts[$sort];
-        } else {
-            $sort = ['date'=>SORT_DESC];
-        }
-        //生成分页数据
-        $p = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => $perPage,
-                'page' => $page - 1,
-            ],
-            'sort' => [
-                'defaultOrder' => $sort
-            ],
-        ]);
-
-        $records = [];
-        $sumFields = ['recharge_count','remit_count','recharge_total','recharge_plat_fee_profit','remit_total','remit_plat_fee_profit','total_profit'];
-        $summary = [];
-        $summary['date'] = '/';
-        $summary['channel_account_name'] = '当页总计';
-        foreach ($p->getModels() as $i => $d) {
-            $records[$i]               = $d->toArray();
-            $records[$i]['created_at'] = date('Ymd H:i:s', $d->created_at);
-            $records[$i]['total_profit'] = bcadd($d->recharge_plat_fee_profit,$d->remit_plat_fee_profit,3);
-            foreach ($sumFields as $f){
-                if(empty($summary[$f])) $summary[$f] = '';
-                $summary[$f] = bcadd($summary[$f],$records[$i][$f],3);
+        $query->orderBy('date desc');
+        $list = $query->asArray()->all();
+        $data = [];
+        $resData = [];
+        $sumFields = ['recharge_count','remit_count','recharge_total','recharge_plat_fee_profit','remit_total','remit_plat_fee_profit'];
+        if(!empty($list)){
+            foreach ($list as $value){
+                $tmp = [];
+                $tmp['channel_account_name'] = $value['channel_account_name'];
+                $tmp['recharge_plat_fee_profit'] = $value['recharge_plat_fee_profit'];
+                $tmp['recharge_count'] = $value['recharge_count'];
+                $tmp['recharge_total'] = $value['recharge_total'];
+                $tmp['remit_plat_fee_profit'] = $value['remit_plat_fee_profit'];
+                $tmp['remit_count'] = $value['remit_count'];
+                $tmp['remit_total'] = $value['remit_total'];
+                foreach ($sumFields as $val){
+                    if(!isset($data[$value['date']][$val])){
+                        $data[$value['date']][$val] = 0;
+                    }
+                    $data[$value['date']][$val] += $value[$val];
+                }
+                if (!isset($data[$value['date']]['total_profit'])){
+                    $data[$value['date']]['total_profit'] = 0;
+                }
+                $data[$value['date']]['total_profit'] += bcadd($value['recharge_plat_fee_profit'],$value['remit_plat_fee_profit'],3);
+                $data[$value['date']]['date'] = $value['date'];
+                $data[$value['date']]['list'][] = $tmp;
+            }
+            foreach ($data as $val){
+                $resData[] = $val;
             }
         }
-        $records[] = $summary;
-        //分页数据
-        $pagination = $p->getPagination();
-        $total      = $pagination->totalCount;
-        $lastPage   = ceil($pagination->totalCount / $perPage);
-        $from       = ($page - 1) * $perPage;
-        $to         = $page * $perPage;
-        $data       = [
-            'data' => $records,
-            'summary' => $summary,
-            "pagination" => [
-                "total" => $total,
-                "per_page" => $perPage,
-                "current_page" => $page,
-                "last_page" => $lastPage,
-                "from" => $from,
-                "to" => $to
-            ]
-        ];
 
-        return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
+
+//        $sorts = [
+//            'date-' => ['date', SORT_DESC],
+//        ];
+//
+//        if (!empty($sorts[$sort])) {
+//            $sort = $sorts[$sort];
+//        } else {
+//            $sort = ['date'=>SORT_DESC];
+//        }
+//        //生成分页数据
+//        $p = new ActiveDataProvider([
+//            'query' => $query,
+//            'pagination' => [
+//                'pageSize' => $perPage,
+//                'page' => $page - 1,
+//            ],
+//            'sort' => [
+//                'defaultOrder' => $sort
+//            ],
+//        ]);
+//
+//        $records = [];
+//        $sumFields = ['recharge_count','remit_count','recharge_total','recharge_plat_fee_profit','remit_total','remit_plat_fee_profit','total_profit'];
+//        $summary = [];
+//        $summary['date'] = '/';
+//        $summary['channel_account_name'] = '当页总计';
+//        foreach ($p->getModels() as $i => $d) {
+//            $records[$i]               = $d->toArray();
+//            $records[$i]['created_at'] = date('Ymd H:i:s', $d->created_at);
+//            $records[$i]['total_profit'] = bcadd($d->recharge_plat_fee_profit,$d->remit_plat_fee_profit,3);
+//            foreach ($sumFields as $f){
+//                if(empty($summary[$f])) $summary[$f] = '';
+//                $summary[$f] = bcadd($summary[$f],$records[$i][$f],3);
+//            }
+//            $tmp = [];
+//            $tmp['channel_account_name'] = $d->channel_account_name;
+//            $tmp['recharge_plat_fee_profit'] = $d->recharge_plat_fee_profit;
+//            $tmp['recharge_count'] = $d->recharge_count;
+//            $tmp['recharge_total'] = $d->recharge_total;
+//            $tmp['remit_plat_fee_profit'] = $d->remit_plat_fee_profit;
+//            $tmp['remit_count'] = $d->remit_count;
+//            $tmp['remit_total'] = $d->remit_total;
+//            if(!isset($records[$d->date]['recharge_count'])){
+//                $records[$d->date]['recharge_count'] = 0;
+//            }
+//            $records[$d->date]['recharge_count'] = $d->recharge_count;
+//
+//        }
+//        $records[] = $summary;
+//        //分页数据
+//        $pagination = $p->getPagination();
+//        $total      = $pagination->totalCount;
+//        $lastPage   = ceil($pagination->totalCount / $perPage);
+//        $from       = ($page - 1) * $perPage;
+//        $to         = $page * $perPage;
+//        $data       = [
+//            'data' => $records,
+//            'summary' => $summary,
+//            "pagination" => [
+//                "total" => $total,
+//                "per_page" => $perPage,
+//                "current_page" => $page,
+//                "last_page" => $lastPage,
+//                "from" => $from,
+//                "to" => $to
+//            ]
+//        ];
+
+        return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $resData);
     }
 
     /**
