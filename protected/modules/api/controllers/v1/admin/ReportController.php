@@ -321,7 +321,7 @@ class ReportController extends BaseController
     public function actionChannelDailyProfit()
     {
 //        $user = Yii::$app->user->identity;
-        $channelAccountId = ControllerParameterValidator::getRequestParam($this->allParams, 'channelAccountId', '', Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '通道账户ID错误', [5]);
+//        $channelAccountId = ControllerParameterValidator::getRequestParam($this->allParams, 'channelAccountId', '', Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '通道账户ID错误', [5]);
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '', Macro::CONST_PARAM_TYPE_DATE, '开始日期错误');
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '', Macro::CONST_PARAM_TYPE_DATE, '结束日期错误');
         $month = ControllerParameterValidator::getRequestParam($this->allParams, 'month', null, Macro::CONST_PARAM_TYPE_INT, '月份错误');
@@ -333,9 +333,9 @@ class ReportController extends BaseController
         $dateStart = date('Y'.$monthList[$month].'01');
         $dateEnd = date('Ymd', strtotime("$dateStart +1 month -1 day"));
         $query = ReportChannelProfitDaily::find();
-        if ($channelAccountId) {
-            $query->andWhere(['channel_account_id' => $channelAccountId]);
-        }
+//        if ($channelAccountId) {
+//            $query->andWhere(['channel_account_id' => $channelAccountId]);
+//        }
         if ($dateStart) {
             $query->andFilterCompare('date', '>=' . $dateStart);
         }
@@ -366,16 +366,51 @@ class ReportController extends BaseController
                 if (!isset($data[$value['date']]['total_profit'])){
                     $data[$value['date']]['total_profit'] = 0;
                 }
-                $data[$value['date']]['total_profit'] =bcadd($data[$value['date']]['total_profit'],bcadd($value['recharge_plat_fee_profit'],$value['remit_plat_fee_profit'],3),3) ;
+                $data[$value['date']]['total_profit'] =bcadd($data[$value['date']]['total_profit'],bcadd($value['recharge_plat_fee_profit'],$value['remit_plat_fee_profit'],3)) ;
                 $data[$value['date']]['date'] = $value['date'];
                 $data[$value['date']]['list'][] = $tmp;
             }
-            foreach ($data as $val){
+            $queryTotal = ReportChannelProfitDaily::find();
+            if ($dateStart) {
+                $queryTotal->andFilterCompare('date', '>=' . $dateStart);
+            }
+            if ($dateEnd) {
+                $queryTotal->andFilterCompare('date', '<=' . $dateEnd);
+            }
+            $fields = "channel_account_name,sum(recharge_count) as recharge_count,sum(recharge_total) as recharge_total,sum(recharge_plat_fee_profit) as recharge_plat_fee_profit,sum(remit_count) as remit_count,sum(remit_total) as remit_total,sum(remit_plat_fee_profit) as remit_plat_fee_profit";
+            $queryTotal->select($fields);
+            $listTotal = $queryTotal->groupBy('channel_account_id')->asArray()->all();
+            $dataTotal = [];
+            if(!empty($listTotal)){
+                foreach ($listTotal as $value){
+                    $tmp = [];
+                    $tmp['channel_account_name'] = $value['channel_account_name'];
+                    $tmp['recharge_plat_fee_profit'] = $value['recharge_plat_fee_profit'];
+                    $tmp['recharge_count'] = $value['recharge_count'];
+                    $tmp['recharge_total'] = $value['recharge_total'];
+                    $tmp['remit_plat_fee_profit'] = $value['remit_plat_fee_profit'];
+                    $tmp['remit_count'] = $value['remit_count'];
+                    $tmp['remit_total'] = $value['remit_total'];
+                    foreach ($sumFields as $val){
+                        if(!isset($dataTotal['total'][$val])){
+                            $dataTotal['total'][$val] = 0;
+                        }
+                        $dataTotal['total'][$val] = bcadd($dataTotal['total'][$val],$value[$val],3);
+                    }
+                    if (!isset($dataTotal['total']['total_profit'])){
+                        $dataTotal['total']['total_profit'] = 0;
+                    }
+                    $dataTotal['total']['total_profit'] =bcadd($dataTotal['total']['total_profit'],bcadd($value['recharge_plat_fee_profit'],$value['remit_plat_fee_profit'],3)) ;
+                    $dataTotal['total']['date'] = '总计';
+                    $dataTotal['total']['list'][] = $tmp;
+                }
+            }
+            $arr = array_merge($data,$dataTotal);
+            foreach ($arr as $val){
                 $resData[] = $val;
             }
+
         }
-
-
 //        $sorts = [
 //            'date-' => ['date', SORT_DESC],
 //        ];
