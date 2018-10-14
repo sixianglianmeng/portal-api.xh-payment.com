@@ -666,4 +666,43 @@ class UserController extends BaseController
         $userPaymentInfo->save();
         return ResponseHelper::formatOutput(Macro::SUCCESS,'操作成功');
     }
+
+    /**
+     * 商户清空安全令牌
+     * @return array
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     */
+    public function actionClearGoogle()
+    {
+        $user = Yii::$app->user->identity;
+        $code = ControllerParameterValidator::getRequestParam($this->allParams,'code',null,Macro::CONST_PARAM_TYPE_INT,'邮箱验证码错误');
+        $type = ControllerParameterValidator::getRequestParam($this->allParams,'type','',Macro::CONST_PARAM_TYPE_EMAIL,'类型错误');
+        $redisCode = Yii::$app->redis->get('email:'.$type.':'.$user->username);
+        if($code != $redisCode){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '邮箱验证码不匹配');
+        }
+        Yii::$app->redis->del('email:'.$type.':'.$user->username);
+        $user->key_2fa = '';
+        $user->key_2fa_token = '';
+        $user->save();
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'操作成功');
+    }
+
+    /**
+     * 商户清空资金密码
+     * @return array
+     * @throws OperationFailureException
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     */
+    public function actionClearFinancial()
+    {
+        $user = Yii::$app->user->identity;
+        $code = ControllerParameterValidator::getRequestParam($this->allParams,'code',null,Macro::CONST_PARAM_TYPE_INT,'安全令牌错误');
+        if(!$user->validateKey2fa($code)){
+            throw new OperationFailureException('安全令牌错误',Macro::FAIL);
+        }
+        $user->financial_password_hash = '';
+        $user->save();
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'操作成功');
+    }
 }

@@ -84,10 +84,10 @@ class FinancialController extends BaseController
             $dateStart=$dateEnd-86400*31;
         }
         if($dateStart){
-            $query->andFilterCompare('created_at', '>='.strtotime(date("Y-m-d 00:00:00",$dateStart)));
+            $query->andFilterCompare('created_at', '>='.$dateStart);
         }
         if($dateEnd){
-            $query->andFilterCompare('created_at', '<'.strtotime(date("Y-m-d 23:59:59",$dateEnd)));
+            $query->andFilterCompare('created_at', '<='.$dateEnd);
         }
         if($orderNo){
             $query->andwhere(['event_id' => $orderNo]);
@@ -225,10 +225,10 @@ class FinancialController extends BaseController
             $dateStart=$dateEnd-86400*31;
         }
         if($dateStart){
-            $query->andFilterCompare('created_at', '>='.strtotime(date("Y-m-d 00:00:00",$dateStart)));
+            $query->andFilterCompare('created_at', '>='.$dateStart);
         }
         if($dateEnd){
-            $query->andFilterCompare('created_at', '<'.strtotime(date("Y-m-d 23:59:59",$dateEnd)));
+            $query->andFilterCompare('created_at', '<='.$dateEnd);
         }
         if($orderNo){
             $query->andwhere(['event_id' => $orderNo]);

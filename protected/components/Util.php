@@ -1022,6 +1022,7 @@ class Util
         $typeArray = [
             'updateEmail' => '变更邮箱',
             'bindApiIp' => '绑定API接口IP',
+            'clearGoogle' => '清空安全令牌',
         ];
         $mail = Yii::$app->mailer->compose();
         //目标邮箱
