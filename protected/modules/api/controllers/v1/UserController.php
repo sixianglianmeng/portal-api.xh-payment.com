@@ -6,6 +6,7 @@ use app\common\models\form\LoginForm;
 use app\common\models\model\LogOperation;
 use app\common\models\model\SiteConfig;
 use app\common\models\model\User;
+use app\common\models\model\UserPaymentInfo;
 use app\components\Macro;
 use app\components\RpcPaymentGateway;
 use app\components\Util;
@@ -163,6 +164,8 @@ class UserController extends BaseController
                 'name'=>$p['name'],
             ];
         }
+        $filter['user_id'] = $user->id;
+        $paymentInfo = UserPaymentInfo::find()->where($filter)->limit(1)->one();
         $data = [
             'id' => $user->id,
             'username' => $user->username,
@@ -176,8 +179,13 @@ class UserController extends BaseController
             'pay_config' => $payConfigs,
             'bind_login_ip' => $user->bind_login_ip,
             'from_profile' => 1,
+            'app_server_ips' => '',
+            'channel_account_id' => $paymentInfo->channel_account_id
         ];
 
+        if($paymentInfo->app_server_ips){
+            $data['app_server_ips'] = implode(';',json_decode($paymentInfo->app_server_ips,true));
+        }
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
     }
 
@@ -611,7 +619,7 @@ class UserController extends BaseController
         $type = ControllerParameterValidator::getRequestParam($this->allParams,'type','',Macro::CONST_PARAM_TYPE_EMAIL,'类型错误');
         $code = rand(100000,999999);
         Yii::$app->redis->setex('email:'.$type.':'.$user->username,15*60,$code);
-        Util::sendEmailMessage($user->email,'',$code,$type);
+        Util::sendEmailMessage($user->email,$code,$type);
         return ResponseHelper::formatOutput(Macro::SUCCESS,'发送邮件成功');
     }
 
@@ -633,6 +641,29 @@ class UserController extends BaseController
         Yii::$app->redis->del('email:'.$type.':'.$user->username);
         $user->email = $email;
         $user->save();
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'操作成功');
+    }
+
+    /**
+     * 商户绑定API接口IP
+     * @return array
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     */
+    public function actionUpdateBindApiIps()
+    {
+        $user = Yii::$app->user->identity;
+        $channelId = ControllerParameterValidator::getRequestParam($this->allParams, 'channel_account_id','',Macro::CONST_PARAM_TYPE_STRING,'渠道编号错误');
+        $app_server_ips = ControllerParameterValidator::getRequestParam($this->allParams, 'app_server_ips',null,Macro::CONST_PARAM_TYPE_ARRAY,'API接口IP地址错误');
+        $code = ControllerParameterValidator::getRequestParam($this->allParams,'code',null,Macro::CONST_PARAM_TYPE_INT,'邮箱验证码错误');
+        $type = ControllerParameterValidator::getRequestParam($this->allParams,'type','',Macro::CONST_PARAM_TYPE_EMAIL,'类型错误');
+        $redisCode = Yii::$app->redis->get('email:'.$type.':'.$user->username);
+        if($code != $redisCode){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '邮箱验证码不匹配');
+        }
+        Yii::$app->redis->del('email:'.$type.':'.$user->username);
+        $userPaymentInfo = UserPaymentInfo::findOne(['user_id'=>$user->id,'channel_account_id'=>$channelId]);
+        $userPaymentInfo->app_server_ips = json_encode($app_server_ips);
+        $userPaymentInfo->save();
         return ResponseHelper::formatOutput(Macro::SUCCESS,'操作成功');
     }
 }

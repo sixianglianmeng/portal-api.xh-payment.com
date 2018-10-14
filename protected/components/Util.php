@@ -1017,10 +1017,11 @@ class Util
      * @param $title
      * @param $message
      */
-    public static function sendEmailMessage($toEmail,$title,$message,$type)
+    public static function sendEmailMessage($toEmail,$message,$type)
     {
         $typeArray = [
-            'updateEmail' => '变更邮箱'
+            'updateEmail' => '变更邮箱',
+            'bindApiIp' => '绑定API接口IP',
         ];
         $mail = Yii::$app->mailer->compose();
         //目标邮箱
