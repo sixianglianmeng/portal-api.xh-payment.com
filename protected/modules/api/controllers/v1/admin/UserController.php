@@ -513,11 +513,9 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
     {
         $appIds = ControllerParameterValidator::getRequestParam($this->allParams, 'appIds', '',Macro::CONST_PARAM_TYPE_ARRAY, '选择的商户ID错误');
         $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'userId', '', Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '商户ID错误');
-        $username = ControllerParameterValidator::getRequestParam($this->allParams, 'username', '',
-            Macro::CONST_PARAM_TYPE_USERNAME, '商户名错误', [0, 32]);
-        $parentUsername = ControllerParameterValidator::getRequestParam($this->allParams, 'parentUsername', '',
-            Macro::CONST_PARAM_TYPE_USERNAME, '商户父帐号错误', [0, 32]);
-
+        $username = ControllerParameterValidator::getRequestParam($this->allParams, 'username', '', Macro::CONST_PARAM_TYPE_USERNAME, '商户名错误', [0, 32]);
+        $parentUsername = ControllerParameterValidator::getRequestParam($this->allParams, 'parentUsername', '', Macro::CONST_PARAM_TYPE_USERNAME, '商户父帐号错误', [0, 32]);
+        $child = ControllerParameterValidator::getRequestParam($this->allParams,'child','',Macro::CONST_PARAM_TYPE_INT,'下级类型错误');
         $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status', '', Macro::CONST_PARAM_TYPE_INT, '状态错误', [0, 100]);
         $account_open_fee_status = ControllerParameterValidator::getRequestParam($this->allParams, 'accountOpenFeeStatus', '', Macro::CONST_PARAM_TYPE_INT, '开户费缴纳状态错误', [0, 100]);
         $type = ControllerParameterValidator::getRequestParam($this->allParams, 'type', '',
@@ -618,7 +616,12 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
 //            $parent = User::findOne(['username' => $parentUsername]);
             $parent = User::find()->where(['username' => $parentUsername])->limit(1)->one();
             if ($parent) {
-                $query->andwhere(['u.parent_agent_id' => $parent->id]);
+                if($child == 0 || empty($child)){
+                    $query->andwhere(['u.parent_agent_id' => $parent->id]);
+                }elseif ($child == 1){
+                    $query->andWhere(['like','u.all_parent_agent_id',$parent->id]);
+                }
+
                 $updateFilter[] = "u.parent_agent_id={$parent->id}";
                 $subUpdateFilter[] = "u.parent_agent_id={$parent->id}";
             } else {
