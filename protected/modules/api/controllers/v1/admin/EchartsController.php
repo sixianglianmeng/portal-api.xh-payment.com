@@ -66,7 +66,7 @@ class EchartsController extends BaseController
     }
 
     /**
-     * 充值金额走势(按按天)
+     * 充值金额走势(按天)
      * @return array
      * @throws \power\yii2\exceptions\ParameterValidationExpandException
      */
