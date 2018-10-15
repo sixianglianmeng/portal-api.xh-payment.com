@@ -66,6 +66,36 @@ class EchartsController extends BaseController
     }
 
     /**
+     * 充值金额走势(按按天)
+     * @return array
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     */
+    public function actionRechargeTrendDaily()
+    {
+        $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
+        $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
+        $startTime = empty($dateStart) ? strtotime('-14 days',strtotime(date("Y-m-d 00:00:00"))) : strtotime(date("Y-m-d 00:00:00",strtotime($dateStart)));
+        $endTime = empty($dateEnd) ? strtotime(date("Y-m-d 23:59:59")) : strtotime(date("Y-m-d 23:59:59",strtotime($dateEnd)));
+        $days = (strtotime(date("Y-m-d",$endTime)) - strtotime(date("Y-m-d",$startTime))) / (24*3600) ;
+        if($days > 14){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过15天',[]);
+        }
+        $query = Order::find();
+        $query->andFilterCompare('settlement_at','>='.$startTime);
+        $query->andFilterCompare('settlement_at','<='.$endTime);
+        $query->andWhere(['status'=>Order::STATUS_SETTLEMENT]);
+        $query->select(new Expression("sum(`paid_amount`) as amount,from_unixtime(`settlement_at`,'%Y-%m-%d') as times"));
+        $query->groupBy(new Expression("from_unixtime(`settlement_at`,'%Y%m%d')"));
+        $list = $query->asArray()->all();
+        if (!$list) return ResponseHelper::formatOutput(Macro::SUCCESS,'未查询到充值数据，请检查查询条件',[]);
+        $data = [];
+        foreach ($list as $val){
+            $data[$val['times']] = $val['amount'];
+        }
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
+    }
+
+    /**
      * 商户首页充值代付走势
      * @return array
      */
