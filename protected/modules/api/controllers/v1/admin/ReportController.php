@@ -56,8 +56,8 @@ class ReportController extends BaseController
 
         $userId    = ControllerParameterValidator::getRequestParam($this->allParams, 'user_id', '', Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '商户ID错误', [5]);
         $username  = ControllerParameterValidator::getRequestParam($this->allParams, 'username', '', Macro::CONST_PARAM_TYPE_USERNAME, '商户名错误', [0, 32]);
-        $parenrUserId    = ControllerParameterValidator::getRequestParam($this->allParams, 'parent_user_id', '', Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '商户ID错误', [5]);
-        $parenrUsername  = ControllerParameterValidator::getRequestParam($this->allParams, 'parent_username', '', Macro::CONST_PARAM_TYPE_USERNAME, '商户名错误', [0, 32]);
+        $parentUserId    = ControllerParameterValidator::getRequestParam($this->allParams, 'parent_user_id', '', Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '父账户编号错误', [5]);
+        $parentUsername  = ControllerParameterValidator::getRequestParam($this->allParams, 'parent_username', '', Macro::CONST_PARAM_TYPE_USERNAME, '父账户名错误', [0, 32]);
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',
             Macro::CONST_PARAM_TYPE_DATE, '开始日期错误');
         $dateEnd   = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',
@@ -72,7 +72,29 @@ class ReportController extends BaseController
             ->select(['id','date','user_id','username','recharge','ABS(remit) AS remit','bonus','total_income','ABS(total_cost) AS total_cost','ABS(recharge_fee) AS recharge_fee','ABS(remit_fee) AS remit_fee','ABS(transfer_fee) AS transfer_fee','remit_refund','remit_fee_refund','transfer_in','ABS(transfer_out) AS transfer_out','balance','account_balance','ABS(account_frozen_balance) AS account_frozen_balance','all_parent_agent_id','updated_at','created_at','plat_sum'])
             ->from(ReportFinancialDaily::tableName());
         if ($user->isAdmin()) {
-
+            if(!empty($parentUserId)){
+                $agentWhere = [
+                    'or',
+                    ['like', 'all_parent_agent_id', ',' . $parentUserId . ','],
+                    ['like', 'all_parent_agent_id', '[' . $parentUserId . ']'],
+                    ['like', 'all_parent_agent_id', '[' . $parentUserId . ','],
+                    ['like', 'all_parent_agent_id', ',' . $parentUserId . ']'],
+                ];
+                $query->andWhere($agentWhere);
+            }
+            if(!empty($parentUsername)){
+                $parentUser = User::find()->select('id')->where(['username'=>$parentUsername])->one();
+                if(!empty($parentUser)){
+                    $agentWhere = [
+                        'or',
+                        ['like', 'all_parent_agent_id', ',' . $parentUser->id . ','],
+                        ['like', 'all_parent_agent_id', '[' . $parentUser->id . ']'],
+                        ['like', 'all_parent_agent_id', '[' . $parentUser->id . ','],
+                        ['like', 'all_parent_agent_id', ',' . $parentUser->id . ']'],
+                    ];
+                    $query->andWhere($agentWhere);
+                }
+            }
         } elseif ($user->isAgent()) {
             $agentWhere = [
                 'or',
@@ -93,36 +115,12 @@ class ReportController extends BaseController
         if ($userId) {
             $query->andWhere(['user_id' => $userId]);
         }
-        if(!empty($parenrUserId)){
-            $agentWhere = [
-                'or',
-                ['like', 'all_parent_agent_id', ',' . $parenrUserId . ','],
-                ['like', 'all_parent_agent_id', '[' . $parenrUserId . ']'],
-                ['like', 'all_parent_agent_id', '[' . $parenrUserId . ','],
-                ['like', 'all_parent_agent_id', ',' . $parenrUserId . ']'],
-                ['user_id', $parenrUserId]
-            ];
-            $query->andWhere($agentWhere);
-        }
-        if(!empty($parenrUsername)){
-            $parentUser = User::find()->select('id')->where(['username'=>$parenrUsername])->one();
-            if(!empty($parentUser)){
-                $agentWhere = [
-                    'or',
-                    ['like', 'all_parent_agent_id', ',' . $parentUser->id . ','],
-                    ['like', 'all_parent_agent_id', '[' . $parentUser->id . ']'],
-                    ['like', 'all_parent_agent_id', '[' . $parentUser->id . ','],
-                    ['like', 'all_parent_agent_id', ',' . $parentUser->id . ']'],
-                    ['user_id', $parentUser->id]
-                ];
-                $query->andWhere($agentWhere);
-            }
-        }
+
         if ($dateStart) {
             $query->andFilterCompare('date', '>=' . date('Ymd', strtotime($dateStart)));
         }
         if ($dateEnd) {
-            $query->andFilterCompare('date', '<' . date('Ymd', strtotime($dateEnd) + 86400));
+            $query->andFilterCompare('date', '<=' . date('Ymd', strtotime($dateEnd) + 86400));
         }
 
         //允许的排序
