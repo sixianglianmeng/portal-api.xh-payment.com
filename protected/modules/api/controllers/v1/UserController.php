@@ -166,10 +166,11 @@ class UserController extends BaseController
         }
         $filter['user_id'] = $user->id;
         $paymentInfo = UserPaymentInfo::find()->where($filter)->limit(1)->one();
+        $tmpEmail = explode('@',$user->email);
         $data = [
             'id' => $user->id,
             'username' => $user->username,
-            'email' => $user->email,
+            'email' => str_replace(substr($tmpEmail[0], 1, -1),'****',$user->email),
             'nickname' => $user->nickname,
             'avatar' => $user->getAvatar(),
             'balance' => $user->balance,
@@ -615,7 +616,6 @@ class UserController extends BaseController
      */
     public function actionEmailCode(){
         $user = Yii::$app->user->identity;
-//        $email = ControllerParameterValidator::getRequestParam($this->allParams,'email','',Macro::CONST_PARAM_TYPE_EMAIL,'邮箱地址错误');
         $type = ControllerParameterValidator::getRequestParam($this->allParams,'type','',Macro::CONST_PARAM_TYPE_EMAIL,'类型错误');
         $code = rand(100000,999999);
         Yii::$app->redis->setex('email:'.$type.':'.$user->username,15*60,$code);

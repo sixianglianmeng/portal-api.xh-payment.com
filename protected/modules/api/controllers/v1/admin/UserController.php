@@ -1078,10 +1078,12 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
      */
     public function actionClearUnbindUpdate()
     {
+        $userObj = Yii::$app->user->identity;
         $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId', 0, Macro::CONST_PARAM_TYPE_INT, '用户id错误');
         $type = ControllerParameterValidator::getRequestParam($this->allParams,'type',null,Macro::CONST_PARAM_TYPE_INT,'类型错误');
         $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status',1,Macro::CONST_PARAM_TYPE_INT,'状态码错误');
         $email = ControllerParameterValidator::getRequestParam($this->allParams, 'email',1,Macro::CONST_PARAM_TYPE_EMAIL,'状态码错误');
+        $code = ControllerParameterValidator::getRequestParam($this->allParams, 'googleCode','',Macro::CONST_PARAM_TYPE_INT,'安全令牌错误');
         $user = User::findOne(['id'=>$userId]);
         if(!$user){
             ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
@@ -1089,6 +1091,9 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         if($type == 1){
             $user->financial_password_hash = '';
         }elseif ($type ==2){
+            if(!$userObj->validateKey2fa($code)){
+                throw new OperationFailureException('安全令牌错误',Macro::FAIL);
+            }
             $user->key_2fa = '';
             $user->key_2fa_token = '';
         }elseif ($type == 3){

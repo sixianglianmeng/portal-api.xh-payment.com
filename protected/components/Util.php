@@ -1024,6 +1024,7 @@ class Util
             'bindApiIp' => '绑定API接口IP',
             'clearGoogle' => '清空安全令牌',
         ];
+        Yii::info('toEmail:'.$toEmail." type:".$type . " message:".$message);
         $mail = Yii::$app->mailer->compose();
         //目标邮箱
         $mail->setTo($toEmail);
