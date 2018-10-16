@@ -1525,4 +1525,14 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
 
         return ResponseHelper::formatOutput(Macro::SUCCESS);
     }
+
+    /**
+     * 代理列表
+     * @return array
+     */
+    public function actionGetAgentList()
+    {
+        $list = User::find()->select('id,username')->where(['group_id'=>User::GROUP_AGENT])->all();
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$list);
+    }
 }
