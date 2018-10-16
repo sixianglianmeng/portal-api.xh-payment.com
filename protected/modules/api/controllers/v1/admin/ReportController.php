@@ -55,8 +55,9 @@ class ReportController extends BaseController
         $user = Yii::$app->user->identity;
 
         $userId    = ControllerParameterValidator::getRequestParam($this->allParams, 'user_id', '', Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '商户ID错误', [5]);
-        $username  = ControllerParameterValidator::getRequestParam($this->allParams, 'username', '',
-            Macro::CONST_PARAM_TYPE_USERNAME, '商户名错误', [0, 32]);
+        $username  = ControllerParameterValidator::getRequestParam($this->allParams, 'username', '', Macro::CONST_PARAM_TYPE_USERNAME, '商户名错误', [0, 32]);
+        $parenrUserId    = ControllerParameterValidator::getRequestParam($this->allParams, 'parent_user_id', '', Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '商户ID错误', [5]);
+        $parenrUsername  = ControllerParameterValidator::getRequestParam($this->allParams, 'parent_username', '', Macro::CONST_PARAM_TYPE_USERNAME, '商户名错误', [0, 32]);
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',
             Macro::CONST_PARAM_TYPE_DATE, '开始日期错误');
         $dateEnd   = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',
@@ -92,7 +93,31 @@ class ReportController extends BaseController
         if ($userId) {
             $query->andWhere(['user_id' => $userId]);
         }
-
+        if(!empty($parenrUserId)){
+            $agentWhere = [
+                'or',
+                ['like', 'all_parent_agent_id', ',' . $parenrUserId . ','],
+                ['like', 'all_parent_agent_id', '[' . $parenrUserId . ']'],
+                ['like', 'all_parent_agent_id', '[' . $parenrUserId . ','],
+                ['like', 'all_parent_agent_id', ',' . $parenrUserId . ']'],
+                ['user_id', $parenrUserId]
+            ];
+            $query->andWhere($agentWhere);
+        }
+        if(!empty($parenrUsername)){
+            $parentUser = User::find()->select('id')->where(['username'=>$parenrUsername])->one();
+            if(!empty($parentUser)){
+                $agentWhere = [
+                    'or',
+                    ['like', 'all_parent_agent_id', ',' . $parentUser->id . ','],
+                    ['like', 'all_parent_agent_id', '[' . $parentUser->id . ']'],
+                    ['like', 'all_parent_agent_id', '[' . $parentUser->id . ','],
+                    ['like', 'all_parent_agent_id', ',' . $parentUser->id . ']'],
+                    ['user_id', $parentUser->id]
+                ];
+                $query->andWhere($agentWhere);
+            }
+        }
         if ($dateStart) {
             $query->andFilterCompare('date', '>=' . date('Ymd', strtotime($dateStart)));
         }
