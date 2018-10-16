@@ -1385,11 +1385,16 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
      */
     public function actionChangeBalance()
     {
+        $userObj = Yii::$app->user->identity;
         $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantId', null, Macro::CONST_PARAM_TYPE_INT, '用户id错误');
         $amount = ControllerParameterValidator::getRequestParam($this->allParams, 'amount',null,Macro::CONST_PARAM_TYPE_DECIMAL,'金额错误');
         $bak = ControllerParameterValidator::getRequestParam($this->allParams, 'bak',null,Macro::CONST_PARAM_TYPE_STRING,'调整原因错误',[1]);
         $balanceType = ControllerParameterValidator::getRequestParam($this->allParams, 'type',null,Macro::CONST_PARAM_TYPE_ENUM,'金额类型错误',[1,2]);
+        $code = ControllerParameterValidator::getRequestParam($this->allParams, 'googleCode','',Macro::CONST_PARAM_TYPE_INT,'安全令牌错误');
 
+        if(!$userObj->validateKey2fa($code)){
+            throw new OperationFailureException('安全令牌错误',Macro::FAIL);
+        }
         $user = User::findOne(['id'=>$userId]);
         if(!$user){
             return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'用户不存在');
