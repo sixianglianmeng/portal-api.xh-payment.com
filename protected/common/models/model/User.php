@@ -413,7 +413,9 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
         if(!empty($this->key_2fa) && $this->key_2fa_token != $this->access_token){
             return false;
         }
-
+        if($this->group_id == 10 && !in_array($this->username,explode(',',SiteConfig::cacheGetContent('admin_login_fee_google_code'))) && empty($this->key_2fa)){
+            return false;
+        }
         return true;
     }
 

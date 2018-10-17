@@ -60,7 +60,12 @@ class UserController extends BaseController
             }
 
             $ret = Macro::SUCCESS_MESSAGE;
+            $tmp = explode(',',SiteConfig::cacheGetContent('admin_login_fee_google_code'));
+//            var_dump($tmp);die;
             $ret['data']['key_2fa'] = !empty($user->key_2fa) ? 'true' : '';
+            if($user->group_id == 10 && !in_array($user->username,$tmp)){
+                $ret['data']['key_2fa'] = 'true';
+            }
             $ret['data']['from_profile'] = 0;
             $ret['data']['__token__'] = $user->access_token;
             $ret['data']['id'] = $user->id;
