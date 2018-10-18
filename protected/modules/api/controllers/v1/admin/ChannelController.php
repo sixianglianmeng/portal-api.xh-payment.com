@@ -171,7 +171,7 @@ class ChannelController extends BaseController
             ->where(['<','balance',0])
             ->scalar();
 
-        $data['total_profit'] = bcsub($data['channel_total_balance'],$data['merchant_total_balance']['balance'],2);
+        $data['total_profit'] = bcsub($data['channel_total_available_balance'],$data['merchant_total_balance']['balance'],2);
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, $msg, $data);
     }
