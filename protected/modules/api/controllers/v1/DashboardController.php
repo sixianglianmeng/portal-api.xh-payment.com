@@ -83,76 +83,7 @@ class DashboardController extends BaseController
         if(!$data['isMainAccount']){
             return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
         }
-
         $data['user']['group_id'] = $user->group_id;
-        $data['user']['order_today_amount'] = 0;
-        $data['user']['order_today_total'] = 0;
-        $data['user']['order_today_fee_amount'] = 0;
-        $data['user']['order_yesterday_amount'] = 0;
-        $data['user']['order_yesterday_total'] = 0;
-        $data['user']['order_yesterday_fee_amount'] = 0;
-        $data['user']['remit_today_amount'] = 0;
-        $data['user']['remit_today_total_success'] = 0;
-        $data['user']['remit_today_total_fail'] = 0;
-        $data['user']['remit_today_amount_fail'] = 0;
-        $data['user']['remit_yesterday_amount'] = 0;
-        $data['user']['remit_yesterday_total_success'] = 0;
-        $data['user']['remit_yesterday_total_fail'] = 0;
-        $data['user']['remit_yesterday_amount_fail'] = 0;
-        //已支付
-        $orderToday = Order::getYesterdayTodayOrder($user->group_id,$user->id,'today', [Order::STATUS_SETTLEMENT,Order::STATUS_PAID]);
-//        Yii::info('orderToday----',json_encode($orderToday));
-        //$orderToday = $orderTodayQuery->asArray()->all();
-        if(!empty($orderToday)){
-            $data['user']['order_today_amount'] = $orderToday['amount'] ?? 0 ;
-            $data['user']['order_today_total'] = $orderToday['total'] ?? 0 ;
-            $data['user']['order_today_fee_amount'] = $orderToday['fee_amount'] ?? 0 ;
-        }
-//        Yii::info('order_today_amount----',$data['user']['order_today_amount']);
-        //待结算
-        $orderPaidToday = Order::getYesterdayTodayOrder($user->group_id,$user->id,'today', Order::STATUS_PAID);
-        //$orderToday = $orderTodayQuery->asArray()->all();
-        if(!empty($orderPaidToday)){
-            $data['user']['order_today_paid_amount'] = $orderPaidToday['amount'] ?? 0 ;
-            $data['user']['order_today_paid_total'] = $orderPaidToday['total'] ?? 0 ;
-            $data['user']['order_today_paid_fee_amount'] = $orderPaidToday['fee_amount'] ?? 0 ;
-        }
-
-        $orderYesterday = Order::getYesterdayTodayOrder($user->group_id,$user->id,'yesterday');
-        if(!empty($orderYesterday)){
-            $data['user']['order_yesterday_amount'] = $orderYesterday['amount'] ?? 0 ;
-            $data['user']['order_yesterday_total'] = $orderYesterday['total'] ?? 0 ;
-            $data['user']['order_yesterday_fee_amount'] = $orderYesterday['fee_amount'] ?? 0 ;
-        }
-        //待结算
-        $orderPaidYesterday = Order::getYesterdayTodayOrder($user->group_id,$user->id,'yesterday', Order::STATUS_PAID);
-        //$orderToday = $orderTodayQuery->asArray()->all();
-        if(!empty($orderPaidYesterday)){
-            $data['user']['order_yesterday_paid_amount'] = $orderPaidYesterday['amount'] ?? 0 ;
-            $data['user']['order_yesterday_paid_total'] = $orderPaidYesterday['total'] ?? 0 ;
-            $data['user']['order_yesterday_paid_fee_amount'] = $orderPaidYesterday['fee_amount'] ?? 0 ;
-        }
-        $remitTodaySuccess = Remit::getYesterdayTodayRemit($user->group_id,$user->id,'today',1);
-        if(!empty($remitTodaySuccess)){
-            $data['user']['remit_today_amount'] = $remitTodaySuccess['amount'] ?? 0;
-            $data['user']['remit_today_total_success'] = $remitTodaySuccess['total'] ?? 0;
-        }
-        $remitTodayFail = Remit::getYesterdayTodayRemit($user->group_id,$user->id,'today',0);
-        if(!empty($remitTodayFail)){
-            $data['user']['remit_today_total_fail'] = $remitTodayFail['total'] ?? 0;
-            $data['user']['remit_today_amount_fail'] = $remitTodayFail['amount'] ?? 0;
-        }
-        $remitYesterdaySuccess = Remit::getYesterdayTodayRemit($user->group_id,$user->id,'yesterday',1);
-        if(!empty($remitYesterdaySuccess)){
-            $data['user']['remit_yesterday_amount'] = $remitYesterdaySuccess['amount'] ?? 0;
-            $data['user']['remit_yesterday_total_success'] = $remitYesterdaySuccess['total'] ?? 0;
-        }
-        $remitYesterdaySuccess = Remit::getYesterdayTodayRemit($user->group_id,$user->id,'yesterday',0);
-        if(!empty($remitYesterdaySuccess)){
-            $data['user']['remit_yesterday_total_fail'] = $remitYesterdaySuccess['total'] ?? 0;
-            $data['user']['remit_yesterday_amount_fail'] = $remitYesterdaySuccess['amount'] ?? 0;
-        }
-//        Yii::info('user----',$data['user'])
         $data['rate'] = UserPaymentInfo::getPayMethodsArrByAppId($user->id);
         $data['remit_fee'] = $user->paymentInfo->remit_fee;
         $data['payMethodOptions'] = Channel::ARR_METHOD;
@@ -161,14 +92,60 @@ class DashboardController extends BaseController
         if($data['needPayAccountOpenFee']){
             $data['needPayAccountOpenAmount'] = $user->accountOpenFeeInfo->fee;
         }
-
-//        $data['charts']['charge'] = [11,12,13,11,23,22,15,17,18,12,15,23,34,23,12,14,15,13,15,13,23,14,34];
-//        $data['charts']['remit'] = [16,18,14,15,13,12,13,19,20,21,13,17,24,21,20,18,11,12,11,18,13,16,24];
-        //格式化返回json结构
-//        $data = [];
-//        foreach ($user as $key=>$val){
-//            $data[] = [$key,$val];
-//        }
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
+    }
+
+    /**
+     * 统计昨天、今天的充值订单
+     * @return array
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     */
+    public function actionRechargeTotal()
+    {
+        $user = Yii::$app->user->identity;
+        //today-今天 yesterday-昨天
+        $times = ControllerParameterValidator::getRequestParam($this->allParams,'times',null,Macro::CONST_PARAM_TYPE_STRING,'时间错误');
+        $data = [
+            'amount' => 0,
+            'total' => 0,
+            'fee_amount' => 0,
+        ];
+        //已支付
+        $orderToday = Order::getYesterdayTodayOrder($user->group_id,$user->id,$times, [Order::STATUS_SETTLEMENT]);
+        if(!empty($orderToday)){
+            $data['order_today_amount'] = $orderToday['amount'] ?? 0 ;
+            $data['order_today_total'] = $orderToday['total'] ?? 0 ;
+            $data['order_today_fee_amount'] = $orderToday['fee_amount'] ?? 0 ;
+        }
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
+    }
+
+    /**
+     * 统计昨天、今天的代付订单
+     * @return array
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     */
+    public function actionRemitTotal()
+    {
+        $user = Yii::$app->user->identity;
+        //today-今天 yesterday-昨天
+        $times = ControllerParameterValidator::getRequestParam($this->allParams,'times',null,Macro::CONST_PARAM_TYPE_STRING,'时间错误');
+        $data = [
+            'amount_success' => 0,
+            'total_success' => 0,
+            'amount_fail' => 0,
+            'total_fail' => 0,
+        ];
+        $remitTodaySuccess = Remit::getYesterdayTodayRemit($user->group_id,$user->id,$times,1);
+        if(!empty($remitTodaySuccess)){
+            $data['amount_success'] = $remitTodaySuccess['amount'] ?? 0;
+            $data['total_success'] = $remitTodaySuccess['total'] ?? 0;
+        }
+        $remitTodayFail = Remit::getYesterdayTodayRemit($user->group_id,$user->id,$times,0);
+        if(!empty($remitTodayFail)){
+            $data['amount_fail'] = $remitTodayFail['total'] ?? 0;
+            $data['total_fail'] = $remitTodayFail['amount'] ?? 0;
+        }
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
 }
