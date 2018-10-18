@@ -17,6 +17,7 @@ use app\modules\api\controllers\BaseController;
 use app\modules\gateway\models\logic\LogicOrder;
 use Yii;
 use yii\data\ActiveDataProvider;
+use yii\db\Query;
 
 class ReportController extends BaseController
 {
@@ -533,7 +534,7 @@ class ReportController extends BaseController
             $query->andFilterCompare('date', '>=' . date('Ymd', strtotime($dateStart)));
         }
         if ($dateEnd) {
-            $query->andFilterCompare('date', '<' . date('Ymd', strtotime($dateEnd) + 86400));
+            $query->andFilterCompare('date', '<=' . date('Ymd', strtotime($dateEnd) + 86400));
         }
 
         $sorts = [
@@ -591,23 +592,63 @@ class ReportController extends BaseController
      */
     public function actionAccountOpenFee()
     {
-        $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
-        $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
-        $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
-        $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100000]);
-        $startTime = empty($dateStart) ? strtotime('-31 days',strtotime(date("Y-m-d 00:00:00"))) : strtotime(date("Y-m-d 00:00:00",strtotime($dateStart)));
-        $endTime = empty($dateEnd) ? strtotime(date("Y-m-d 23:59:59")) : strtotime(date("Y-m-d 23:59:59",strtotime($dateEnd)));
-        $days = (strtotime(date("Y-m-d",$endTime)) - strtotime(date("Y-m-d",$startTime))) / (24*3600) ;
-        if($days > 30){
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过31天',[]);
+        $month = ControllerParameterValidator::getRequestParam($this->allParams, 'month', null, Macro::CONST_PARAM_TYPE_INT, '月份错误');
+        $monthList = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+        $dateStart = date('Y-'.$monthList[$month].'-01 00:00:00');
+        $dateEnd = date('Y-m-d 23:59:59', strtotime("$dateStart +1 month -1 day"));
+        $query = (new Query())
+            ->select('sum(pa.fee) as fee,sum(pa.fee_paid) as fee_paid,count(pa.id) as total,pu.parent_agent_id')
+            ->from('p_account_open_fee AS pa')
+            ->leftJoin('p_users AS pu',"pa.user_id = pu.id");
+        $query->andWhere(['>=','pa.created_at',strtotime($dateStart)]);
+        $query->andWhere(['<=','pa.created_at',strtotime($dateEnd)]);
+        $query->groupBy('pu.parent_agent_id');
+        $openFeeList = $query->all();
+        $userList = User::find()->where(['group_id'=>User::GROUP_AGENT])->asArray()->all();
+        $agentList = [];
+        foreach ($userList as $val){
+            $agentList[$val['id']]['username'] = $val['username'];
+            $agentList[$val['id']]['fee_paid'] = 0;
+            $agentList[$val['id']]['fee'] = 0;
+            $agentList[$val['id']]['total'] = 0;
+            $agentList[$val['id']]['merchant_id'] = $val['id'];
         }
+        if(!empty($openFeeList)) {
+            foreach ($openFeeList as $val) {
+                $agentList[$val['parent_agent_id']]['fee_paid'] = $val['fee_paid'];
+                $agentList[$val['parent_agent_id']]['total'] = $val['total'];
+                $agentList[$val['parent_agent_id']]['fee'] = $val['fee'];
+            }
+        }
+        $data = [];
+        foreach ($agentList as $val){
+            $data[] = $val;
+        }
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
+    }
+    /**
+     * 开户费统计
+     * @return array
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     */
+    public function actionAccountOpenFeeInfo()
+    {
+        $month = ControllerParameterValidator::getRequestParam($this->allParams, 'month', null, Macro::CONST_PARAM_TYPE_INT, '月份错误');
+        $agent_merchant_id = ControllerParameterValidator::getRequestParam($this->allParams, 'agent_merchant_id', null,Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'商户编号错误',[0,32]);
+        $agent_merchant_name = ControllerParameterValidator::getRequestParam($this->allParams, 'agent_merchant_name', null,Macro::CONST_PARAM_TYPE_STRING,'商户名称错误',[0,32]);
+        $monthList = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+        $dateStart = date('Y-'.$monthList[$month].'-01 00:00:00');
+        $dateEnd = date('Y-m-d 23:59:59', strtotime("$dateStart +1 month -1 day"));
+        $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
+        $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,1000]);
         $field = "pa.user_id,pa.username,pa.status,pa.fee,pa.fee_paid,pa.paid_at,pa.order_no,pa.order_created_at,pa.created_at,pu.parent_agent_id";
-        $query = (new \yii\db\Query())
+        $query = (new Query())
             ->select($field)
             ->from('p_account_open_fee AS pa')
             ->leftJoin('p_users AS pu',"pa.user_id = pu.id");
-        $query->andWhere(['>=','pa.created_at',$startTime]);
-        $query->andWhere(['<=','pa.created_at',$endTime]);
+        $query->andWhere(['>=','pa.created_at',strtotime($dateStart)]);
+        $query->andWhere(['<=','pa.created_at',strtotime($dateEnd)]);
+        $query->andWhere(['pu.parent_agent_id' => $agent_merchant_id]);
         $query->orderBy('pa.created_at desc');
         $pageObj = new ActiveDataProvider([
             'query' => $query,
@@ -616,38 +657,15 @@ class ReportController extends BaseController
                 'page' => $page-1,
             ],
         ]);
-        $userList = User::find()->where(['group_id'=>User::GROUP_AGENT])->asArray()->all();
-        $agentList = [];
-        foreach ($userList as $val){
-            $agentList[$val['id']] = $val['username'];
-        }
         $tmpList = [];
         foreach ($pageObj->getModels() as $key=>$val){
             $val['status_str'] = AccountOpenFee::ARR_STATUS[$val['status']];
             $val['paid_at'] = date('Y-m-d H:i:s',$val['paid_at']);
             $val['order_created_at'] = date('Y-m-d H:i:s',$val['order_created_at']);
             $val['created_at'] = date('Y-m-d H:i:s',$val['created_at']);
-            $val['parent_agent_name'] = $agentList[$val['parent_agent_id']];
+            $val['parent_agent_name'] = $agent_merchant_name;
             $tmpList[] = $val;
 
-        }
-        $queryTotal = (new \yii\db\Query())
-            ->select('sum(pa.fee_paid) as fee_paid,pu.parent_agent_id')
-            ->from('p_account_open_fee AS pa')
-            ->leftJoin('p_users AS pu',"pa.user_id = pu.id");
-        $queryTotal->andWhere(['>=','pa.created_at',$startTime]);
-        $queryTotal->andWhere(['<=','pa.created_at',$endTime]);
-        $queryTotal->groupBy('pu.parent_agent_id');
-        $openFeeList = $queryTotal->all();
-        $tmpTotalParent = [];
-        if(!empty($openFeeList)){
-            foreach ($openFeeList as $val){
-                if(!isset($tmpTotalParent[$val['parent_agent_id']])){
-                    $tmpTotalParent[$val['parent_agent_id']]['name'] = $agentList[$val['parent_agent_id']];
-                    $tmpTotalParent[$val['parent_agent_id']]['open_fee'] = 0;
-                }
-                $tmpTotalParent[$val['parent_agent_id']]['open_fee'] = $val['fee_paid'];
-            }
         }
         //分页数据
         $pagination = $pageObj->getPagination();
@@ -657,7 +675,6 @@ class ReportController extends BaseController
         $to = $page*$perPage;
         $data = [
             'list'=>$tmpList,
-            'parentTotal' => $tmpTotalParent,
             "total" =>  $total,
             "per_page" =>  $perPage,
             "current_page" =>  $page,
