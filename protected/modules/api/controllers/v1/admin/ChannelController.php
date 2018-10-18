@@ -140,12 +140,14 @@ class ChannelController extends BaseController
         $accounts = $query->all();
 
         $data['channel_total_balance'] = 0;
+        $data['channel_total_frozen_balance'] = 0;
         //格式化返回记录数据
         $records=[];
         foreach ($accounts as $i=>$a){
             $records[$i] = $a;
             $records[$i]['total_balance'] = bcsub( $records[$i]['balance'], $records[$i]['frozen_balance'],2);
             $data['channel_total_balance'] = bcadd($data['channel_total_balance'],$a['balance'],6);
+            $data['channel_total_frozen_balance'] = bcadd($data['channel_total_balance'],$a['frozen_balance'],6);
         }
         $data['list'] = $records;
 
