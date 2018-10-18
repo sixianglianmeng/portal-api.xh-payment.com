@@ -603,6 +603,7 @@ class ReportController extends BaseController
         $query->andWhere(['>=','pa.created_at',strtotime($dateStart)]);
         $query->andWhere(['<=','pa.created_at',strtotime($dateEnd)]);
         $query->groupBy('pu.parent_agent_id');
+        $query->orderBy('sum(pa.fee) desc');
         $openFeeList = $query->all();
         $userList = User::find()->where(['group_id'=>User::GROUP_AGENT])->asArray()->all();
         $agentList = [];
