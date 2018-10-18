@@ -147,7 +147,7 @@ class ChannelController extends BaseController
             $records[$i] = $a;
             $records[$i]['total_balance'] = bcadd( $records[$i]['balance'], $records[$i]['frozen_balance'],2);
             $data['channel_total_available_balance'] = bcadd($data['channel_total_available_balance'],$a['balance'],6);
-            $data['channel_total_frozen_balance'] = bcadd($data['channel_total_balance'],$a['frozen_balance'],6);
+            $data['channel_total_frozen_balance'] = bcadd($data['channel_total_frozen_balance'],$a['frozen_balance'],6);
         }
         $data['channel_total_balance']  = bcsub($data['channel_total_available_balance'],$data['channel_total_frozen_balance'],2);
         $data['list'] = $records;
