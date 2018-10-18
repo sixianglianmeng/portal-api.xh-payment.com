@@ -144,6 +144,7 @@ class ChannelController extends BaseController
         $records=[];
         foreach ($accounts as $i=>$a){
             $records[$i] = $a;
+            $records[$i]['real_balance'] = bcadd( $records[$i]['balance'], $records[$i]['frozen_balance'],2);
             $data['channel_total_balance'] = bcadd($data['channel_total_balance'],$a['balance'],6);
         }
         $data['list'] = $records;
