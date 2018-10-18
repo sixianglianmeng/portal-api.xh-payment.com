@@ -143,8 +143,8 @@ class DashboardController extends BaseController
         }
         $remitTodayFail = Remit::getYesterdayTodayRemit($user->group_id,$user->id,$times,0);
         if(!empty($remitTodayFail)){
-            $data['amount_fail'] = $remitTodayFail['total'] ?? 0;
-            $data['total_fail'] = $remitTodayFail['amount'] ?? 0;
+            $data['amount_fail'] = $remitTodayFail['amount'] ?? 0;
+            $data['total_fail'] = $remitTodayFail['total'] ?? 0;
         }
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
