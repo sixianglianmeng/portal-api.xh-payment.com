@@ -53,7 +53,7 @@ class DashboardController extends BaseController
 
         $user = Yii::$app->user->identity;
         //获取最新的一条公告
-        $notice = Notice::find()->orderBy('created_at desc')->asArray()->all();
+        $notice = Notice::find()->where(['status'=>Notice::STATUS_PAID])->orderBy('created_at desc')->asArray()->all();
 
         $data['notice'] = [];
         foreach ($notice as $key => $val){
