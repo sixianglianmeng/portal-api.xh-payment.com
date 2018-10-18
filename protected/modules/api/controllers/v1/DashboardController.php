@@ -113,9 +113,9 @@ class DashboardController extends BaseController
         //已支付
         $orderToday = Order::getYesterdayTodayOrder($user->group_id,$user->id,$times, [Order::STATUS_SETTLEMENT]);
         if(!empty($orderToday)){
-            $data['order_today_amount'] = $orderToday['amount'] ?? 0 ;
-            $data['order_today_total'] = $orderToday['total'] ?? 0 ;
-            $data['order_today_fee_amount'] = $orderToday['fee_amount'] ?? 0 ;
+            $data['amount'] = $orderToday['amount'] ?? 0 ;
+            $data['total'] = $orderToday['total'] ?? 0 ;
+            $data['fee_amount'] = $orderToday['fee_amount'] ?? 0 ;
         }
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
