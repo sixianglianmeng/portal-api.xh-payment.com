@@ -5,3 +5,5 @@
 20 3 * * *  /www/wwwroot/agent.payment.com/protected/yii report/daily-financial  2>&1
 #商户代理收款订单日报
 30 1 * * *  /www/wwwroot/agent.payment.com/protected/yii report/daily-recharge   2>&1
+#只保留15天日志
+0 0 * * *  find /www/wwwroot/portal-api.gd95516.com/runtime/log/ -mtime +15 -name "*.log*" -exec rm -rf {} \;
