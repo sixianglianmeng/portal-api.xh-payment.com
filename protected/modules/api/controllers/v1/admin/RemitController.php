@@ -346,7 +346,7 @@ class RemitController extends BaseController
             $remit->bank_ret = $remit->bank_ret.date('Ymd H:i:s')." {$user->username}切换通道{$oldChannelAccount->channel_name}->{$channelAccount->channel_name}\n";
 
             //重新计算平台利润
-            $parents = $remit->all_parent_remit_config?json_decode($remit->all_parent_remit_config):[];
+            $parents = $remit->all_parent_remit_config?json_decode($remit->all_parent_remit_config,true):[];
             //有上级代理
             if($parents){
                 $newProfit = bcsub($parents[0]['fee'], $channelAccount->remit_fee,6);
