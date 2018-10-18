@@ -627,7 +627,7 @@ class ReportController extends BaseController
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
     /**
-     * 开户费统计
+     * 开户费明细
      * @return array
      * @throws \power\yii2\exceptions\ParameterValidationExpandException
      */
