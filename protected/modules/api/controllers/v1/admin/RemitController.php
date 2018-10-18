@@ -349,9 +349,9 @@ class RemitController extends BaseController
             $parents = $remit->all_parent_remit_config?json_decode($remit->all_parent_remit_config):[];
             //有上级代理
             if($parents){
-                $newProfit = bcsub($parents[0]['fee'], $remit->plat_fee_profit,6);
+                $newProfit = bcsub($parents[0]['fee'], $channelAccount->remit_fee,6);
             }else{
-                $newProfit = bcsub($remit->remit_fee, $remit->plat_fee_profit,6);
+                $newProfit = bcsub($remit->remit_fee, $channelAccount->remit_fee,6);
             }
             $remit->bank_ret = $remit->bank_ret.date('Ymd H:i:s')." {$user->username}平台订单利润由{$remit->plat_fee_profit}更新为{$newProfit}\n";
             $remit->plat_fee_profit = $newProfit;
