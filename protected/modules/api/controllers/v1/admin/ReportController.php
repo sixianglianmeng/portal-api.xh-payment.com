@@ -701,8 +701,8 @@ class ReportController extends BaseController
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
         $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,1000]);
         $query = Order::find();
-        $query->andFilterCompare('settlement_at','>='.strtotime($dateStart));
-        $query->andFilterCompare('settlement_at','<='.strtotime($dateEnd));
+        $query->andFilterCompare('created_at','>='.strtotime($dateStart));
+        $query->andFilterCompare('created_at','<='.strtotime($dateEnd));
         if(!empty($merchant_id)){
             $query->andWhere(['merchant_id'=>$merchant_id]);
         }
