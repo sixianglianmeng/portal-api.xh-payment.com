@@ -55,7 +55,6 @@ class UserPaymentInfo extends BaseModel
      */
     public function getPayMethodsArr()
     {
-        $raWmethods = $this->getPayMethods();
         $methods = [];
         foreach ($this->payMethods as $m){
             $methods[] = [

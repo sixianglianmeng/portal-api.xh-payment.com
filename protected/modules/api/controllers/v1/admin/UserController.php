@@ -1157,6 +1157,26 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
             if(!$parentAccount){
                 return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'上级帐号不存在或未激活');
             }
+
+            //收款费率不能低于上级费率
+            $parentMinRate = $parentAccount->paymentInfo->getPayMethodsArr();
+            foreach ($pay_methods as $i=>$pm){
+                if(empty($pm['rate'])){
+                    unset($pay_methods[$i]);
+                    continue;
+                }
+                foreach ($parentMinRate as $cmr){
+                    if($pm['status'] == MerchantRechargeMethod::STATUS_ACTIVE && $pm['id']==$cmr['id']){
+                        if($cmr['status'] != MerchantRechargeMethod::STATUS_ACTIVE){
+                            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,"收款渠道".Channel::ARR_METHOD[$pm['id']]."上级{$parentAccount->username}未开通");
+                        }
+
+                        if($pm['rate']<$cmr['rate']){
+                            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,"收款渠道".Channel::ARR_METHOD[$pm['id']]."费率{$pm['rate']}不能低于上级{$parentAccount->username}费率{$cmr['rate']}");
+                        }
+                    }
+                }
+            }
         }
         //校验渠道
         $channel = null;
