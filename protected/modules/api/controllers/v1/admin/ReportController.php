@@ -703,7 +703,7 @@ class ReportController extends BaseController
         $query = Order::find();
         $query->andFilterCompare('settlement_at','>='.strtotime($dateStart));
         $query->andFilterCompare('settlement_at','<='.strtotime($dateEnd));
-        $query->andWhere(['status'=>Order::STATUS_SETTLEMENT]);
+//        $query->andWhere(['status'=>Order::STATUS_SETTLEMENT]);
         if(!empty($merchant_id)){
             $query->andWhere(['merchant_id'=>$merchant_id]);
         }
