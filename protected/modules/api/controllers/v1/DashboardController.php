@@ -111,7 +111,7 @@ class DashboardController extends BaseController
             'fee_amount' => 0,
         ];
         //已支付
-        $orderToday = Order::getYesterdayTodayOrder($user->group_id,$user->id,$times, [Order::STATUS_SETTLEMENT]);
+        $orderToday = Order::getYesterdayTodayOrder($user->group_id,$user->id,$times,Order::STATUS_SETTLEMENT);
         if(!empty($orderToday)){
             $data['amount'] = $orderToday['amount'] ?? 0 ;
             $data['total'] = $orderToday['total'] ?? 0 ;
