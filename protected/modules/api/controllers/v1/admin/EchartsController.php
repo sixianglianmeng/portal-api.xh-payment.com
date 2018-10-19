@@ -200,10 +200,36 @@ class EchartsController extends BaseController
             /********商户近7天的充值代付走势结束*************/
         }
         $data['hour'] = $tmp;
-//        $data['charts']['charge'] = ['00'=>1, '01'=>2, '02'=>3, '03'=>4, '04'=>5, '05'=>6, '06'=>7, '07'=>8, '08'=>9, '09'=>10, '10'=>11, '11'=>12, '12'=>13, '13'=>14, '14'=>15, '15'=>16, '16'=>17, '17'=>18, '18'=>19, '19'=>20, '20'=>21, '21'=>22, '22'=>23, '23'=>24];
-//        $data['charts']['remit'] = ['00'=>24, '01'=>23, '02'=>22, '03'=>21, '04'=>20, '05'=>19, '06'=>18, '07'=>17, '08'=>16, '09'=>15, '10'=>14, '11'=>13, '12'=>12, '13'=>11, '14'=>10, '15'=>9, '16'=>8, '17'=>7, '18'=>6, '19'=>5, '20'=>4, '21'=>3, '22'=>2, '23'=>1];
-//        $data['merchant']['charge'] = [11=>1,12=>2,13=>3,14=>4,15=>5,16=>6,17=>7];
-//        $data['merchant']['remit'] = [11=>7,12=>6,13=>5,14=>4,15=>3,16=>2,17=>1];
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
+    }
+
+    /**
+     * 商户充值图表
+     * @return array
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     */
+    public function actionRechargeGroupMerchant()
+    {
+        $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
+        $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
+        $startTime = empty($dateStart) ? strtotime('-14 days',strtotime(date("Y-m-d 00:00:00"))) : strtotime(date("Y-m-d 00:00:00",strtotime($dateStart)));
+        $endTime = empty($dateEnd) ? strtotime(date("Y-m-d 23:59:59")) : strtotime(date("Y-m-d 23:59:59",strtotime($dateEnd)));
+        $days = (strtotime(date("Y-m-d",$endTime)) - strtotime(date("Y-m-d",$startTime))) / (24*3600) ;
+        if($days > 14){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '时间筛选跨度不能超过15天',[]);
+        }
+        $query = Order::find();
+        $query->andFilterCompare('settlement_at','>='.$startTime);
+        $query->andFilterCompare('settlement_at','<='.$endTime);
+        $query->andWhere(['status'=>Order::STATUS_SETTLEMENT]);
+        $query->select("sum(`paid_amount`) as amount,merchant_id,merchant_account");
+        $query->groupBy('merchant_id');
+        $list = $query->asArray()->all();
+        if (!$list) return ResponseHelper::formatOutput(Macro::SUCCESS,'未查询到充值数据，请检查查询条件',[]);
+        $data = [];
+        foreach ($list as $val){
+            $data[$val['merchant_account']] = $val['amount'];
+        }
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
 }
