@@ -703,7 +703,6 @@ class ReportController extends BaseController
         $query = Order::find();
         $query->andFilterCompare('settlement_at','>='.strtotime($dateStart));
         $query->andFilterCompare('settlement_at','<='.strtotime($dateEnd));
-//        $query->andWhere(['status'=>Order::STATUS_SETTLEMENT]);
         if(!empty($merchant_id)){
             $query->andWhere(['merchant_id'=>$merchant_id]);
         }
@@ -738,7 +737,6 @@ class ReportController extends BaseController
                     $list[$tmp['merchant_id']]['status'][$tmp['status']] = $tmp['amount'];
                 }
             }
-//            $list[$tmp['merchant_id']][$tmp['status']]['total'] = $tmp['total'];
             if(!isset($list[$tmp['merchant_id']]['all'])){
                 $list[$tmp['merchant_id']]['status']['all'] = 0;
             }
