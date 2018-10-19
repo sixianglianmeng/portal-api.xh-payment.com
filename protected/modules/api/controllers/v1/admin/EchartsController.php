@@ -225,6 +225,23 @@ class EchartsController extends BaseController
         $query->select("sum(`paid_amount`) as amount,merchant_id,merchant_account");
         $query->groupBy('merchant_id');
         $list = $query->asArray()->all();
+//        $tmp = [
+//            '88xh001' => "764534.00",
+//            '88xh002' => "21605677.00",
+//            '88xh003' => "16008519.84",
+//            '88xh005' => "136400.00",
+//            '88xh678' => "3092409.00",
+//            '678001' => "1407568.41",
+//            '678002' => "207963.00",
+//            'MINGHAO11' => "34894.00",
+//            'MINGHONG33' => "133010.00",
+//            'MINGJUE22' => "213499.02",
+//            'account_open_fee' => "38000.00",
+//            'by6666' => "1793361.10",
+//            'by8888' => "244000.00",
+//            'by88545' => "2550.00",
+//            'dafa66' => "15878455.32"
+//        ];
         if (!$list) return ResponseHelper::formatOutput(Macro::SUCCESS,'未查询到充值数据，请检查查询条件',[]);
         $data = [];
         foreach ($list as $val){
