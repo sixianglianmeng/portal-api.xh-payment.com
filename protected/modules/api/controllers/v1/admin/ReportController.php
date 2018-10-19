@@ -710,8 +710,8 @@ class ReportController extends BaseController
         if(!empty($merchant_account)){
             $query->andWhere(['merchant_account'=>$merchant_account]);
         }
-        $query->select("sum(amount) as amount,count(amount) as total,merchant_id,merchant_account");
-        $query->groupBy('merchant_id');
+        $query->select("sum(amount) as amount,merchant_id,merchant_account,status");
+        $query->groupBy('status,merchant_id');
         $query->orderBy('sum(`amount`) desc');
         $pageObj = new ActiveDataProvider([
             'query' => $query,
@@ -722,9 +722,29 @@ class ReportController extends BaseController
         ]);
         $data['list'] = [];
         $data['total'] = 0;
+        $data['statusOptions'] = Order::ARR_STATUS;
+        $data['statusOptions']['all'] = '总计';
         if (empty($pageObj->getModels())) return ResponseHelper::formatOutput(Macro::SUCCESS,'未查询到充值数据，请检查查询条件',$data);
-        $data = [];
+        $list = [];
         foreach ($pageObj->getModels() as $val){
+            $tmp = $val->toArray();
+            $list[$tmp['merchant_id']]['merchant_id'] = $tmp['merchant_id'];
+            $list[$tmp['merchant_id']]['merchant_account'] = $tmp['merchant_account'];
+            foreach (Order::ARR_STATUS as $key=>$value){
+                if(!isset($list[$tmp['merchant_id']]['status'][$key])){
+                    $list[$tmp['merchant_id']]['status'][$key] = 0;
+                }
+                if($tmp['status'] == $key){
+                    $list[$tmp['merchant_id']]['status'][$tmp['status']] = $tmp['amount'];
+                }
+            }
+//            $list[$tmp['merchant_id']][$tmp['status']]['total'] = $tmp['total'];
+            if(!isset($list[$tmp['merchant_id']]['all'])){
+                $list[$tmp['merchant_id']]['status']['all'] = 0;
+            }
+            $list[$tmp['merchant_id']]['status']['all'] += $tmp['amount'];
+        }
+        foreach ($list as $val){
             $data['list'][] = $val;
         }
         //分页数据
