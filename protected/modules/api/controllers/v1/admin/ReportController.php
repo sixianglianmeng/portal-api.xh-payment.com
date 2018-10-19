@@ -710,7 +710,7 @@ class ReportController extends BaseController
         if(!empty($merchant_account)){
             $query->andWhere(['merchant_account'=>$merchant_account]);
         }
-        $query->select("sum(amount) as amount,count(id) as total,merchant_id,merchant_account");
+        $query->select("sum(amount) as amount,count(amount) as total,merchant_id,merchant_account");
         $query->groupBy('merchant_id');
         $query->orderBy('sum(`amount`) desc');
         $pageObj = new ActiveDataProvider([
