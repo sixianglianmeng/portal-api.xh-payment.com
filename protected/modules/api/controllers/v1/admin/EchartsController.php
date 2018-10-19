@@ -224,6 +224,7 @@ class EchartsController extends BaseController
         $query->andWhere(['status'=>Order::STATUS_SETTLEMENT]);
         $query->select("sum(`paid_amount`) as amount,merchant_id,merchant_account");
         $query->groupBy('merchant_id');
+        $query->orderBy('sum(`paid_amount`) desc');
         $list = $query->asArray()->all();
 //        $tmp = [
 //            '88xh001' => "764534.00",
