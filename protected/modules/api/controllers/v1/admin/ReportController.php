@@ -687,4 +687,49 @@ class ReportController extends BaseController
         return ResponseHelper::formatOutput(Macro::SUCCESS, '操作成功', $data);
     }
 
+    /**
+     * 商户充值统计
+     * @return array
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     */
+    public function actionRechargeGroupMerchant()
+    {
+        $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
+        $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
+        $merchant_id = ControllerParameterValidator::getRequestParam($this->allParams, 'merchant_id', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'商户编号错误',[0,32]);
+        $merchant_account = ControllerParameterValidator::getRequestParam($this->allParams, 'merchant_account', '',Macro::CONST_PARAM_TYPE_STRING,'商户名称错误',[0,32]);
+        $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
+        $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,1000]);
+        $query = Order::find();
+        $query->andFilterCompare('settlement_at','>='.strtotime($dateStart));
+        $query->andFilterCompare('settlement_at','<='.strtotime($dateEnd));
+        $query->andWhere(['status'=>Order::STATUS_SETTLEMENT]);
+        if(!empty($merchant_id)){
+            $query->andWhere(['merchant_id'=>$merchant_id]);
+        }
+        if(!empty($merchant_account)){
+            $query->andWhere(['merchant_account'=>$merchant_account]);
+        }
+        $query->select("sum(amount) as amount,count(id) as total,merchant_id,merchant_account");
+        $query->groupBy('merchant_id');
+        $query->orderBy('sum(`amount`) desc');
+        $pageObj = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => $perPage,
+                'page' => $page-1,
+            ],
+        ]);
+        $data['list'] = [];
+        $data['total'] = 0;
+        if (empty($pageObj->getModels())) return ResponseHelper::formatOutput(Macro::SUCCESS,'未查询到充值数据，请检查查询条件',$data);
+        $data = [];
+        foreach ($pageObj->getModels() as $val){
+            $data['list'][] = $val;
+        }
+        //分页数据
+        $pagination = $pageObj->getPagination();
+        $data['total'] = $pagination->totalCount;
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
+    }
 }
