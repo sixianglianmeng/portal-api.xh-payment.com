@@ -736,11 +736,11 @@ class ReportController extends BaseController
                 if($tmp['status'] == $key){
                     $list[$tmp['merchant_id']]['status'][$tmp['status']] = $tmp['amount'];
                 }
+                if(!isset($list[$tmp['merchant_id']]['all'])){
+                    $list[$tmp['merchant_id']]['status']['all'] = 0;
+                }
+                $list[$tmp['merchant_id']]['status']['all'] += $tmp['amount'];
             }
-            if(!isset($list[$tmp['merchant_id']]['all'])){
-                $list[$tmp['merchant_id']]['status']['all'] = 0;
-            }
-            $list[$tmp['merchant_id']]['status']['all'] += $tmp['amount'];
         }
         foreach ($list as $val){
             $data['list'][] = $val;
