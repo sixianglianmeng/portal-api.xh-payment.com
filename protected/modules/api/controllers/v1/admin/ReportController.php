@@ -17,6 +17,7 @@ use app\modules\api\controllers\BaseController;
 use app\modules\gateway\models\logic\LogicOrder;
 use Yii;
 use yii\data\ActiveDataProvider;
+use yii\db\Expression;
 use yii\db\Query;
 
 class ReportController extends BaseController
@@ -709,9 +710,8 @@ class ReportController extends BaseController
         if(!empty($merchant_account)){
             $query->andWhere(['merchant_account'=>$merchant_account]);
         }
-        $query->select("sum(amount) as amount,merchant_id,merchant_account,status");
+        $query->select(new Expression('sum(amount) as amount,merchant_id,merchant_account,count(`merchant_id`) as total,status'));
         $query->groupBy('status,merchant_id');
-        $query->orderBy('sum(`amount`) desc');
         $pageObj = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
@@ -725,23 +725,29 @@ class ReportController extends BaseController
         $data['statusOptions']['all'] = '总计';
         if (empty($pageObj->getModels())) return ResponseHelper::formatOutput(Macro::SUCCESS,'未查询到充值数据，请检查查询条件',$data);
         $list = [];
-        foreach ($pageObj->getModels() as $val){
+        foreach ($pageObj->getModels() as $k=>$val){
             $tmp = $val->toArray();
+//            var_dump($tmp);
             $list[$tmp['merchant_id']]['merchant_id'] = $tmp['merchant_id'];
             $list[$tmp['merchant_id']]['merchant_account'] = $tmp['merchant_account'];
             foreach (Order::ARR_STATUS as $key=>$value){
                 if(!isset($list[$tmp['merchant_id']]['status'][$key])){
                     $list[$tmp['merchant_id']]['status'][$key] = 0;
+//                    $list[$tmp['merchant_id']]['status'][$key]['total'] = 0;
                 }
                 if($tmp['status'] == $key){
                     $list[$tmp['merchant_id']]['status'][$tmp['status']] = $tmp['amount'];
+//                    $list[$tmp['merchant_id']]['status'][$tmp['status']]['total'] = $tmp['total'];
                 }
             }
             if(!isset($list[$tmp['merchant_id']]['status']['all'])){
                 $list[$tmp['merchant_id']]['status']['all'] = 0;
+//                $list[$tmp['merchant_id']]['status']['all']['total'] = 0;
             }
-            $list[$tmp['merchant_id']]['status']['all'] += $tmp['amount'];
+            $list[$tmp['merchant_id']]['status']['all']['amount'] = bcadd($list[$tmp['merchant_id']]['status']['all']['amount'],$tmp['amount'],2);
+//            $list[$tmp['merchant_id']]['status']['all']['total'] += $tmp['total'];
         }
+//        die;
         foreach ($list as $val){
             $data['list'][] = $val;
         }

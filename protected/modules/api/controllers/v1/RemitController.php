@@ -471,8 +471,11 @@ class RemitController extends BaseController
             return ResponseHelper::formatOutput(Macro::ERR_USER_FINANCIAL_PASSWORD, '资金密码不正确');
         }
         $googleObj = new \PHPGangsta_GoogleAuthenticator();
-        if(!$googleObj->verifyCode($userObj->key_2fa,$key_2fa,2)){
+        if(!$googleObj->verifyCode($userObj->key_2fa,$key_2fa,0)){
             return ResponseHelper::formatOutput(Macro::ERR_USER_KEY_FA, '安全令牌不正确');
+        }
+        if(Yii::$app->redis->get('remit:key_2fa'.$userObj->username) == $key_2fa){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'手动出款操作太频繁，请在30秒以后再操作');
         }
         if($remitData && count($remitData) < 300){
             $remitArr = [];
@@ -508,6 +511,7 @@ class RemitController extends BaseController
             if($totalAmount > $balance){
                 return ResponseHelper::formatOutput(Macro::ERR_EXCEL_BATCH_REMIT_TOTAL_AMOUNT, '总提款金额({$totalAmount})大于当前余额总提款金额({$balance})');
             }
+            Yii::$app->redis->setex('remit:key_2fa'.$userObj->username,30,$key_2fa);
             unset($remitData);
             RpcPaymentGateway::remit($user->username,$remitArr,md5(json_encode($remitArr)));
             return ResponseHelper::formatOutput(Macro::SUCCESS);
@@ -809,7 +813,7 @@ class RemitController extends BaseController
         $user = Yii::$app->user->identity;//->getMainAccount();
         //令牌校验操作人员的
         $googleObj = new \PHPGangsta_GoogleAuthenticator();
-        if(!$googleObj->verifyCode($user->key_2fa,$key2fa,1)){
+        if(!$googleObj->verifyCode($user->key_2fa,$key2fa,0)){
             return ResponseHelper::formatOutput(Macro::ERR_USER_KEY_FA, '安全令牌不正确');
         }
 

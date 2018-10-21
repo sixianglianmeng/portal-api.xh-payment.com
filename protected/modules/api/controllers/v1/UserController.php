@@ -93,13 +93,14 @@ class UserController extends BaseController
         $user = Yii::$app->user->identity;
         $key_2fa = ControllerParameterValidator::getRequestParam($this->allParams, 'key_2fa',0,Macro::CONST_PARAM_TYPE_INT,'安全码错误',[6]);
         $googleObj = new \PHPGangsta_GoogleAuthenticator();
-        if(!$googleObj->verifyCode($user->key_2fa,$key_2fa,1)){
+        if(!$googleObj->verifyCode($user->key_2fa,$key_2fa,0)){
             return ResponseHelper::formatOutput(Macro::ERR_USER_GOOGLE_CODE, '安全令牌码不匹配');
         }
         $user->key_2fa_token = $user->access_token;
         $user->save();
         $ret = Macro::SUCCESS_MESSAGE;
         $ret['message'] = '登录成功';
+        Yii::$app->redis->setex('remit:key_2fa'.$user->username,30,$key_2fa);
         return ResponseHelper::formatOutput($ret['code'], $ret['message'], $ret['data']);
     }
     /**
@@ -255,7 +256,7 @@ class UserController extends BaseController
         $key_2fa = ControllerParameterValidator::getRequestParam($this->allParams,'key_2fa','',Macro::CONST_PARAM_TYPE_INT,'验证码错误',[6]);
         $googleObj = new \PHPGangsta_GoogleAuthenticator();
         $secret = Yii::$app->redis->get('google_secret'.$user->id);
-        if(!$googleObj->verifyCode($secret,$key_2fa,2)){
+        if(!$googleObj->verifyCode($secret,$key_2fa,0)){
             return ResponseHelper::formatOutput(Macro::ERR_USER_GOOGLE_CODE, '验证码不匹配');
         }
         Yii::$app->redis->del('google_secret'.$user->id);
@@ -595,7 +596,7 @@ class UserController extends BaseController
             return ResponseHelper::formatOutput(Macro::ERR_USER_FINANCIAL_PASSWORD, '资金密码不正确');
         }
         $googleObj = new \PHPGangsta_GoogleAuthenticator();
-        if(!$googleObj->verifyCode($user->key_2fa,$key_2fa,2)){
+        if(!$googleObj->verifyCode($user->key_2fa,$key_2fa,0)){
             return ResponseHelper::formatOutput(Macro::ERR_USER_KEY_FA, '安全令牌不正确');
         }
 

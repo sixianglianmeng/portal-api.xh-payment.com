@@ -573,7 +573,7 @@ class User extends ActiveRecord implements IdentityInterface, RateLimitInterface
 
         $ret = false;
         $googleObj = new \PHPGangsta_GoogleAuthenticator();
-        if(!$googleObj->verifyCode($this->key_2fa, $key2fa,2)){
+        if(!$googleObj->verifyCode($this->key_2fa, $key2fa,0)){
             $limitData['times'] += 1;
             $limitData['ts'] = time();
         }else{
