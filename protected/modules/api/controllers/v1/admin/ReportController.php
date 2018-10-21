@@ -712,6 +712,7 @@ class ReportController extends BaseController
         }
         $query->select(new Expression('sum(amount) as amount,merchant_id,merchant_account,status'));
         $query->groupBy('status,merchant_id');
+        $query->orderBy('sum(`amount`) desc');
         $pageObj = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
@@ -734,7 +735,7 @@ class ReportController extends BaseController
                     $list[$tmp['merchant_id']]['status'][$key] = 0;
                 }
                 if($tmp['status'] == $key){
-                    $list[$tmp['merchant_id']]['status'][$tmp['status']] = $tmp['amount'];
+                    $list[$tmp['merchant_id']]['status'][$key] = $tmp['amount'];
                 }
             }
             if(!isset($list[$tmp['merchant_id']]['status']['all'])){
