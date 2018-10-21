@@ -710,7 +710,7 @@ class ReportController extends BaseController
         if(!empty($merchant_account)){
             $query->andWhere(['merchant_account'=>$merchant_account]);
         }
-        $query->select(new Expression('sum(amount) as amount,merchant_id,merchant_account,count(`merchant_id`) as total,status'));
+        $query->select(new Expression('sum(amount) as amount,merchant_id,merchant_account,status'));
         $query->groupBy('status,merchant_id');
         $pageObj = new ActiveDataProvider([
             'query' => $query,
@@ -727,27 +727,21 @@ class ReportController extends BaseController
         $list = [];
         foreach ($pageObj->getModels() as $k=>$val){
             $tmp = $val->toArray();
-//            var_dump($tmp);
             $list[$tmp['merchant_id']]['merchant_id'] = $tmp['merchant_id'];
             $list[$tmp['merchant_id']]['merchant_account'] = $tmp['merchant_account'];
             foreach (Order::ARR_STATUS as $key=>$value){
                 if(!isset($list[$tmp['merchant_id']]['status'][$key])){
                     $list[$tmp['merchant_id']]['status'][$key] = 0;
-//                    $list[$tmp['merchant_id']]['status'][$key]['total'] = 0;
                 }
                 if($tmp['status'] == $key){
                     $list[$tmp['merchant_id']]['status'][$tmp['status']] = $tmp['amount'];
-//                    $list[$tmp['merchant_id']]['status'][$tmp['status']]['total'] = $tmp['total'];
                 }
             }
             if(!isset($list[$tmp['merchant_id']]['status']['all'])){
                 $list[$tmp['merchant_id']]['status']['all'] = 0;
-//                $list[$tmp['merchant_id']]['status']['all']['total'] = 0;
             }
-            $list[$tmp['merchant_id']]['status']['all'] = bcadd($list[$tmp['merchant_id']]['status']['all']['amount'],$tmp['amount'],2);
-//            $list[$tmp['merchant_id']]['status']['all']['total'] += $tmp['total'];
+            $list[$tmp['merchant_id']]['status']['all'] = bcadd($list[$tmp['merchant_id']]['status']['all'],$tmp['amount'],2);
         }
-//        die;
         foreach ($list as $val){
             $data['list'][] = $val;
         }
