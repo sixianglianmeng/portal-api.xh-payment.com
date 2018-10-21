@@ -744,7 +744,7 @@ class ReportController extends BaseController
                 $list[$tmp['merchant_id']]['status']['all'] = 0;
 //                $list[$tmp['merchant_id']]['status']['all']['total'] = 0;
             }
-            $list[$tmp['merchant_id']]['status']['all']['amount'] = bcadd($list[$tmp['merchant_id']]['status']['all']['amount'],$tmp['amount'],2);
+            $list[$tmp['merchant_id']]['status']['all'] = bcadd($list[$tmp['merchant_id']]['status']['all']['amount'],$tmp['amount'],2);
 //            $list[$tmp['merchant_id']]['status']['all']['total'] += $tmp['total'];
         }
 //        die;
