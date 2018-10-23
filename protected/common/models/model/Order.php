@@ -176,10 +176,10 @@ class Order extends BaseModel
         $order = [];
         $orderQuery = self::find();
         if($type == 'today'){
-            $orderQuery->andFilterCompare('created_at', '>='.strtotime(date("Y-m-d")));
+            $orderQuery->andFilterCompare('settlement_at', '>='.strtotime(date("Y-m-d")));
         }else{
-            $orderQuery->andFilterCompare('created_at', '>='.strtotime('-1 day',strtotime(date("Y-m-d"))));
-            $orderQuery->andFilterCompare('created_at', '<'.strtotime(date("Y-m-d")));
+            $orderQuery->andFilterCompare('settlement_at', '>='.strtotime('-1 day',strtotime(date("Y-m-d"))));
+            $orderQuery->andFilterCompare('settlement_at', '<='.strtotime(date("Y-m-d")));
         }
         //$orderTodayQuery->andFilterCompare('created_at', '<'.strtotime($dateEnd));
         if($group_id == 20){

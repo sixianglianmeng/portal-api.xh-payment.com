@@ -158,12 +158,6 @@ class OrderController extends BaseController
             //$dateStart=$dateEnd-86400*31;
         }
 
-        if($dateStart){
-            $query->andFilterCompare('created_at', '>='.$dateStart);
-        }
-        if($dateEnd){
-            $query->andFilterCompare('created_at', '<'.$dateEnd);
-        }
         if($minMoney){
             $query->andFilterCompare('amount', '>='.$minMoney);
         }
@@ -177,6 +171,14 @@ class OrderController extends BaseController
             $query->andwhere(['merchant_id' => $merchantNo]);
         }
         $summeryQuery = $query;
+        if($dateStart){
+            $query->andFilterCompare('created_at', '>='.$dateStart);
+            $summeryQuery->andWhere(['>=','settlement_at',$dateStart]);
+        }
+        if($dateEnd){
+            $query->andFilterCompare('created_at', '<='.$dateEnd);
+            $summeryQuery->andWhere(['<=','settlement_at',$dateEnd]);
+        }
         if($status){
             $query->andwhere(['status' => $status]);
         }
