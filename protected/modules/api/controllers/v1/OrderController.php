@@ -173,11 +173,9 @@ class OrderController extends BaseController
         $summeryQuery = $query;
         if($dateStart){
             $query->andFilterCompare('created_at', '>='.$dateStart);
-            $summeryQuery->andWhere(['>=','settlement_at',$dateStart]);
         }
         if($dateEnd){
             $query->andFilterCompare('created_at', '<='.$dateEnd);
-            $summeryQuery->andWhere(['<=','settlement_at',$dateEnd]);
         }
         if($status){
             $query->andwhere(['status' => $status]);
@@ -324,6 +322,8 @@ class OrderController extends BaseController
                 'nums'=>$summery['total'],
             ]
         ];
+        if(!empty($dateStart)) $summeryQuery->andWhere(['>=','settlement_at',$dateStart]);
+        if(!empty($dateEnd)) $summeryQuery->andWhere(['<=','settlement_at',$dateEnd]);
         $allStatusList = $summeryQuery->select('status,sum(amount) as amount,count(amount) as nums')->groupBy('status')->asArray()->all();
         foreach ($allStatusList as $k=>$d){
             $d['status_str'] = Order::ARR_STATUS[$d['status']]??'-';
