@@ -117,7 +117,7 @@ class OrderController extends BaseController
         $merchantUsername = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantUserName', '',Macro::CONST_PARAM_TYPE_STRING,'用户名错误',[0,32]);
         $merchantNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'商户编号错误',[0,32]);
 
-        $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status','',Macro::CONST_PARAM_TYPE_ARRAY,'订单状态错误',[0,100]);
+        $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status',[],Macro::CONST_PARAM_TYPE_ARRAY,'订单状态错误',[0,100]);
 
         $method = ControllerParameterValidator::getRequestParam($this->allParams, 'method','',Macro::CONST_PARAM_TYPE_ARRAY,'支付类型错误',[0,100]);
 
@@ -177,7 +177,7 @@ class OrderController extends BaseController
         if($dateEnd){
             $query->andFilterCompare('created_at', '<='.$dateEnd);
         }
-        if($status){
+        if(!empty($status)){
             $query->andwhere(['status' => $status]);
         }
 
