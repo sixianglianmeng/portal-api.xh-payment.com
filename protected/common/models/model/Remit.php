@@ -265,6 +265,10 @@ class Remit extends BaseModel
             $remitQuery->select('count(id) as total,sum(amount) as amount');
         }
         $order = $remitQuery->asArray()->all();
+        \Yii::info('getYesterdayTodayRemit',json_encode($order));
+        if(empty($order)){
+            return [];
+        }
         return $order[0];
     }
 }

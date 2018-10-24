@@ -199,7 +199,10 @@ class Order extends BaseModel
         $orderQuery->andWhere(['status'=>$status]);
         $orderQuery->select('sum(paid_amount) as amount,count(id) as total,sum(fee_amount) as fee_amount');
         $order = $orderQuery->asArray()->all();
-
+        \Yii::info('getYesterdayTodayOrder',json_encode($order));
+        if(empty($order)){
+            return [];
+        }
         return $order[0];
     }
 }
