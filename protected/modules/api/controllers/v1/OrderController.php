@@ -137,7 +137,10 @@ class OrderController extends BaseController
         $clientIp = ControllerParameterValidator::getRequestParam($this->allParams, 'client_ip', '',Macro::CONST_PARAM_TYPE_STRING,'ip错误');
         $clientId = ControllerParameterValidator::getRequestParam($this->allParams, 'client_id', '',Macro::CONST_PARAM_TYPE_STRING,'设备号错误');
         $checkInBlackList = ControllerParameterValidator::getRequestParam($this->allParams, 'checkInBlackList', '',Macro::CONST_PARAM_TYPE_STRING,'检测是否在黑名单错误');
-
+        $export_status = ControllerParameterValidator::getRequestParam($this->allParams, 'export_status','',Macro::CONST_PARAM_TYPE_STRING,'订单状态错误',[0,100]);
+        $export_method = ControllerParameterValidator::getRequestParam($this->allParams, 'export_method','',Macro::CONST_PARAM_TYPE_STRING,'支付类型错误',[0,100]);
+        $export_channel_account = ControllerParameterValidator::getRequestParam($this->allParams, 'export_channel_account','',Macro::CONST_PARAM_TYPE_STRING,'通道号错误',[0,100]);
+        $export_id_list = ControllerParameterValidator::getRequestParam($this->allParams, 'export_id_list','',Macro::CONST_PARAM_TYPE_STRING,'商户编号错误',[0,100]);
         if(!empty($sorts[$sort])){
             $sort = $sorts[$sort];
         }else{
@@ -235,6 +238,14 @@ class OrderController extends BaseController
             foreach ($fieldLabel as $fi=>&$fk){
                 $fk = mb_convert_encoding($fk,'GBK');
             }
+            $export_status = json_decode($export_status,true);
+            if(!empty($export_status)) $query->andWhere(['status' => $export_status]);
+            $export_method = json_decode($export_method,true);
+            if(!empty($export_method)) $query->andWhere(['pay_method_code'=>$export_method]);
+            $export_channel_account = json_decode($export_channel_account,true);
+            if(!empty($export_method)) $query->andWhere(['channel_account_id'=>$export_channel_account]);
+            $export_id_list = json_decode($export_id_list,true);
+            if(!empty($export_id_list)) $query->andWhere(['id'=>$export_id_list]);
             $records = [];
             $records[] = $fieldLabel;
             $rows = $query->limit(5000)->all();
