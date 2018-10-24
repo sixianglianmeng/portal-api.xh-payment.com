@@ -553,7 +553,7 @@ class OrderController extends BaseController
             $rows = $query->limit(5000)->all();
             foreach ($rows as $i=>$d){
                 $record['order_no'] = "'".$d->order_no;
-                $record['merchant_order_no'] = $d->merchant_order_no;
+                $record['merchant_order_no'] = "''".$d->merchant_order_no;
                 $record['uid'] = $d->merchant_id;
                 $record['amount'] = $d->amount;
                 $record['status_str'] = mb_convert_encoding($d->getStatusStr($d->status),'GBK');
