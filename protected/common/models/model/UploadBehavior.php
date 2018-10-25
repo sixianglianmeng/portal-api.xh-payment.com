@@ -179,7 +179,7 @@ class UploadBehavior extends \yii\base\Behavior
                 'directoryLevel' => $this->directoryLevel,
                 'saveCallback' => $callback,
             ]);
-            if ($model) {
+            if ($model->id) {
                 if ($this->savedAttribute !== null) {
                     if ($deleteOldFile === null) {
                         $deleteOldFile = $this->deleteOldFile;

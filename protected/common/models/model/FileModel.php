@@ -201,7 +201,8 @@ class FileModel extends BaseModel
         }
         $options['file'] = $file;
         $model = new static($options);
-        return $model->save() ? $model : false;
+        $model->save();
+        return $model;
     }
 
     public function getContent()

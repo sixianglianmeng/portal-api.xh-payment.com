@@ -57,7 +57,7 @@ class UploadController extends BaseController
         $path = '@webroot/uploads/' . ($module ? $module : 'attachment') . '/' . date('Ym');
         $fileModel = FileModel::saveAs($file, ['uploadPath' => $path]);
 
-        if ($fileModel) {
+        if ($fileModel->id) {
             $data =[
                 'url' => $fileModel->url,
                 'id' => $fileModel->id
@@ -162,7 +162,7 @@ class UploadController extends BaseController
         var_dump($file);die;
         $path = '@webroot/uploads/' . ($module ? $module : 'excel') . '/' . date('Ym');
         $fileModel = FileModel::saveAs($file, ['uploadPath' => $path]);
-        if($fileModel){
+        if ($fileModel->id) {
             $fileType   = \PHPExcel_IOFactory::identify($path); //文件名自动判断文件类型
             $excelReader  = \PHPExcel_IOFactory::createReader($fileType);
             $phpexcel    = $excelReader->load($path)->getSheet(0);//载入文件并获取第一个sheet
