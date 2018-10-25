@@ -65,7 +65,10 @@ class UploadController extends BaseController
             return ResponseHelper::formatOutput(Macro::SUCCESS, '', $data);
         } else {
             $err = $fileModel->getErrors();
-            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, json_encode($err));
+            if(is_array($err)){
+                $err = json_encode($err);
+            }
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, $err);
         }
 
     }
@@ -159,7 +162,7 @@ class UploadController extends BaseController
 
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN, '文件太大');
         }
-        var_dump($file);die;
+//        var_dump($file);die;
         $path = '@webroot/uploads/' . ($module ? $module : 'excel') . '/' . date('Ym');
         $fileModel = FileModel::saveAs($file, ['uploadPath' => $path]);
         if ($fileModel->id) {
@@ -167,7 +170,7 @@ class UploadController extends BaseController
             $excelReader  = \PHPExcel_IOFactory::createReader($fileType);
             $phpexcel    = $excelReader->load($path)->getSheet(0);//载入文件并获取第一个sheet
             $total_line  = $phpexcel->getHighestRow();//总行数
-            var_dump($total_line);
+//            var_dump($total_line);
             $total_column= $phpexcel->getHighestColumn();//总列数
         }else{
             $err = $fileModel->getErrors();

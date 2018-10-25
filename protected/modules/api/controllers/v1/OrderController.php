@@ -117,7 +117,7 @@ class OrderController extends BaseController
         $merchantUsername = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantUserName', '',Macro::CONST_PARAM_TYPE_STRING,'用户名错误',[0,32]);
         $merchantNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'商户编号错误',[0,32]);
 
-        $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status','',Macro::CONST_PARAM_TYPE_ARRAY,'订单状态错误',[0,100]);
+        $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status',[],Macro::CONST_PARAM_TYPE_ARRAY,'订单状态错误',[0,100]);
 
         $method = ControllerParameterValidator::getRequestParam($this->allParams, 'method','',Macro::CONST_PARAM_TYPE_ARRAY,'支付类型错误',[0,100]);
 
@@ -137,7 +137,10 @@ class OrderController extends BaseController
         $clientIp = ControllerParameterValidator::getRequestParam($this->allParams, 'client_ip', '',Macro::CONST_PARAM_TYPE_STRING,'ip错误');
         $clientId = ControllerParameterValidator::getRequestParam($this->allParams, 'client_id', '',Macro::CONST_PARAM_TYPE_STRING,'设备号错误');
         $checkInBlackList = ControllerParameterValidator::getRequestParam($this->allParams, 'checkInBlackList', '',Macro::CONST_PARAM_TYPE_STRING,'检测是否在黑名单错误');
-
+        $export_status = ControllerParameterValidator::getRequestParam($this->allParams, 'export_status','',Macro::CONST_PARAM_TYPE_STRING,'订单状态错误',[0,100]);
+        $export_method = ControllerParameterValidator::getRequestParam($this->allParams, 'export_method','',Macro::CONST_PARAM_TYPE_STRING,'支付类型错误',[0,100]);
+        $export_channel_account = ControllerParameterValidator::getRequestParam($this->allParams, 'export_channel_account','',Macro::CONST_PARAM_TYPE_STRING,'通道号错误',[0,100]);
+        $export_id_list = ControllerParameterValidator::getRequestParam($this->allParams, 'export_id_list','',Macro::CONST_PARAM_TYPE_STRING,'商户编号错误',[0,100]);
         if(!empty($sorts[$sort])){
             $sort = $sorts[$sort];
         }else{
@@ -158,12 +161,6 @@ class OrderController extends BaseController
             //$dateStart=$dateEnd-86400*31;
         }
 
-        if($dateStart){
-            $query->andFilterCompare('created_at', '>='.$dateStart);
-        }
-        if($dateEnd){
-            $query->andFilterCompare('created_at', '<'.$dateEnd);
-        }
         if($minMoney){
             $query->andFilterCompare('amount', '>='.$minMoney);
         }
@@ -177,7 +174,13 @@ class OrderController extends BaseController
             $query->andwhere(['merchant_id' => $merchantNo]);
         }
         $summeryQuery = $query;
-        if($status){
+        if($dateStart){
+            $query->andFilterCompare('created_at', '>='.$dateStart);
+        }
+        if($dateEnd){
+            $query->andFilterCompare('created_at', '<='.$dateEnd);
+        }
+        if(!empty($status)){
             $query->andwhere(['status' => $status]);
         }
 
@@ -235,9 +238,17 @@ class OrderController extends BaseController
             foreach ($fieldLabel as $fi=>&$fk){
                 $fk = mb_convert_encoding($fk,'GBK');
             }
+            $export_status = json_decode($export_status,true);
+            if(!empty($export_status)) $query->andWhere(['status' => $export_status]);
+            $export_method = json_decode($export_method,true);
+            if(!empty($export_method)) $query->andWhere(['pay_method_code'=>$export_method]);
+            $export_channel_account = json_decode($export_channel_account,true);
+            if(!empty($export_method)) $query->andWhere(['channel_account_id'=>$export_channel_account]);
+            $export_id_list = json_decode($export_id_list,true);
+            if(!empty($export_id_list)) $query->andWhere(['id'=>$export_id_list]);
             $records = [];
             $records[] = $fieldLabel;
-            $rows = $query->limit(5000)->all();
+            $rows = $query->limit(20000)->all();
             foreach ($rows as $i => $d) {
                 $record['order_no']               = "'" . $d->order_no;
                 $record['merchant_order_no']      = "'" . $d->merchant_order_no;
@@ -553,7 +564,7 @@ class OrderController extends BaseController
             $rows = $query->limit(5000)->all();
             foreach ($rows as $i=>$d){
                 $record['order_no'] = "'".$d->order_no;
-                $record['merchant_order_no'] = $d->merchant_order_no;
+                $record['merchant_order_no'] = "''".$d->merchant_order_no;
                 $record['uid'] = $d->merchant_id;
                 $record['amount'] = $d->amount;
                 $record['status_str'] = mb_convert_encoding($d->getStatusStr($d->status),'GBK');
