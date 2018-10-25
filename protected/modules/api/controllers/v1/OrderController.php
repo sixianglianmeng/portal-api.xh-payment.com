@@ -248,7 +248,7 @@ class OrderController extends BaseController
             if(!empty($export_id_list)) $query->andWhere(['id'=>$export_id_list]);
             $records = [];
             $records[] = $fieldLabel;
-            $rows = $query->limit(5000)->all();
+            $rows = $query->limit(20000)->all();
             foreach ($rows as $i => $d) {
                 $record['order_no']               = "'" . $d->order_no;
                 $record['merchant_order_no']      = "'" . $d->merchant_order_no;
