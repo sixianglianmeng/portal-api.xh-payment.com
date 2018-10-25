@@ -102,6 +102,9 @@ class FileModel extends BaseModel
             [['file'], 'file', 'skipOnEmpty' => false],
             [['uploadPath'], 'default', 'value' => static::$defaultUploadPath],
             [['name', 'size'], 'default', 'value' => function($obj, $attribute) {
+                if($attribute=='name'){
+                    $obj->file->$attribute = substr($obj->file->$attribute,0,32);
+                }
                 return $obj->file->$attribute;
             }],
             [['type'], 'default', 'value' => function() {
