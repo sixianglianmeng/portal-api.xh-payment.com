@@ -333,12 +333,11 @@ class RemitController extends BaseController
             ];
             LogOperation::inLog('ok');
 
-            //暂时都可以强制切通道,人工控制状态问题
-//            if(!in_array($remit->status,[Remit::STATUS_NONE,Remit::STATUS_DEDUCT,Remit::STATUS_NOT_REFUND])){
-////                Util::throwException(Macro::FAIL,'只有未审核|失败未退款订单才能切换通道');
-//                $failed[] = $remit->order_no;
-//                continue;
-//            }
+            if(!in_array($remit->status,[Remit::STATUS_NONE,Remit::STATUS_DEDUCT,Remit::STATUS_BANK_NET_FAIL,Remit::STATUS_BANK_PROCESS_FAIL,Remit::STATUS_NOT_REFUND])){
+//                Util::throwException(Macro::FAIL,'只有未扣款,未审核|银行提交失败|银行处理失败|失败未退款订单才能切换通道');
+                $failed[] = $remit->order_no;
+                continue;
+            }
             $oldChannelAccount = $remit->channelAccount;
             $remit->channel_id = $channelAccount->channel_id;
             $remit->channel_account_id = $channelAccount->id;
