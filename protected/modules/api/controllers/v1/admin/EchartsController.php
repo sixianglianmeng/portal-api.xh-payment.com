@@ -9,6 +9,7 @@
 namespace app\modules\api\controllers\v1\admin;
 
 
+use app\common\models\model\ChannelAccount;
 use app\common\models\model\Order;
 use app\common\models\model\Remit;
 use app\components\Macro;
@@ -26,6 +27,7 @@ class EchartsController extends BaseController
      */
     public function actionChargeTrendHour()
     {
+        $channel_merchant_id = ControllerParameterValidator::getRequestParam($this->allParams, 'channel_merchant_id', [],Macro::CONST_PARAM_TYPE_ARRAY,'渠道号错误');
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
         $startTime = empty($dateStart) ? strtotime('-14 days',strtotime(date("Y-m-d 00:00:00"))) : strtotime(date("Y-m-d 00:00:00",strtotime($dateStart)));
@@ -37,11 +39,24 @@ class EchartsController extends BaseController
         $query = Order::find();
         $query->andFilterCompare('settlement_at','>='.$startTime);
         $query->andFilterCompare('settlement_at','<='.$endTime);
+        if(!empty($channel_merchant_id)){
+            $query->andWhere(['channel_merchant_id'=>$channel_merchant_id]);
+        }
         $query->andWhere(['status'=>Order::STATUS_SETTLEMENT]);
         $query->select(new Expression("sum(`paid_amount`) as amount,from_unixtime(`settlement_at`,'%y-%m-%d %H') as times"));
         $query->groupBy(new Expression("from_unixtime(`settlement_at`,'%Y%m%d%H')"));
         $list = $query->asArray()->all();
-        if (!$list) return ResponseHelper::formatOutput(Macro::SUCCESS,'未查询到充值数据，请检查查询条件',[]);
+        $data['channelMerchantOptions'] = [];
+        $channelMerchantList = ChannelAccount::find()->select('channel_name,merchant_id')->all();
+        foreach ($channelMerchantList as $val){
+            $tmp = [];
+            $tmp['channel_merchant_id'] = $val->merchant_id;
+            $tmp['channel_name'] = $val->channel_name;
+            $data['channelMerchantOptions'][] = $tmp;
+        }
+        $data['chart'] = [];
+        $data['hour'] = [];
+        if (!$list) return ResponseHelper::formatOutput(Macro::SUCCESS,'未查询到充值数据，请检查查询条件',$data);
         $chartData = [];
         $tmp = ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23'];
         foreach ($list as $val){
@@ -55,7 +70,6 @@ class EchartsController extends BaseController
                 }
             }
         }
-        $data['chart'] = [];
         $data['hour'] = $tmp;
         foreach ($chartData as $key => $val){
             foreach ($val as $value){
@@ -72,6 +86,7 @@ class EchartsController extends BaseController
      */
     public function actionRechargeTrendDaily()
     {
+        $channel_merchant_id = ControllerParameterValidator::getRequestParam($this->allParams, 'channel_merchant_id', [],Macro::CONST_PARAM_TYPE_ARRAY,'渠道号错误');
         $dateStart = ControllerParameterValidator::getRequestParam($this->allParams, 'dateStart', '',Macro::CONST_PARAM_TYPE_DATE,'开始日期错误');
         $dateEnd = ControllerParameterValidator::getRequestParam($this->allParams, 'dateEnd', '',Macro::CONST_PARAM_TYPE_DATE,'结束日期错误');
         $startTime = empty($dateStart) ? strtotime('-14 days',strtotime(date("Y-m-d 00:00:00"))) : strtotime(date("Y-m-d 00:00:00",strtotime($dateStart)));
@@ -83,6 +98,9 @@ class EchartsController extends BaseController
         $query = Order::find();
         $query->andFilterCompare('settlement_at','>='.$startTime);
         $query->andFilterCompare('settlement_at','<='.$endTime);
+        if(!empty($channel_merchant_id)){
+            $query->andWhere(['channel_merchant_id'=>$channel_merchant_id]);
+        }
         $query->andWhere(['status'=>Order::STATUS_SETTLEMENT]);
         $query->select(new Expression("sum(`paid_amount`) as amount,from_unixtime(`settlement_at`,'%Y-%m-%d') as times"));
         $query->groupBy(new Expression("from_unixtime(`settlement_at`,'%Y%m%d')"));
