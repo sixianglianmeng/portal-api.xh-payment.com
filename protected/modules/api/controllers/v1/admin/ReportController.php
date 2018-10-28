@@ -744,12 +744,12 @@ class ReportController extends BaseController
             }
             $list[$tmp['merchant_id']]['status']['all'] = bcadd($list[$tmp['merchant_id']]['status']['all'],$tmp['amount'],2);
         }
+        $data['total'] = count($list);
         foreach ($list as $val){
             $data['list'][] = $val;
         }
-
         $data['list'] = array_slice($data['list'],($page-1)*$perPage,$perPage);
-        $data['total'] = count($totalList);
+
 //        //分页数据
 //        $pagination = $pageObj->getPagination();
 //        $data['total'] = $pagination->totalCount;
