@@ -749,7 +749,7 @@ class ReportController extends BaseController
         }
 
         $data['list'] = array_slice($data['list'],($page-1)*$perPage,$perPage);
-        $data['total'] = count($data['list']);
+        $data['total'] = count($totalList);
 //        //分页数据
 //        $pagination = $pageObj->getPagination();
 //        $data['total'] = $pagination->totalCount;
