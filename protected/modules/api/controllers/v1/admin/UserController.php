@@ -1563,7 +1563,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
     }
 
     /**
-     * 添加商户风控账号
+     * 添加商户扩展资料
      * @return array
      * @throws ParameterValidationExpandException
      */
@@ -1582,21 +1582,21 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
         }
         $merchantWeb->login_username = $login_username;
         $merchantWeb->login_password = $login_password;
-        $merchantWeb->$url = $url;
+        $merchantWeb->url = $url;
         $merchantWeb->save();
         return ResponseHelper::formatOutput(Macro::SUCCESS);
     }
 
     /**
-     * 商户风控账号列表
+     * 商户扩展资料列表
      * @return array
      * @throws ParameterValidationExpandException
      */
     public function actionMerchantWeb()
     {
-        $merchant_id = ControllerParameterValidator::getRequestParam($this->allParams,'merchant_id',null,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'商户编号错误');
-        $merchant_name = ControllerParameterValidator::getRequestParam($this->allParams,'merchant_name',null,Macro::CONST_PARAM_TYPE_USERNAME,'商户名称错误');
-        $parent_name = ControllerParameterValidator::getRequestParam($this->allParams,'parent_name',null,Macro::CONST_PARAM_TYPE_USERNAME,'父账号错误');
+        $merchant_id = ControllerParameterValidator::getRequestParam($this->allParams,'merchant_id','',Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'商户编号错误');
+        $merchant_name = ControllerParameterValidator::getRequestParam($this->allParams,'merchant_name','',Macro::CONST_PARAM_TYPE_USERNAME,'商户名称错误');
+        $parent_name = ControllerParameterValidator::getRequestParam($this->allParams,'parent_name','',Macro::CONST_PARAM_TYPE_USERNAME,'父账号错误');
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
         $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100000]);
         $query = MerchantWeb::find();
@@ -1629,15 +1629,34 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
                 'page' => $page-1,
             ],
         ]);
+        $data['list'] = [];
+        $data['total'] = 0;
         if(empty($p->getModels())){
-            return ResponseHelper::formatOutput(Macro::SUCCESS,'',[]);
+            return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
         }
-        $data = [];
         foreach ($p->getModels() as $val){
             $tmp = $val->toArray();
             $tmp['created_at'] = date("Y-m-d H:i:s",$tmp['created_at']);
-            $data[] = $tmp;
+            $data['list'][] = $tmp;
         }
+        //分页数据
+        $pagination = $p->getPagination();
+        $data['total'] = $pagination->totalCount;
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
+    }
+
+    /**
+     * 商户扩展资料详情
+     * @return array
+     * @throws ParameterValidationExpandException
+     */
+    public function actionMerchantWebDetail()
+    {
+        $merchant_id = ControllerParameterValidator::getRequestParam($this->allParams,'merchant_id',null,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'商户编号错误');
+        $detail = MerchantWeb::find()->where(['merchant_id'=>$merchant_id])->asArray()->one();
+        if(empty($detail)){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'');
+        }
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$detail);
     }
 }
