@@ -8,6 +8,7 @@ use app\common\models\model\ChannelAccount;
 use app\common\models\model\ChannelAccountRechargeMethod;
 use app\common\models\model\Financial;
 use app\common\models\model\MerchantRechargeMethod;
+use app\common\models\model\MerchantWeb;
 use app\common\models\model\SiteConfig;
 use app\common\models\model\Tag;
 use app\common\models\model\TagRelation;
@@ -19,6 +20,7 @@ use app\components\Util;
 use app\lib\helpers\ControllerParameterValidator;
 use app\lib\helpers\ResponseHelper;
 use app\modules\api\controllers\BaseController;
+use OAuth2\TokenType\Mac;
 use Overtrue\Pinyin\Pinyin;
 use power\yii2\exceptions\ParameterValidationExpandException;
 use Yii;
@@ -1558,5 +1560,84 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
     {
         $list = User::find()->select('id,username')->where(['group_id'=>User::GROUP_AGENT])->all();
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',$list);
+    }
+
+    /**
+     * 添加商户风控账号
+     * @return array
+     * @throws ParameterValidationExpandException
+     */
+    public function actionAddMerchantWeb()
+    {
+        $merchant_id = ControllerParameterValidator::getRequestParam($this->allParams,'merchant_id',null,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'商户编号错误');
+        $merchant_name = ControllerParameterValidator::getRequestParam($this->allParams,'merchant_name',null,Macro::CONST_PARAM_TYPE_USERNAME,'商户名称错误');
+        $login_username = ControllerParameterValidator::getRequestParam($this->allParams,'login_username',null,Macro::CONST_PARAM_TYPE_USERNAME,'用户名错误');
+        $login_password = ControllerParameterValidator::getRequestParam($this->allParams,'login_password',null,Macro::CONST_PARAM_TYPE_PASSWORD,'密码错误');
+        $url = ControllerParameterValidator::getRequestParam($this->allParams,'url',null,Macro::CONST_PARAM_TYPE_STRING,'商户平台地址错误');
+        $merchantWeb = MerchantWeb::find()->where(['merchant_id'=>$merchant_id])->one();
+        if(empty($merchantWeb)){
+            $merchantWeb = new MerchantWeb();
+            $merchantWeb->merchant_id = $merchant_id;
+            $merchantWeb->merchant_name = $merchant_name;
+        }
+        $merchantWeb->login_username = $login_username;
+        $merchantWeb->login_password = $login_password;
+        $merchantWeb->$url = $url;
+        $merchantWeb->save();
+        return ResponseHelper::formatOutput(Macro::SUCCESS);
+    }
+
+    /**
+     * 商户风控账号列表
+     * @return array
+     * @throws ParameterValidationExpandException
+     */
+    public function actionMerchantWeb()
+    {
+        $merchant_id = ControllerParameterValidator::getRequestParam($this->allParams,'merchant_id',null,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'商户编号错误');
+        $merchant_name = ControllerParameterValidator::getRequestParam($this->allParams,'merchant_name',null,Macro::CONST_PARAM_TYPE_USERNAME,'商户名称错误');
+        $parent_name = ControllerParameterValidator::getRequestParam($this->allParams,'parent_name',null,Macro::CONST_PARAM_TYPE_USERNAME,'父账号错误');
+        $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
+        $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100000]);
+        $query = MerchantWeb::find();
+        if(!empty($merchant_id)){
+            $query->andWhere(['merchant_id'=>$merchant_id]);
+        }
+        if (!empty($merchant_name)){
+            $query->andWhere(['merchant_name'=>$merchant_name]);
+        }
+        if(!empty($parent_name)){
+            $user = User::find()->where(['username'=>$parent_name])->select('id')->one();
+            if(empty($user)){
+                return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,'代理不存在');
+            }
+            $userList = User::find()->where(['parent_agent_id'=>$user->id])->select('id')->all();
+            if(empty($userList)){
+                return ResponseHelper::formatOutput(Macro::ERR_USER_NOT_FOUND,$parent_name.'代理没有商户');
+            }
+            $childList = [];
+            foreach ($userList as $val){
+                $childList[] = $val['id'];
+            }
+            $query->andWhere(['merchant_id'=>$childList]);
+        }
+        //生成分页数据
+        $p = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => $perPage,
+                'page' => $page-1,
+            ],
+        ]);
+        if(empty($p->getModels())){
+            return ResponseHelper::formatOutput(Macro::SUCCESS,'',[]);
+        }
+        $data = [];
+        foreach ($p->getModels() as $val){
+            $tmp = $val->toArray();
+            $tmp['created_at'] = date("Y-m-d H:i:s",$tmp['created_at']);
+            $data[] = $tmp;
+        }
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
 }
