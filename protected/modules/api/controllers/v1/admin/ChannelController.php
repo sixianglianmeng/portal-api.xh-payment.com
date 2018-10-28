@@ -2,6 +2,7 @@
 namespace app\modules\api\controllers\v1\admin;
 
 use app\common\exceptions\OperationFailureException;
+use app\common\models\model\BankCodes;
 use app\common\models\model\Channel;
 use app\common\models\model\ChannelAccount;
 use app\common\models\model\ChannelAccountRechargeMethod;
@@ -380,5 +381,57 @@ class ChannelController extends BaseController
         $account->save();
 
         return ResponseHelper::formatOutput(Macro::SUCCESS,"删除成功");
+    }
+
+    /**
+     * 渠道银行列表
+     * @return array
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     */
+    public function actionChannelBankList()
+    {
+        $channel_id = ControllerParameterValidator::getRequestParam($this->allParams,'channel_id',null,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'渠道号错误');
+        $list = BankCodes::find()->where(['channel_id'=>$channel_id])->all();
+        if(empty($list)){
+            return ResponseHelper::formatOutput(Macro::SUCCESS,'',[]);
+        }
+        $data = [];
+        foreach ($list as $val){
+            $tmp = [];
+            $tmp['id'] = $val['id'];
+            $tmp['channel_id'] = $val['channel_id'];
+            $tmp['channel_name'] = $val['channel_name'];
+            $tmp['channel_bank_code'] = $val['channel_bank_code'];
+            $tmp['platform_bank_code'] = $val['platform_bank_code'];
+            $tmp['bank_name'] = $val['bank_name'];
+            $tmp['can_recharge'] = (string)$val['can_recharge'];
+            $tmp['can_remit'] = (string)$val['can_remit'];
+            $data[] = $tmp;
+        }
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
+    }
+
+    /**
+     * 设置渠道银行收款代付状态
+     * @return array
+     * @throws \power\yii2\exceptions\ParameterValidationExpandException
+     */
+    public function actionUpdateChannelBank()
+    {
+        $id = ControllerParameterValidator::getRequestParam($this->allParams,'id',null,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'渠道银行编号错误');
+        $type = ControllerParameterValidator::getRequestParam($this->allParams,'type',null,Macro::CONST_PARAM_TYPE_STRING,'类型错误');
+        $can_recharge = ControllerParameterValidator::getRequestParam($this->allParams,'can_recharge',null,Macro::CONST_PARAM_TYPE_STRING,'收款状态错误');
+        $can_remit = ControllerParameterValidator::getRequestParam($this->allParams,'can_remit',null,Macro::CONST_PARAM_TYPE_STRING,'出款状态错误');
+        $channelBankCode = BankCodes::find()->where(['id'=>$id])->one();
+        if(empty($channelBankCode)){
+            return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'渠道不支持该银行!');
+        }
+        if($type == 'recharge'){
+            $channelBankCode->can_recharge = $can_recharge == '1' ? 0 : 1;
+        }elseif ($type == 'remit'){
+            $channelBankCode->can_remit = $can_remit == '1' ? 0 : 1;
+        }
+        $channelBankCode->save();
+        return ResponseHelper::formatOutput(Macro::SUCCESS,'操作成功');
     }
 }
