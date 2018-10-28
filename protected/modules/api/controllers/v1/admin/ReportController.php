@@ -713,20 +713,21 @@ class ReportController extends BaseController
         $query->select(new Expression('sum(amount) as amount,merchant_id,merchant_account,status'));
         $query->groupBy('status,merchant_id');
         $query->orderBy('sum(`amount`) desc');
-        $pageObj = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => $perPage,
-                'page' => $page-1,
-            ],
-        ]);
+        $totalList = $query->all();
+//        $pageObj = new ActiveDataProvider([
+//            'query' => $query,
+//            'pagination' => [
+//                'pageSize' => $perPage,
+//                'page' => $page-1,
+//            ],
+//        ]);
         $data['list'] = [];
         $data['total'] = 0;
         $data['statusOptions'] = Order::ARR_STATUS;
         $data['statusOptions']['all'] = '总计';
-        if (empty($pageObj->getModels())) return ResponseHelper::formatOutput(Macro::SUCCESS,'未查询到充值数据，请检查查询条件',$data);
+        if (empty($totalList)) return ResponseHelper::formatOutput(Macro::SUCCESS,'未查询到充值数据，请检查查询条件',$data);
         $list = [];
-        foreach ($pageObj->getModels() as $k=>$val){
+        foreach ($totalList as $k=>$val){
             $tmp = $val->toArray();
             $list[$tmp['merchant_id']]['merchant_id'] = $tmp['merchant_id'];
             $list[$tmp['merchant_id']]['merchant_account'] = $tmp['merchant_account'];
@@ -746,9 +747,12 @@ class ReportController extends BaseController
         foreach ($list as $val){
             $data['list'][] = $val;
         }
-        //分页数据
-        $pagination = $pageObj->getPagination();
-        $data['total'] = $pagination->totalCount;
+
+        $data['list'] = array_slice($data['list'],($page-1)*$perPage,$perPage);
+        $data['total'] = count($data['list']);
+//        //分页数据
+//        $pagination = $pageObj->getPagination();
+//        $data['total'] = $pagination->totalCount;
         return ResponseHelper::formatOutput(Macro::SUCCESS,'',$data);
     }
 }
