@@ -512,7 +512,7 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
     private function getSearchFilter($queryFileds='',$subQueryFields='')
     {
         $appIds = ControllerParameterValidator::getRequestParam($this->allParams, 'appIds', '',Macro::CONST_PARAM_TYPE_ARRAY, '选择的商户ID错误');
-        $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'userId', '', Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '商户ID错误');
+        $userId = ControllerParameterValidator::getRequestParam($this->allParams, 'userId', '', Macro::CONST_PARAM_TYPE_STRING, '商户ID错误');
         $username = ControllerParameterValidator::getRequestParam($this->allParams, 'username', '', Macro::CONST_PARAM_TYPE_STRING, '商户名错误', [0, 32]);
         $parentUsername = ControllerParameterValidator::getRequestParam($this->allParams, 'parentUsername', '', Macro::CONST_PARAM_TYPE_USERNAME, '商户父帐号错误', [0, 32]);
         $child = ControllerParameterValidator::getRequestParam($this->allParams,'child','',Macro::CONST_PARAM_TYPE_INT,'下级类型错误');
@@ -596,9 +596,11 @@ WHERE rm.method_id=c.method_id and rm.app_id=c.app_id";
         }
 
         if ($userId != '') {
-            $query->andwhere(['u.id' => $userId]);
-            $updateFilter[] = "u.id={$userId}";
-            $subUpdateFilter[] = "u.id={$userId}";
+            $userIdArr = explode(',',$userId);
+            $userIdStr = implode("','",$userIdArr);
+            $query->andwhere(['u.id' => $userIdArr]);
+            $updateFilter[] = "u.id IN ('{$userIdStr}')";
+            $subUpdateFilter[] = "u.id IN ('{$userIdStr}')";
         }
         if (!empty($appIds) && is_array($appIds)) {
             foreach ($appIds as $k => $spa) {
