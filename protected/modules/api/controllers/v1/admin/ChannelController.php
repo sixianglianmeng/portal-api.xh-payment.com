@@ -427,9 +427,9 @@ class ChannelController extends BaseController
             return ResponseHelper::formatOutput(Macro::ERR_UNKNOWN,'渠道不支持该银行!');
         }
         if($type == 'recharge'){
-            $channelBankCode->can_recharge = $can_recharge == '1' ? 0 : 1;
+            $channelBankCode->can_recharge = $can_recharge;
         }elseif ($type == 'remit'){
-            $channelBankCode->can_remit = $can_remit == '1' ? 0 : 1;
+            $channelBankCode->can_remit = $can_remit;
         }
         $channelBankCode->save();
         return ResponseHelper::formatOutput(Macro::SUCCESS,'操作成功');
