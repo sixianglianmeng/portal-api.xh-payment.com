@@ -165,6 +165,8 @@ class TrackController extends BaseController
             $records[$i]['uploadUrl'] = json_decode($d['upload'],true);
             $records[$i]['parentId'] = $d['parent_id'];
             $records[$i]['parentType'] = $d['parent_type'];
+            $records[$i]['op_uid'] = $d['op_uid'];
+            $records[$i]['op_username'] = $d['op_username'];
         }
         //分页数据
         $pagination = $p->getPagination();
@@ -200,6 +202,7 @@ class TrackController extends BaseController
      */
     public function actionAdd()
     {
+        $user = Yii::$app->user->identity;
         $parentId = ControllerParameterValidator::getRequestParam($this->allParams, 'parentId', null, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '订单ID错误');
         $type = ControllerParameterValidator::getRequestParam($this->allParams, 'type','',Macro::CONST_PARAM_TYPE_INT,'追号类型错误',[0,100]);
         $parentType = ControllerParameterValidator::getRequestParam($this->allParams,'parentType','',Macro::CONST_PARAM_TYPE_STRING,'调单源错误',[0,100]);
@@ -211,6 +214,8 @@ class TrackController extends BaseController
         $trackObj->type = $type;
         $trackObj->upload = json_encode($upload);
         $trackObj->note = $note;
+        $trackObj->op_uid = $user->id;
+        $trackObj->op_username = $user->username;
         $trackObj->save();
         return ResponseHelper::formatOutput(Macro::SUCCESS);
     }
@@ -234,7 +239,6 @@ class TrackController extends BaseController
                     $val['uploadUrl'][$k] = Yii::$app->request->hostInfo.$v;
                 }
             }
-            $val['created_at'] = date('Y-m-d H:i:s',$val['created_at']);
             $list[$key] = $val;
         }
         return ResponseHelper::formatOutput(Macro::SUCCESS, '', $list);
