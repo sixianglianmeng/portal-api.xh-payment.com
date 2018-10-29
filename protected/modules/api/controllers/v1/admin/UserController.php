@@ -1571,8 +1571,8 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
     {
         $merchant_id = ControllerParameterValidator::getRequestParam($this->allParams,'merchant_id',null,Macro::CONST_PARAM_TYPE_INT_GT_ZERO,'商户编号错误');
         $merchant_name = ControllerParameterValidator::getRequestParam($this->allParams,'merchant_name',null,Macro::CONST_PARAM_TYPE_USERNAME,'商户名称错误');
-        $login_username = ControllerParameterValidator::getRequestParam($this->allParams,'login_username',null,Macro::CONST_PARAM_TYPE_USERNAME,'用户名错误');
-        $login_password = ControllerParameterValidator::getRequestParam($this->allParams,'login_password',null,Macro::CONST_PARAM_TYPE_PASSWORD,'密码错误');
+        $login_username = ControllerParameterValidator::getRequestParam($this->allParams,'login_username','',Macro::CONST_PARAM_TYPE_USERNAME,'用户名错误');
+        $login_password = ControllerParameterValidator::getRequestParam($this->allParams,'login_password','',Macro::CONST_PARAM_TYPE_PASSWORD,'密码错误');
         $url = ControllerParameterValidator::getRequestParam($this->allParams,'url',null,Macro::CONST_PARAM_TYPE_STRING,'商户平台地址错误');
         $merchantWeb = MerchantWeb::find()->where(['merchant_id'=>$merchant_id])->one();
         if(empty($merchantWeb)){
