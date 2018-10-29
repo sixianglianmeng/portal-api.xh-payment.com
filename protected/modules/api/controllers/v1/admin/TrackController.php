@@ -208,7 +208,7 @@ class TrackController extends BaseController
         $parentType = ControllerParameterValidator::getRequestParam($this->allParams,'parentType','',Macro::CONST_PARAM_TYPE_STRING,'调单源错误',[0,100]);
         $upload = ControllerParameterValidator::getRequestParam($this->allParams,'upload','',Macro::CONST_PARAM_TYPE_ARRAY,'上传文件路径错误',[0,100]);
         $note = ControllerParameterValidator::getRequestParam($this->allParams,'note','',Macro::CONST_PARAM_TYPE_STRING,'备注错误',[0,100]);
-        Yii::$app->db->schema->refreshTableSchema(Track::tableName());
+//        Yii::$app->db->schema->refreshTableSchema(Track::tableName());
         $trackObj = new Track();
         $trackObj->parent_id = $parentId;
         $trackObj->parent_type = $parentType;
