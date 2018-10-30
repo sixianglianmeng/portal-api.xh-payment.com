@@ -1621,6 +1621,7 @@ INSERT IGNORE p_tag_relations(`tag_id`, `tag_name`, `object_id`, `object_type`)
             }
             $query->andWhere(['merchant_id'=>$childList]);
         }
+        $query->orderBy('created_at desc');
         //生成分页数据
         $p = new ActiveDataProvider([
             'query' => $query,
