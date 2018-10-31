@@ -106,7 +106,7 @@ class OrderController extends BaseController
         $sorts = [
             'created_at-'=>['created_at',SORT_DESC],
         ];
-
+        Yii::$app->db->schema->refreshTableSchema(Order::tableName());
         $sort = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 15, Macro::CONST_PARAM_TYPE_SORT, '分页参数错误',[1,100]);
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
         $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100000]);
@@ -118,6 +118,7 @@ class OrderController extends BaseController
         $merchantNo = ControllerParameterValidator::getRequestParam($this->allParams, 'merchantNo', '',Macro::CONST_PARAM_TYPE_ALNUM_DASH_UNDERLINE,'商户编号错误',[0,32]);
 
         $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status',[],Macro::CONST_PARAM_TYPE_ARRAY,'订单状态错误',[0,100]);
+        $track_type = ControllerParameterValidator::getRequestParam($this->allParams, 'track_type',[],Macro::CONST_PARAM_TYPE_ARRAY,'冻结类型错误',[0,100]);
 
         $method = ControllerParameterValidator::getRequestParam($this->allParams, 'method','',Macro::CONST_PARAM_TYPE_ARRAY,'支付类型错误',[0,100]);
 
@@ -183,7 +184,9 @@ class OrderController extends BaseController
         if(!empty($status)){
             $query->andwhere(['status' => $status]);
         }
-
+        if(!empty($track_type)){
+            $query->andWhere(['track_type'=>$track_type]);
+        }
         if(!empty($channelAccount)){
             $query->andwhere(['channel_account_id' => $channelAccount]);
         }
@@ -311,6 +314,13 @@ class OrderController extends BaseController
             $records[$i]['settlement_type'] = $d->settlement_type;
             $records[$i]['expect_settlement_at'] = date('Y-m-d H:i:s',$d->expect_settlement_at);
             $records[$i]['settlement_at'] = $d->settlement_at?date('Y-m-d H:i:s',$d->settlement_at):'';
+            $records[$i]['track_type'] = $d->track_type;
+            $records[$i]['track_type_str'] = Order::ARR_TRACK_TYPE[$d->track_type];
+            $records[$i]['track_note'] = '';
+            if(!empty($d->track_note)){
+                $tmp = json_decode($d->track_note,true);
+                $records[$i]['track_note'] = implode('<br />',$tmp);
+            }
             if($d->notify_status === Order::NOTICE_STATUS_FAIL) $records[$i]['notify_ret'] = $d->notify_ret;
         }
 
@@ -375,6 +385,7 @@ class OrderController extends BaseController
                 'notifyStatusOptions'=>Util::addAllLabelToOptionList(Order::ARR_NOTICE_STATUS,true),
                 'channelAccountOptions'=>Util::addAllLabelToOptionList($channelAccountOptions,true),
                 'methodOptions'=> Util::addAllLabelToOptionList(Channel::ARR_METHOD,true),
+                'trackTypeOptions'=>Order::ARR_TRACK_TYPE,
                 'amount'=> $minMoney,
             ),
             'summery'=>$summery,
@@ -486,7 +497,6 @@ class OrderController extends BaseController
         $sorts = [
             'created_at-'=>['created_at',SORT_DESC],
         ];
-
         $sort = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 15, Macro::CONST_PARAM_TYPE_SORT, '分页参数错误',[1,100]);
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
         $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100000]);
