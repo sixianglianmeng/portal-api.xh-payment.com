@@ -25,6 +25,7 @@ use Overtrue\Pinyin\Pinyin;
 use power\yii2\exceptions\ParameterValidationExpandException;
 use Yii;
 use yii\data\ActiveDataProvider;
+use yii\db\IntegrityException;
 use yii\db\Query;
 use yii\helpers\ArrayHelper;
 
@@ -215,7 +216,15 @@ class UserController extends BaseController
             $user->status = $data['status'];
             $user->account_open_fee = $accountOpenFee;
             $user->account_open_fee_status = AccountOpenFee::STATUS_UNPAID;
-            $user->save();
+
+            try{
+                $user->save();
+            }catch (IntegrityException $e){
+                throw new OperationFailureException("用户{$user->username} ID保存失败,请重试!",$e->getCode());
+            } catch (\Exception $e){
+                Yii::error("用户保存失败: ".$e->getMessage());
+                throw new OperationFailureException("服务器繁忙,请稍候再试!",$e->getCode());
+            }
 
             if (!$id) {
                 $userPayment->user_id     = $user->id;

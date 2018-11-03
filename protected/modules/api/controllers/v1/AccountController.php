@@ -24,6 +24,7 @@ use app\lib\helpers\ResponseHelper;
 use app\modules\api\controllers\BaseController;
 use Yii;
 use yii\data\ActiveDataProvider;
+use yii\db\IntegrityException;
 use yii\db\Query;
 use yii\helpers\ArrayHelper;
 
@@ -186,7 +187,14 @@ class AccountController extends BaseController
 
             $user->group_id = $data['group_id'];
             $user->status = User::STATUS_INACTIVE;
-            $user->save();
+            try{
+                $user->save();
+            }catch (IntegrityException $e){
+                throw new OperationFailureException("用户{$user->username} ID保存失败,请重试!",$e->getCode());
+            } catch (\Exception $e){
+                Yii::error("用户保存失败: ".$e->getMessage());
+                throw new OperationFailureException("服务器繁忙,请稍候再试!",$e->getCode());
+            }
 
             if (!$id) {
                 $userPayment->user_id     = $user->id;
