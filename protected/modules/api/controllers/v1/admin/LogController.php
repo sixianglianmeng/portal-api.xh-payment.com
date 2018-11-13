@@ -10,6 +10,8 @@ namespace app\modules\api\controllers\v1\admin;
 use app\common\models\model\LogApiRequest;
 use app\common\models\model\LogOperation;
 use app\common\models\model\LogSystem;
+use app\common\models\model\Order;
+use app\common\models\model\Remit;
 use app\components\Macro;
 use app\lib\helpers\ControllerParameterValidator;
 use app\lib\helpers\ResponseHelper;
@@ -65,39 +67,57 @@ class LogController extends BaseController
 
         $sort = ControllerParameterValidator::getRequestParam($this->allParams, 'sort', 15, Macro::CONST_PARAM_TYPE_SORT, '分页参数错误',[1,100]);
         $perPage = ControllerParameterValidator::getRequestParam($this->allParams, 'limit', Macro::PAGINATION_DEFAULT_PAGE_SIZE, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100]);
-        $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,100000]);
+        $page = ControllerParameterValidator::getRequestParam($this->allParams, 'page', 1, Macro::CONST_PARAM_TYPE_INT_GT_ZERO, '分页参数错误',[1,10000]);
 
-        $query = LogApiRequest::find();
+
+        $query = new \yii\mongodb\Query();
+        $query->from(LogApiRequest::collectionName());
         if($merchantName){
             $query->andWhere(['like','merchant_name',$merchantName]);
         }
+
         if($eventId){
-            $query->andWhere(['or',"event_id='{$eventId}'","merchant_order_no='{$eventId}'"]);
+            $eventIdArr = [$eventId];
+            $remits = (new \yii\db\Query())
+                ->select(["order_no"])
+                ->from(Remit::tableName())
+                ->andWhere(['channel_order_no'=>$eventId])
+                ->all();
+            foreach ($remits as $r){
+                $eventIdArr[] = $r['order_no'];
+            }
+
+            $orders = (new \yii\db\Query())
+                ->select(["order_no"])
+                ->from(Order::tableName())
+                ->andWhere(['channel_order_no'=>$eventId])
+                ->all();
+            foreach ($orders as $r){
+                $eventIdArr[] = $r['order_no'];
+            }
+
+            $query->andWhere(['or',["event_id"=>$eventIdArr],["merchant_order_no"=>$eventId],["channel_order_no"=>$eventId]]);
         }
         if($eventType){
             $query->andWhere(['event_type'=>$eventType]);
         }
+
         if ($dateStart) {
-            $query->andFilterCompare('created_at', '>=' . strtotime($dateStart));
+            $query->andFilterCompare('created_at',  strtotime($dateStart),'>=');
         }
         if ($dateEnd) {
-            $query->andFilterCompare('created_at', '<' . strtotime($dateEnd));
+            $query->andFilterCompare('created_at',   strtotime($dateEnd), '<');
         }
         if($merchantName){
-            $query->andWhere(['like','merchant_name',$merchantName]);
+            $query->andWhere(['merchant_name'=>$merchantName]);
         }
         if($merchantId){
             $query->andWhere(['merchant_id'=>$merchantId]);
         }
 
-        $sorts = [
-            'created_at-'=>['created_at',SORT_DESC],
-        ];
-        if(!empty($sorts[$sort])){
-            $sort = $sorts[$sort];
-        }else{
-            $sort =['created_at',SORT_DESC];
-        }
+        $orderBy = 'created_at desc';
+        $query->orderBy($orderBy);
+
         //生成分页数据
         $p = new ActiveDataProvider([
             'query' => $query,
@@ -105,18 +125,15 @@ class LogController extends BaseController
                 'pageSize' => $perPage,
                 'page' => $page-1,
             ],
-            'sort' => [
-                'defaultOrder' => [
-                    $sort[0] => $sort[1],
-                ]
-            ],
         ]);
 
         $records=[];
         foreach ($p->getModels() as $i=>$d){
-            $records[$i] = $d->toArray();
-            $records[$i]['created_at'] = date('Ymd H:i:s',$d->created_at);
-            $records[$i]['event_type_str'] = LogApiRequest::getEventTypeStr($d->event_type);
+            $d['id'] = (string)$d['_id'];
+            unset($d['_id']);
+            $records[$i] = $d;
+            $records[$i]['created_at'] = date('Ymd H:i:s',$d['created_at']);
+            $records[$i]['event_type_str'] = LogApiRequest::getEventTypeStr($d['event_type']);
         }
         $form['options']['event_type'] = ArrayHelper::merge([Macro::SELECT_OPTION_ALL=>'全部'],LogApiRequest::ARR_EVENT_TYPE);
         //分页数据
