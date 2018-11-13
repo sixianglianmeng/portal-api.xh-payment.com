@@ -24,6 +24,12 @@ $config = \yii\helpers\ArrayHelper::merge(
                 'port' => 63780,
                 'database' => 0,
             ],
+            'mongodb' => [
+                'class' => '\yii\mongodb\Connection',
+                'dsn'    => 'mongodb://xh:7a9eed2224f0d0eb486f5@10.140.0.7/xh',
+                'enableLogging' => true, // enable logging
+                'enableProfiling' => true, // enable profiling
+            ],
         ],
         'params'    => [
         ]

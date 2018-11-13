@@ -3,6 +3,7 @@
 namespace app\common\models\model;
 
 use Yii;
+use yii\mongodb\ActiveRecord;
 
 /**
  * This is the model class for table "p_log_api_request".
@@ -27,7 +28,7 @@ use Yii;
  * @property int $deleted_at 记录软删除时间
  * @property string $bak 备注
  */
-class LogApiRequest extends BaseModel
+class LogApiRequest extends ActiveRecord
 {
     const EVENT_TYPE_IN_RECHARGE_ADD = 101;
     const EVENT_TYPE_IN_RECHARGE_RETURN = 102;
@@ -76,9 +77,18 @@ class LogApiRequest extends BaseModel
     /**
      * @inheritdoc
      */
-    public static function tableName()
+//    public static function tableName()
+    public static function collectionName()
     {
-        return 'p_log_api_request';
+        return 'log_api_request';
+    }
+
+    /**
+     * @return array list of attribute names.
+     */
+    public function attributes()
+    {
+        return ['_id', 'id','merchant_id','merchant_name','channel_account_id','channel_name','event_type','event_id','request_url','request_method','post_data','response_data','http_status','remote_ip','referer','useragent','device_id','created_at'=>'int','updated_at'=>'int','deleted_at'=>'int','cost_time'=>'int','bak','merchant_order_no'];
     }
 
     /*
