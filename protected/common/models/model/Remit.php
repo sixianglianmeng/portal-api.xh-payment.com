@@ -38,7 +38,8 @@ class Remit extends BaseModel
 {
     //默认单次最大提款金额
     const MAX_REMIT_PER_TIME = 49999;
-    //0未处理 10 已审核 20账户已扣款 30银行处理中 40 成功已出款 50处理失败已退款 60处理失败未退款 -10 提交银行失败 -20 银行处理失败
+    //0未处理 10 已审核 20账户已扣款 30银行处理中 40 成功已出款 50处理失败已退款 60处理失败未退款 -10 提交银行失败 -20 银行处理失败  -30未受理
+    const STATUS_REJECTED=-30;
     const STATUS_BANK_PROCESS_FAIL=-20;
     const STATUS_BANK_NET_FAIL=-10;
     const STATUS_NONE=0;
@@ -58,6 +59,7 @@ class Remit extends BaseModel
     const FINANCIAL_STATUS_SUCCESS = 10;
 
     const ARR_STATUS = [
+        self::STATUS_REJECTED          => '未受理',
         self::STATUS_NONE              => '未扣款',
         self::STATUS_DEDUCT            => '已扣款未审核',
         self::STATUS_CHECKED           => '已审核',
@@ -87,6 +89,15 @@ class Remit extends BaseModel
         self::NOTICE_STATUS_FAIL=>'通知失败',
     ];
 
+    //订单类型
+    const TYPE_API = 1;
+    const TYPE_BACKEND = 2;
+    //订单类型 id=>描述
+    const ARR_TYPES = [
+        self::TYPE_API=>'API接口订单',
+        self::TYPE_BACKEND=>'后台订单',
+    ];
+    
     const STATUS_LIST_PROCESSING = [
         self::STATUS_NONE,
         self::STATUS_NOT_REFUND,
@@ -96,7 +107,7 @@ class Remit extends BaseModel
         self::STATUS_BANK_NET_FAIL,
         self::STATUS_BANK_PROCESS_FAIL
     ];
-//    const STATUS_LIST_FAIL = [self::STATUS_BANK_NET_FAIL,self::STATUS_BANK_PROCESS_FAIL];
+    const STATUS_LIST_FAIL = [self::STATUS_REJECTED,self::STATUS_REFUND];
 
     const MERCHANT_CHECK_STATUS_NONE = 0;
     const MERCHANT_CHECK_STATUS_CHECKED = 1;

@@ -21,10 +21,16 @@ class MerchantRechargeMethod extends BaseModel
         return '{{%merchant_recharge_methods}}';
     }
 
+    public function getChannel()
+    {
+        return $this->hasOne(Channel::class, ['id'=>'channel_id']);
+    }
+
     public function getChannelAccount()
     {
-        return $this->hasOne(ChannelAccount::className(), ['id'=>'channel_account_id']);
+        return $this->hasOne(ChannelAccount::class, ['id'=>'channel_account_id']);
     }
+
 
     /**
      * 获取渠道账户支付方式配置信息

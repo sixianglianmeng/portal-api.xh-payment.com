@@ -86,8 +86,16 @@ class Order extends BaseModel
         self::NOTICE_STATUS_FAIL=>'通知失败',
     ];
 
-    const FINANCIAL_STATUS_NONE = 0;
-    const FINANCIAL_STATUS_SUCCESS = 10;
+    //订单类型
+    const TYPE_API = 1;
+    const TYPE_BACKEND = 2;
+    const TYPE_ACCOUNT_OPEN = 3;
+    //订单类型 id=>描述
+    const ARR_TYPES = [
+        self::TYPE_API=>'API接口订单',
+        self::TYPE_BACKEND=>'后台内冲订单',
+        self::TYPE_ACCOUNT_OPEN=>'开户订单',
+    ];
 
     const TRACK_TPYE_ZORE = 0;
     const TRACK_TPYE_ONE = 1;
@@ -98,6 +106,8 @@ class Order extends BaseModel
         self::TRACK_TPYE_ONE => '涉案订单',
         self::TRACK_TPYE_TWO => '关联订单',
     ];
+    const FINANCIAL_STATUS_NONE = 0;
+    const FINANCIAL_STATUS_SUCCESS = 10;
 
     public static function getDb()
     {

@@ -33,7 +33,7 @@ class BankCodes extends BaseModel
      */
     public static function getBankList($channelIds)
     {
-        return self::find()->select('platform_bank_code,bank_name')->where(['in','channel_id',$channelIds])->cache(300)->distinct()->asArray()->all();
+        return self::find()->select('platform_bank_code,bank_name')->where(['in','channel_id',$channelIds])->cache(10)->distinct()->asArray()->all();
     }
 
     /**
@@ -41,7 +41,7 @@ class BankCodes extends BaseModel
      */
     public static function getRechargeBankList($channelIds)
     {
-        return self::find()->select('platform_bank_code,bank_name')->where(['in','channel_id',$channelIds])->andWhere(['can_recharge'=>1])->cache(300)->distinct()->asArray()->all();
+        return self::find()->select('platform_bank_code,bank_name')->where(['in','channel_id',$channelIds])->andWhere(['can_recharge'=>1])->cache(10)->distinct()->asArray()->all();
     }
 
     /**
@@ -49,7 +49,7 @@ class BankCodes extends BaseModel
      */
     public static function getRemitBankList($channelIds)
     {
-        return self::find()->select('platform_bank_code,bank_name')->where(['in','channel_id',$channelIds])->andWhere(['can_remit'=>1])->cache(300)->distinct()->asArray()->all();
+        return self::find()->select('platform_bank_code,bank_name')->where(['in','channel_id',$channelIds])->andWhere(['can_remit'=>1])->cache(10)->distinct()->asArray()->all();
     }
 
     /**

@@ -40,7 +40,8 @@ class SiteConfig extends BaseModel
      */
     public static function cacheGetContent($key)
     {
-        if(!empty(self::$_vals[$key])){
+        //cli模式下不使用静态变量存储,防止修改配置后无法更新
+        if(!(Yii::$app instanceof Yii\console\Application) && !empty(self::$_vals[$key])){
             return self::$_vals[$key];
         }
 

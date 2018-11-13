@@ -56,6 +56,20 @@ class ChannelAccount extends BaseModel
     }
 
     /**
+     * 当前是否支持充值
+     */
+    public function canRecharge(){
+        return in_array($this->status,[self::STATUS_ACTIVE,self::STATUS_REMIT_BANED]);
+    }
+
+    /**
+     * 当前是否支持出款
+     */
+    public function canRemit(){
+        return in_array($this->status,[self::STATUS_ACTIVE,self::STATUS_RECHARGE_BANED]);
+    }
+
+    /**
      * 获取appId对应的所有支付方式数组
      *
      * @return array
