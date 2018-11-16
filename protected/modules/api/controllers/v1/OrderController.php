@@ -376,7 +376,8 @@ class OrderController extends BaseController
                 }
             }
         }
-
+        $track_type_arr = Order::ARR_TRACK_TYPE;
+        unset($track_type_arr[Order::TRACK_TPYE_ZORE]);
         //格式化返回json结构
         $data = [
             'data'=>$records,
@@ -385,7 +386,7 @@ class OrderController extends BaseController
                 'notifyStatusOptions'=>Util::addAllLabelToOptionList(Order::ARR_NOTICE_STATUS,true),
                 'channelAccountOptions'=>Util::addAllLabelToOptionList($channelAccountOptions,true),
                 'methodOptions'=> Util::addAllLabelToOptionList(Channel::ARR_METHOD,true),
-                'trackTypeOptions'=>Order::ARR_TRACK_TYPE,
+                'trackTypeOptions'=>$track_type_arr,
                 'amount'=> $minMoney,
             ),
             'summery'=>$summery,
