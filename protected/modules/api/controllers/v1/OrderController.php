@@ -119,6 +119,7 @@ class OrderController extends BaseController
 
         $status = ControllerParameterValidator::getRequestParam($this->allParams, 'status',[],Macro::CONST_PARAM_TYPE_ARRAY,'订单状态错误',[0,100]);
         $track_type = ControllerParameterValidator::getRequestParam($this->allParams, 'track_type',[],Macro::CONST_PARAM_TYPE_ARRAY,'冻结类型错误',[0,100]);
+        $category = ControllerParameterValidator::getRequestParam($this->allParams, 'category',[],Macro::CONST_PARAM_TYPE_ARRAY,'订单类型错误',[0,100]);
 
         $method = ControllerParameterValidator::getRequestParam($this->allParams, 'method','',Macro::CONST_PARAM_TYPE_ARRAY,'支付类型错误',[0,100]);
 
@@ -186,6 +187,9 @@ class OrderController extends BaseController
         }
         if(!empty($track_type)){
             $query->andWhere(['track_type'=>$track_type]);
+        }
+        if(!empty($category)){
+            $query->andWhere(['category'=>$category]);
         }
         if(!empty($channelAccount)){
             $query->andwhere(['channel_account_id' => $channelAccount]);
@@ -314,6 +318,8 @@ class OrderController extends BaseController
             $records[$i]['settlement_type'] = $d->settlement_type;
             $records[$i]['expect_settlement_at'] = date('Y-m-d H:i:s',$d->expect_settlement_at);
             $records[$i]['settlement_at'] = $d->settlement_at?date('Y-m-d H:i:s',$d->settlement_at):'';
+            $records[$i]['category'] = $d->category;
+            $records[$i]['category_str'] = Order::ARR_CATEGORY[$d->category];
             $records[$i]['track_type'] = $d->track_type;
             $records[$i]['track_type_str'] = Order::ARR_TRACK_TYPE[$d->track_type];
             $records[$i]['track_note'] = '';
@@ -378,6 +384,8 @@ class OrderController extends BaseController
         }
         $track_type_arr = Order::ARR_TRACK_TYPE;
         unset($track_type_arr[Order::TRACK_TPYE_ZORE]);
+        $category_arr = Order::ARR_CATEGORY;
+        unset($category_arr[Order::CATEGORY_ZORE]);
         //格式化返回json结构
         $data = [
             'data'=>$records,
@@ -387,6 +395,7 @@ class OrderController extends BaseController
                 'channelAccountOptions'=>Util::addAllLabelToOptionList($channelAccountOptions,true),
                 'methodOptions'=> Util::addAllLabelToOptionList(Channel::ARR_METHOD,true),
                 'trackTypeOptions'=>$track_type_arr,
+                'categoryOptions'=>$category_arr,
                 'amount'=> $minMoney,
             ),
             'summery'=>$summery,

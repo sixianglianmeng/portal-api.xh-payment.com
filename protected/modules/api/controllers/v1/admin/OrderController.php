@@ -80,6 +80,7 @@ class OrderController extends BaseController
         $idList = ControllerParameterValidator::getRequestParam($this->allParams, 'idList', null, Macro::CONST_PARAM_TYPE_ARRAY, '订单ID错误');
         $track_type = ControllerParameterValidator::getRequestParam($this->allParams, 'track_type', null, Macro::CONST_PARAM_TYPE_INT, '冻结类型错误');
         $type = ControllerParameterValidator::getRequestParam($this->allParams, 'type', null, Macro::CONST_PARAM_TYPE_STRING, '类型错误');
+        $category = ControllerParameterValidator::getRequestParam($this->allParams, 'category', null, Macro::CONST_PARAM_TYPE_STRING, '订单类型错误');
         if($type == 'edit'){
             $user = Yii::$app->user->identity;
             $orderInfo = Order::find()->where(['id'=>$idList[0],'status'=>30])->one();
@@ -92,6 +93,7 @@ class OrderController extends BaseController
             }
             $tmp[] = $user->username.' set track type form '.Order::ARR_TRACK_TYPE[$orderInfo->track_type] .' to ' .Order::ARR_TRACK_TYPE[$track_type] . ' time:' .date('Ymd H:i:s');
             $orderInfo->track_type = $track_type;
+            $orderInfo->category = $category;
             $orderInfo->track_note = json_encode($tmp,JSON_UNESCAPED_UNICODE);
             $orderInfo->save();
             return ResponseHelper::formatOutput(Macro::SUCCESS,'操作成功');
@@ -124,6 +126,7 @@ class OrderController extends BaseController
             $orderOpList[] = ['order_no'=>$order['order_no']];
         }
         $orderOpList['track_type'] = $track_type;
+        $orderOpList['category'] = $category;
         RpcPaymentGateway::setOrderFrozen($orderOpList);
 
         return ResponseHelper::formatOutput(Macro::SUCCESS, '冻结成功');

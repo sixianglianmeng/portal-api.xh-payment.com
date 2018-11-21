@@ -106,6 +106,15 @@ class Order extends BaseModel
         self::TRACK_TPYE_ONE => '涉案订单',
         self::TRACK_TPYE_TWO => '关联订单',
     ];
+
+    const CATEGORY_ZORE = 0;
+    const CATEGORY_ONE = 1;
+    const CATEGORY_TWO = 2;
+    const ARR_CATEGORY = [
+        self::CATEGORY_ZORE => '正常',
+        self::CATEGORY_ONE => '协查',
+        self::CATEGORY_TWO => '投诉',
+    ];
     const FINANCIAL_STATUS_NONE = 0;
     const FINANCIAL_STATUS_SUCCESS = 10;
 
